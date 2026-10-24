@@ -1,0 +1,12 @@
+﻿legacy_id,email,first_name,display_name,phone,area,interests,status,email_confirmed,email_updates,created_at
+m1,Aisha.Fixture@Example.test,Aisha,Aish,+971 50 000 0001,Al Reem Island,wellness;majlis,approved,true,true,2025-01-10T09:00:00Z
+m2,bina.fixture@example.test,Bina,,not-a-phone,Yas Island,culture,active,true,false,2025-02-11T10:00:00Z
+m3,carla.fixture@example.test,Carla,,,,,pending,false,false,
+m4,dana.fixture@example.test,Dana,,,,,rejected,true,false,
+m5,not-an-email,Eve,,,,,approved,true,false,
+m6,aisha.fixture@example.test,Duplicate,,,,,approved,true,false,
+m7,fay.fixture@example.test,,,,,,approved,true,false,
+m8,gina.fixture@example.test,Gina,,,,,banned,true,false,
+m1,another.fixture@example.test,SameId,,,,,approved,true,false,
+m9,existing.fixture@example.test,Existing,,,,,approved,true,false,
+m10,hana.fixture@example.test,Hana,,,,,approved,true,false,2025-03-01

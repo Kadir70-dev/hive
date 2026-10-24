@@ -26,6 +26,7 @@ import (
 	"thehivesociety/api/internal/migrate"
 	"thehivesociety/api/internal/password"
 	"thehivesociety/api/internal/ratelimit"
+	"thehivesociety/api/internal/storage"
 )
 
 func main() {
@@ -165,6 +166,43 @@ func run(log *slog.Logger) error {
 		log.Warn("MFA_ENCRYPTION_KEY not set; admins cannot enrol two-factor authentication, so admin routes stay locked")
 	}
 	appURL := env("PUBLIC_APP_URL", "https://thehivesociety.ae")
+	metricsToken := os.Getenv("METRICS_TOKEN")
+	if metricsToken != "" && len(metricsToken) < 32 {
+		return errors.New("METRICS_TOKEN must be at least 32 characters")
+	}
+
+	// Profile photos (Cloudflare R2, S3-compatible). Optional: without it the
+	// API answers photo requests with 503 and the UI hides photo controls.
+	var store storage.Store
+	if os.Getenv("R2_ENDPOINT") != "" {
+		s3, err := storage.NewS3(storage.Config{Endpoint: os.Getenv("R2_ENDPOINT"), Bucket: os.Getenv("R2_BUCKET"),
+			AccessKeyID: os.Getenv("R2_ACCESS_KEY_ID"), SecretAccessKey: os.Getenv("R2_SECRET_ACCESS_KEY"), Region: env("R2_REGION", "auto")})
+		if err != nil {
+			return err
+		}
+		if err := s3.Ping(ctx); err != nil {
+			log.Warn("R2 not reachable at startup; photo requests will fail until it is", "err", err)
+		}
+		store = s3
+	} else {
+		log.Warn("R2_ENDPOINT not set; profile photos are disabled")
+	}
+
+	// Audit retention is off unless explicitly configured (pending legal approval).
+	var auditRetention time.Duration
+	if v := os.Getenv("AUDIT_RETENTION_DAYS"); v != "" && v != "0" {
+		days, err := strconv.Atoi(v)
+		if err != nil || days < 1 {
+			return fmt.Errorf("AUDIT_RETENTION_DAYS: invalid value %q", v)
+		}
+		auditRetention = time.Duration(days) * 24 * time.Hour
+		if auditRetention < maintenance.MinAuditRetention {
+			return fmt.Errorf("AUDIT_RETENTION_DAYS must be at least %d", int(maintenance.MinAuditRetention.Hours()/24))
+		}
+		log.Info("audit retention enabled", "days", days)
+	} else {
+		log.Info("audit retention disabled; audit events are kept until AUDIT_RETENTION_DAYS is set")
+	}
 
 	secureCookies := os.Getenv("COOKIE_SECURE") != "false"
 	if secureCookies && len(origins) == 0 {
@@ -175,7 +213,7 @@ func run(log *slog.Logger) error {
 		DB: db, Redis: rdb, Hasher: password.NewHasher(hashConcurrency), Limiter: ratelimit.New(rdb, log),
 		IPs: ips, Log: log, SecureCookies: secureCookies, AllowedOrigins: origins,
 		RequestTimeout: reqTimeout, MaxBodyBytes: int64(maxBody), Limits: httpapi.DefaultLimits(),
-		AppURL: appURL, MFACipher: mfaCipher,
+		AppURL: appURL, MFACipher: mfaCipher, Store: store, MetricsToken: metricsToken,
 	})
 	srv := &http.Server{
 		Addr:              ":" + env("PORT", "8080"),
@@ -194,7 +232,7 @@ func run(log *slog.Logger) error {
 	bgCtx, stopBG := context.WithCancel(context.Background())
 	defer stopBG()
 	go (&mail.Worker{DB: db, Sender: sender, Log: log}).Run(bgCtx, 5*time.Second)
-	go maintenance.Run(bgCtx, db, log, time.Hour)
+	go maintenance.Run(bgCtx, db, log, time.Hour, maintenance.Options{AuditRetention: auditRetention, Store: store})
 
 	errCh := make(chan error, 1)
 	go func() {

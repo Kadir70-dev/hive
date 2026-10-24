@@ -4,13 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
 	"thehivesociety/api/internal/mail"
 	"thehivesociety/api/internal/password"
 	"thehivesociety/api/internal/ratelimit"
+	"thehivesociety/api/internal/tokens"
 )
 
 const (
@@ -23,19 +23,8 @@ type execQuerier interface {
 	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
 }
 
-// issueToken invalidates earlier unused tokens of the same purpose and stores
-// a new hashed one. The raw token is returned only to be emailed.
 func issueToken(ctx context.Context, q execQuerier, userID, purpose string, ttl time.Duration) (string, error) {
-	if _, err := q.ExecContext(ctx, `UPDATE email_tokens SET used_at=now() WHERE user_id=$1 AND purpose=$2 AND used_at IS NULL`, userID, purpose); err != nil {
-		return "", err
-	}
-	token, err := randomToken()
-	if err != nil {
-		return "", err
-	}
-	_, err = q.ExecContext(ctx, `INSERT INTO email_tokens(token_hash,user_id,purpose,expires_at) VALUES($1,$2,$3,now()+$4::interval)`,
-		digest(token), userID, purpose, fmt.Sprintf("%d seconds", int(ttl.Seconds())))
-	return token, err
+	return tokens.Issue(ctx, q, userID, purpose, ttl)
 }
 
 // consumeToken atomically marks a valid token used and returns its owner.

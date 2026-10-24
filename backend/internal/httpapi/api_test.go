@@ -23,17 +23,38 @@ import (
 	"thehivesociety/api/internal/mfa"
 	"thehivesociety/api/internal/password"
 	"thehivesociety/api/internal/ratelimit"
+	"thehivesociety/api/internal/storage"
 	"thehivesociety/api/internal/testdb"
 )
 
 const (
 	origin      = "https://thehivesociety.ae"
 	testMFAKey  = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
+	testMetricsToken = "test-metrics-token-0123456789abcdef"
 	proxySecret = "test-proxy-secret-0123456789abcdef"
 	goodPass    = "a-long-enough-password"
 )
 
+// syncBuffer collects API logs so tests can assert what is (not) logged.
+type syncBuffer struct {
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
+func (b *syncBuffer) Write(p []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.buf.Write(p)
+}
+
+func (b *syncBuffer) String() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.buf.String()
+}
+
 type env struct {
+	logs *syncBuffer
 	t   *testing.T
 	db  *sql.DB
 	mr  *miniredis.Miniredis
@@ -58,6 +79,12 @@ func newEnv(t *testing.T, mutate func(*httpapi.Limits), hashSlots int) *env {
 
 func newEnvWith(t *testing.T, mutate func(*httpapi.Limits), hashSlots int, withMFA bool) *env {
 	t.Helper()
+	return newEnvStore(t, mutate, hashSlots, withMFA, nil)
+}
+
+// newEnvStore also wires a photo store (nil disables photos).
+func newEnvStore(t *testing.T, mutate func(*httpapi.Limits), hashSlots int, withMFA bool, store storage.Store) *env {
+	t.Helper()
 	db := testdb.Open(t)
 	mr := miniredis.RunT(t)
 	rdb := redis.NewClient(&redis.Options{Addr: mr.Addr(), MaxRetries: -1, DialTimeout: 100 * time.Millisecond})
@@ -70,7 +97,8 @@ func newEnvWith(t *testing.T, mutate func(*httpapi.Limits), hashSlots int, withM
 	if err != nil {
 		t.Fatal(err)
 	}
-	log := slog.New(slog.NewTextHandler(io.Discard, nil))
+	logs := &syncBuffer{}
+	log := slog.New(slog.NewJSONHandler(logs, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	var cipher *mfa.Cipher
 	if withMFA {
 		if cipher, err = mfa.NewCipher(testMFAKey); err != nil {
@@ -78,11 +106,11 @@ func newEnvWith(t *testing.T, mutate func(*httpapi.Limits), hashSlots int, withM
 		}
 	}
 	h := httpapi.New(httpapi.Config{
-		AppURL: origin, MFACipher: cipher,
+		AppURL: origin, MFACipher: cipher, Store: store, ImageSlots: 2, MetricsToken: testMetricsToken,
 		DB: db, Redis: rdb, Hasher: password.NewHasher(hashSlots), Limiter: ratelimit.New(rdb, log), IPs: ips, Log: log,
 		SecureCookies: true, AllowedOrigins: []string{origin}, RequestTimeout: 10 * time.Second, MaxBodyBytes: 4096, Limits: lim,
 	})
-	return &env{t: t, db: db, mr: mr, h: h, lim: lim}
+	return &env{t: t, db: db, mr: mr, h: h, lim: lim, logs: logs}
 }
 
 type resp struct {

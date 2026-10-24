@@ -207,7 +207,13 @@ ON CONFLICT (blocker_id,blocked_id) DO UPDATE SET report_id=EXCLUDED.report_id, 
 		return
 	}
 	s.audit(r.Context(), s.db, own(r).ID, "block.create", id, "")
-	reply(w, 200, map[string]any{"ok": true})
+	// Tell the admin straight away if both already hold places somewhere.
+	var conflicts int
+	if err := s.db.QueryRowContext(r.Context(), `SELECT count(*) FROM (`+conflictQuery+` AND m.id=$1) c`, id).Scan(&conflicts); err != nil {
+		s.internal(w, r, "block applied; conflict check failed", err)
+		return
+	}
+	reply(w, 200, map[string]any{"ok": true, "conflicts": conflicts})
 }
 
 func (s *Server) removeBlock(w http.ResponseWriter, r *http.Request) {

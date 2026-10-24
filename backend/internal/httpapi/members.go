@@ -139,6 +139,13 @@ func (s *Server) deleteMe(w http.ResponseWriter, r *http.Request) {
 		err = s.notifyPromotions(r.Context(), tx, promoted)
 	}
 	if err == nil {
+		// The photo object outlives the row only until the cleanup job runs.
+		var photo sql.NullString
+		if err = tx.QueryRowContext(r.Context(), `SELECT avatar_path FROM users WHERE id=$1`, own(r).ID).Scan(&photo); err == nil {
+			err = queueDeletion(r.Context(), tx, photo.String)
+		}
+	}
+	if err == nil {
 		_, err = tx.ExecContext(r.Context(), "DELETE FROM users WHERE id=$1", own(r).ID)
 	}
 	if err == nil {

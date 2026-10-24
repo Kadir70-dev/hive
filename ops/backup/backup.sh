@@ -30,16 +30,34 @@ trap 'rm -f "$plain" "$dir/$name.partial"' EXIT
 
 log() { echo "backup: $(date -u +%FT%TZ) $*"; }
 
+# Failure alerting: record the failure (the health check turns unhealthy) and,
+# if BACKUP_ALERT_WEBHOOK is set, POST a small JSON alert. The payload holds no
+# secrets or data: service, status, failing step and time only.
+step="start"
+on_failure() {
+  date +%s > "$dir/last-failure"
+  log "ERROR: backup failed during step '$step'"
+  if [ -n "${BACKUP_ALERT_WEBHOOK:-}" ]; then
+    payload="{\"service\":\"hive-backup\",\"status\":\"failed\",\"step\":\"$step\",\"time\":\"$(date -u +%FT%TZ)\"}"
+    wget -q -T 10 -O /dev/null --header 'Content-Type: application/json' --post-data "$payload" "$BACKUP_ALERT_WEBHOOK" \
+      || log "WARNING: alert webhook could not be reached"
+  fi
+}
+trap on_failure ERR
+
+step="dump"
 log "dumping database ${PGDATABASE}"
 pg_dump --format=custom --compress=6 --no-password --file="$plain"
 
+step="verify"
 # Integrity: the archive's table of contents must be readable and non-empty.
 entries="$(pg_restore --list "$plain" | grep -vc '^;' || true)"
 if [ "${entries:-0}" -lt 1 ]; then
-  log "ERROR: dump has no restorable entries"; exit 1
+  log "ERROR: dump has no restorable entries"; false
 fi
 log "dump ok: $(stat -c %s "$plain") bytes, ${entries} archive entries"
 
+step="encrypt"
 age --encrypt --recipient "$BACKUP_AGE_RECIPIENT" --output "$dir/$name.partial" "$plain"
 rm -f "$plain"
 mv "$dir/$name.partial" "$dir/$name"
@@ -47,6 +65,7 @@ mv "$dir/$name.partial" "$dir/$name"
 log "encrypted backup written: $name"
 
 if [ -n "${BACKUP_RCLONE_REMOTE:-}" ]; then
+  step="offsite"
   rclone copyto --immutable "$dir/$name" "$BACKUP_RCLONE_REMOTE/$name"
   rclone copyto --immutable "$dir/$name.sha256" "$BACKUP_RCLONE_REMOTE/$name.sha256"
   rclone check --one-way "$dir" "$BACKUP_RCLONE_REMOTE" --include "$name" --include "$name.sha256"
@@ -56,7 +75,9 @@ else
   log "WARNING: BACKUP_RCLONE_REMOTE not set; backups are only on this server"
 fi
 
+step="retention"
 # Retention: only files this script creates are ever deleted.
 find "$dir" -maxdepth 1 -type f -name 'hive-*.dump.age*' -mtime +"$retention" -print -delete | sed 's/^/backup: expired /'
 date +%s > "$dir/last-success"
+rm -f "$dir/last-failure"
 log "done"
