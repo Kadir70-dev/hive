@@ -4,6 +4,7 @@ package httpapi
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"thehivesociety/api/internal/clientip"
+	"thehivesociety/api/internal/mfa"
 	"thehivesociety/api/internal/password"
 	"thehivesociety/api/internal/ratelimit"
 )
@@ -23,7 +25,11 @@ type Limits struct {
 	SignupPerIP     ratelimit.Rule
 	LoginPerAccount ratelimit.Rule // counts failed logins per email
 	APIPerIP        ratelimit.Rule
-	HashWait        time.Duration // how long a request may wait for a hashing slot
+	TokenPerIP      ratelimit.Rule // verify/reset/forgot/resend calls per IP
+	EmailPerAccount ratelimit.Rule // verification or reset emails per address
+	ExistsNotice    ratelimit.Rule // "account exists" notices per address
+	MFAPerAccount   ratelimit.Rule // failed TOTP/recovery attempts per admin
+	HashWait        time.Duration  // how long a request may wait for a hashing slot
 }
 
 // DefaultLimits are the production limits.
@@ -33,8 +39,36 @@ func DefaultLimits() Limits {
 		SignupPerIP:     ratelimit.Rule{Name: "signup-ip", Limit: 10, Window: time.Hour},
 		LoginPerAccount: ratelimit.Rule{Name: "login-acct", Limit: 5, Window: 15 * time.Minute},
 		APIPerIP:        ratelimit.Rule{Name: "api-ip", Limit: 600, Window: time.Minute},
+		TokenPerIP:      ratelimit.Rule{Name: "token-ip", Limit: 20, Window: 15 * time.Minute},
+		EmailPerAccount: ratelimit.Rule{Name: "email-acct", Limit: 3, Window: time.Hour},
+		ExistsNotice:    ratelimit.Rule{Name: "exists-acct", Limit: 1, Window: time.Hour},
+		MFAPerAccount:   ratelimit.Rule{Name: "mfa-acct", Limit: 5, Window: 15 * time.Minute},
 		HashWait:        3 * time.Second,
 	}
+}
+
+// withDefaults fills any unset rule field (limit, name, window) from DefaultLimits.
+func withDefaults(l Limits) Limits {
+	d := DefaultLimits()
+	for _, p := range []struct{ got, def *ratelimit.Rule }{
+		{&l.LoginPerIP, &d.LoginPerIP}, {&l.SignupPerIP, &d.SignupPerIP}, {&l.LoginPerAccount, &d.LoginPerAccount},
+		{&l.APIPerIP, &d.APIPerIP}, {&l.TokenPerIP, &d.TokenPerIP}, {&l.EmailPerAccount, &d.EmailPerAccount},
+		{&l.ExistsNotice, &d.ExistsNotice}, {&l.MFAPerAccount, &d.MFAPerAccount},
+	} {
+		if p.got.Limit <= 0 {
+			p.got.Limit = p.def.Limit
+		}
+		if p.got.Name == "" {
+			p.got.Name = p.def.Name
+		}
+		if p.got.Window <= 0 {
+			p.got.Window = p.def.Window
+		}
+	}
+	if l.HashWait <= 0 {
+		l.HashWait = d.HashWait
+	}
+	return l
 }
 
 // Config wires the API's dependencies.
@@ -50,6 +84,11 @@ type Config struct {
 	RequestTimeout time.Duration // bounds handler + database work per request
 	MaxBodyBytes   int64
 	Limits         Limits
+	AppURL         string        // public site origin used in email links
+	MFACipher      *mfa.Cipher   // nil disables admin MFA enrolment (admin routes then stay locked)
+	VerifyTTL      time.Duration // email verification link lifetime (default 24h)
+	ResetTTL       time.Duration // password reset link lifetime (default 30m)
+	MFAWindow      time.Duration // how long a TOTP step-up lasts on a session (default 12h)
 }
 
 // Server holds handler state.
@@ -65,6 +104,12 @@ type Server struct {
 	timeout time.Duration
 	maxBody int64
 	limits  Limits
+
+	appURL    string
+	mfaCipher *mfa.Cipher
+	verifyTTL time.Duration
+	resetTTL  time.Duration
+	mfaWindow string // Postgres interval literal
 }
 
 // New builds the HTTP handler.
@@ -72,8 +117,22 @@ func New(c Config) http.Handler {
 	s := &Server{
 		db: c.DB, rdb: c.Redis, hasher: c.Hasher, limiter: c.Limiter, ips: c.IPs, log: c.Log,
 		secure: c.SecureCookies, origins: map[string]bool{}, timeout: c.RequestTimeout,
-		maxBody: c.MaxBodyBytes, limits: c.Limits,
+		maxBody: c.MaxBodyBytes, limits: c.Limits, appURL: c.AppURL, mfaCipher: c.MFACipher,
+		verifyTTL: c.VerifyTTL, resetTTL: c.ResetTTL,
 	}
+	if s.appURL == "" {
+		s.appURL = "https://thehivesociety.ae"
+	}
+	if s.verifyTTL <= 0 {
+		s.verifyTTL = 24 * time.Hour
+	}
+	if s.resetTTL <= 0 {
+		s.resetTTL = 30 * time.Minute
+	}
+	if c.MFAWindow <= 0 {
+		c.MFAWindow = 12 * time.Hour
+	}
+	s.mfaWindow = fmt.Sprintf("%d seconds", int(c.MFAWindow.Seconds()))
 	if s.log == nil {
 		s.log = slog.Default()
 	}
@@ -92,9 +151,7 @@ func New(c Config) http.Handler {
 	if s.maxBody <= 0 {
 		s.maxBody = 64 << 10
 	}
-	if s.limits == (Limits{}) {
-		s.limits = DefaultLimits()
-	}
+	s.limits = withDefaults(s.limits)
 	for _, o := range c.AllowedOrigins {
 		if o != "" {
 			s.origins[o] = true
@@ -114,6 +171,10 @@ func (s *Server) routes() http.Handler {
 		r.Post("/login", s.login)
 		r.Post("/logout", s.logout)
 		r.Post("/founding-signups", s.foundingSignup)
+		r.Post("/verify-email", s.verifyEmail)
+		r.Post("/verify-email/resend", s.resendVerification)
+		r.Post("/password/forgot", s.forgotPassword)
+		r.Post("/password/reset", s.resetPassword)
 		r.Group(func(r chi.Router) {
 			r.Use(s.requireUser)
 			r.Get("/me", s.me)
@@ -128,6 +189,12 @@ func (s *Server) routes() http.Handler {
 			r.Post("/blocks", s.block)
 			r.Delete("/blocks/{id}", s.unblock)
 			r.Post("/reports", s.report)
+			r.Route("/mfa", func(r chi.Router) {
+				r.Use(s.requireAdminAccount)
+				r.Post("/totp/setup", s.mfaSetup)
+				r.Post("/totp/enable", s.mfaEnable)
+				r.Post("/verify", s.mfaVerify)
+			})
 			r.Route("/admin", func(r chi.Router) {
 				r.Use(s.requireAdmin)
 				r.Get("/members", s.members)

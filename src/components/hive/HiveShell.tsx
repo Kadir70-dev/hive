@@ -22,6 +22,9 @@ export type Me = {
   isAdmin: boolean;
   display_name?: string;
   email_updates?: boolean;
+  email_verified?: boolean;
+  mfa_enabled?: boolean;
+  mfa_verified?: boolean;
 };
 
 export const meQuery = { queryKey: ["me"], queryFn: async (): Promise<Me|null> => {

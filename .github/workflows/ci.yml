@@ -66,6 +66,20 @@ jobs:
           NEXT_TELEMETRY_DISABLED: "1"
           HIVE_API_INTERNAL_URL: https://api.example.invalid
         run: npm run build
+      - name: Security headers smoke test (production server)
+        env:
+          HIVE_API_INTERNAL_URL: http://127.0.0.1:9
+        run: |
+          npx next start -p 3917 > next.log 2>&1 &
+          for i in $(seq 1 30); do curl -fs -o /dev/null http://127.0.0.1:3917/auth && break; sleep 1; done
+          page=$(curl -fsS -D - -o page.html http://127.0.0.1:3917/auth)
+          echo "$page" | grep -qi "content-security-policy:.*'nonce-.*'strict-dynamic'"
+          echo "$page" | grep -qi '^x-frame-options: DENY'
+          echo "$page" | grep -qi '^strict-transport-security: max-age='
+          grep -q 'nonce="' page.html
+          curl -fsS -D - -o /dev/null http://127.0.0.1:3917/hive.html | grep -qi "content-security-policy:.*'sha256-"
+          curl -sS -D - -o /dev/null http://127.0.0.1:3917/api/backend/me | grep -qi "content-security-policy: default-src 'none'"
+          if curl -sS -D - -o /dev/null http://127.0.0.1:3917/auth | grep -qi '^x-powered-by'; then echo "x-powered-by leaked"; exit 1; fi
 
   infrastructure:
     name: Infrastructure (Compose, Docker, migrations)
@@ -84,6 +98,8 @@ jobs:
       POSTGRES_PASSWORD: ci-dummy
       REDIS_PASSWORD: ci-dummy
       HIVE_PROXY_SHARED_SECRET: ci-dummy-secret-not-used-anywhere-0123
+      MAIL_PROVIDER: log
+      MFA_ENCRYPTION_KEY: Y2ktZHVtbXkta2V5LW5vdC1hLXNlY3JldC0wMTIzNDU=
       PGPASSWORD: ci-only-test-password
       PGHOST: localhost
       PGUSER: postgres
@@ -102,6 +118,16 @@ jobs:
           docker run --rm --network host -e DATABASE_URL="$DB" --entrypoint migrate hive-api:ci up | tee second-run.txt
           grep -q 'no pending migrations' second-run.txt
           docker run --rm --network host -e DATABASE_URL="$DB" --entrypoint migrate hive-api:ci status
+      - name: Admin CLI refuses unverified or non-allowlisted accounts
+        run: |
+          DB="$DB_BASE/hive_fresh?sslmode=disable"
+          psql -d hive_fresh -c "INSERT INTO users(email,password_hash,first_name) VALUES('owner@example.test','x','Owner')"
+          run_admin() { docker run --rm --network host -e DATABASE_URL="$DB" -e HIVE_ADMIN_EMAILS=owner@example.test --entrypoint admin hive-api:ci "$@"; }
+          if run_admin promote --email owner@example.test; then echo "promoted an unverified account"; exit 1; fi
+          if run_admin promote --email someone@example.test; then echo "promoted a non-allowlisted account"; exit 1; fi
+          psql -d hive_fresh -c "UPDATE users SET email_verified_at=now() WHERE email='owner@example.test'"
+          run_admin promote --email owner@example.test
+          run_admin list | grep -q 'owner@example.test verified=true mfa=false'
       - name: Upgrade a database created from the legacy manual schema
         run: |
           psql -c 'CREATE DATABASE hive_legacy'
@@ -115,7 +141,7 @@ jobs:
           fi
       - name: API becomes ready on the migrated database
         run: |
-          docker run -d --name api --network host -e PORT=18099 -e COOKIE_SECURE=false \
+          docker run -d --name api --network host -e PORT=18099 -e COOKIE_SECURE=false -e MAIL_PROVIDER=log \
             -e DATABASE_URL="$DB_BASE/hive_fresh?sslmode=disable" hive-api:ci
           for i in $(seq 1 30); do curl -fsS http://localhost:18099/ready && exit 0; sleep 1; done
           docker logs api

@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"strings"
 
+	"thehivesociety/api/internal/mail"
 	"thehivesociety/api/internal/password"
 	"thehivesociety/api/internal/ratelimit"
 )
@@ -21,17 +22,21 @@ const sessionCookie = "hive_session"
 var errNoSession = errors.New("no valid session")
 
 type user struct {
-	ID           string   `json:"id"`
-	Email        string   `json:"email"`
-	FirstName    string   `json:"first_name"`
-	DisplayName  string   `json:"display_name"`
-	Phone        *string  `json:"phone"`
-	Area         string   `json:"area"`
-	Interests    []string `json:"interests"`
-	Status       string   `json:"status"`
-	IsAdmin      bool     `json:"isAdmin"`
-	EmailUpdates bool     `json:"email_updates"`
-	AvatarPath   *string  `json:"avatar_path"`
+	ID            string   `json:"id"`
+	Email         string   `json:"email"`
+	FirstName     string   `json:"first_name"`
+	DisplayName   string   `json:"display_name"`
+	Phone         *string  `json:"phone"`
+	Area          string   `json:"area"`
+	Interests     []string `json:"interests"`
+	Status        string   `json:"status"`
+	IsAdmin       bool     `json:"isAdmin"`
+	EmailUpdates  bool     `json:"email_updates"`
+	AvatarPath    *string  `json:"avatar_path"`
+	EmailVerified bool     `json:"email_verified"`
+	MFAEnabled    bool     `json:"mfa_enabled"`
+	MFAVerified   bool     `json:"mfa_verified"` // this session passed TOTP recently
+	sessionHash   string
 }
 
 func randomToken() (string, error) {
@@ -72,10 +77,15 @@ func (s *Server) current(r *http.Request) (*user, error) {
 	if err != nil || cookie.Value == "" {
 		return nil, errNoSession
 	}
-	var u user
+	u := user{sessionHash: digest(cookie.Value)}
 	var interestsJSON string
-	err = s.db.QueryRowContext(r.Context(), `SELECT u.id::text,u.email,u.first_name,u.display_name,u.phone,u.area,array_to_json(u.interests)::text,u.status,u.is_admin,u.email_updates,u.avatar_path FROM users u JOIN sessions s ON u.id=s.user_id WHERE s.id_hash=$1 AND s.expires_at>now()`, digest(cookie.Value)).
-		Scan(&u.ID, &u.Email, &u.FirstName, &u.DisplayName, &u.Phone, &u.Area, &interestsJSON, &u.Status, &u.IsAdmin, &u.EmailUpdates, &u.AvatarPath)
+	err = s.db.QueryRowContext(r.Context(), `
+SELECT u.id::text,u.email,u.first_name,u.display_name,u.phone,u.area,array_to_json(u.interests)::text,u.status,u.is_admin,u.email_updates,u.avatar_path,
+       u.email_verified_at IS NOT NULL, u.totp_enabled_at IS NOT NULL,
+       COALESCE(s.mfa_verified_at > now() - $2::interval, false)
+FROM users u JOIN sessions s ON u.id=s.user_id WHERE s.id_hash=$1 AND s.expires_at>now()`, u.sessionHash, s.mfaWindow).
+		Scan(&u.ID, &u.Email, &u.FirstName, &u.DisplayName, &u.Phone, &u.Area, &interestsJSON, &u.Status, &u.IsAdmin, &u.EmailUpdates, &u.AvatarPath,
+			&u.EmailVerified, &u.MFAEnabled, &u.MFAVerified)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errNoSession
 	}
@@ -99,6 +109,11 @@ func (s *Server) busy(w http.ResponseWriter, r *http.Request) {
 	s.fail(w, r, 503, "busy", "the service is busy, please try again")
 }
 
+// signup creates an unverified account and emails a confirmation link. The
+// response is identical whether or not the address already has an account
+// (the owner of an existing account gets an "account exists" email instead),
+// so signup cannot be used to discover members. No session is created until
+// the address is confirmed and the member logs in.
 func (s *Server) signup(w http.ResponseWriter, r *http.Request) {
 	if res := s.limiter.Hit(r.Context(), s.limits.SignupPerIP, ratelimit.Key(s.ips.IP(r))); !res.Allowed {
 		s.tooMany(w, r, res)
@@ -114,7 +129,7 @@ func (s *Server) signup(w http.ResponseWriter, r *http.Request) {
 	}
 	v.Email = normalizeEmail(v.Email)
 	v.FirstName = strings.TrimSpace(v.FirstName)
-	if !strings.Contains(v.Email, "@") || len(v.Email) > 254 || len(v.Password) < 12 || len(v.Password) > 128 ||
+	if !validEmail(v.Email) || len(v.Password) < 12 || len(v.Password) > 128 ||
 		v.FirstName == "" || len(v.FirstName) > 60 || len(v.DisplayName) > 60 || len(v.Phone) > 30 ||
 		len(v.Area) > 80 || len(v.Interests) > 30 {
 		s.fail(w, r, 400, "invalid_signup", "invalid signup data (password needs 12+ characters)")
@@ -129,6 +144,7 @@ func (s *Server) signup(w http.ResponseWriter, r *http.Request) {
 	if v.Interests == nil {
 		v.Interests = []string{}
 	}
+	// Always hash, so new and existing addresses take the same time.
 	ctx, cancel := s.hashSlot(r)
 	hash, err := s.hasher.Hash(ctx, v.Password)
 	cancel()
@@ -140,22 +156,34 @@ func (s *Server) signup(w http.ResponseWriter, r *http.Request) {
 		s.internal(w, r, "unable to register", err)
 		return
 	}
-	var id string
-	err = s.db.QueryRowContext(r.Context(), `INSERT INTO users(email,password_hash,first_name,phone,area,interests,display_name,email_updates) VALUES($1,$2,$3,NULLIF($4,''),$5,$6,$7,$8) ON CONFLICT (email) DO NOTHING RETURNING id::text`,
-		v.Email, hash, v.FirstName, v.Phone, v.Area, v.Interests, v.DisplayName, v.EmailUpdates).Scan(&id)
-	if errors.Is(err, sql.ErrNoRows) {
-		s.fail(w, r, 409, "signup_failed", "account cannot be created")
+	tx, err := s.db.BeginTx(r.Context(), nil)
+	if err != nil {
+		s.internal(w, r, "unable to register", err)
 		return
+	}
+	defer tx.Rollback()
+	var id string
+	err = tx.QueryRowContext(r.Context(), `INSERT INTO users(email,password_hash,first_name,phone,area,interests,display_name,email_updates) VALUES($1,$2,$3,NULLIF($4,''),$5,$6,$7,$8) ON CONFLICT (email) DO NOTHING RETURNING id::text`,
+		v.Email, hash, v.FirstName, v.Phone, v.Area, v.Interests, v.DisplayName, v.EmailUpdates).Scan(&id)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		// Existing account: notify its owner at most once an hour per address.
+		if res := s.limiter.Hit(r.Context(), s.limits.ExistsNotice, ratelimit.Key(v.Email)); res.Allowed {
+			err = mail.Enqueue(r.Context(), tx, "", mail.TemplateAccountExists, mail.AccountExists(v.Email, s.appURL))
+		} else {
+			err = nil
+		}
+	case err == nil:
+		err = s.sendVerification(r.Context(), tx, id, v.Email, v.FirstName)
+	}
+	if err == nil {
+		err = tx.Commit()
 	}
 	if err != nil {
 		s.internal(w, r, "unable to register", err)
 		return
 	}
-	if err = s.newSession(w, r, id); err != nil {
-		s.internal(w, r, "session creation failed", err)
-		return
-	}
-	reply(w, 201, map[string]any{"ok": true, "status": "pending"})
+	reply(w, 202, map[string]any{"ok": true, "status": "verification_sent"})
 }
 
 func (s *Server) login(w http.ResponseWriter, r *http.Request) {
@@ -180,7 +208,9 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var id, hash string
-	err := s.db.QueryRowContext(r.Context(), "SELECT id::text,password_hash FROM users WHERE email=$1", email).Scan(&id, &hash)
+	var verified, mfaEnabled bool
+	err := s.db.QueryRowContext(r.Context(), "SELECT id::text,password_hash,email_verified_at IS NOT NULL,totp_enabled_at IS NOT NULL FROM users WHERE email=$1", email).
+		Scan(&id, &hash, &verified, &mfaEnabled)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		s.internal(w, r, "login failed", err)
 		return
@@ -201,11 +231,16 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.limiter.Reset(r.Context(), s.limits.LoginPerAccount, acct)
+	// Only reached with the correct password, so this reveals nothing to guessers.
+	if !verified {
+		s.fail(w, r, 403, "email_unverified", "please confirm your email address first; we can send a new link")
+		return
+	}
 	if err = s.newSession(w, r, id); err != nil {
 		s.internal(w, r, "session failed", err)
 		return
 	}
-	reply(w, 200, map[string]any{"ok": true})
+	reply(w, 200, map[string]any{"ok": true, "mfa_required": mfaEnabled})
 }
 
 func (s *Server) logout(w http.ResponseWriter, r *http.Request) {
@@ -217,4 +252,9 @@ func (s *Server) logout(w http.ResponseWriter, r *http.Request) {
 	}
 	s.setSessionCookie(w, "", -1)
 	reply(w, 200, map[string]any{"ok": true})
+}
+
+func validEmail(e string) bool {
+	at := strings.LastIndex(e, "@")
+	return at > 0 && at < len(e)-3 && len(e) <= 254 && strings.Contains(e[at:], ".") && !strings.ContainsAny(e, " \t\r\n<>,;\"")
 }

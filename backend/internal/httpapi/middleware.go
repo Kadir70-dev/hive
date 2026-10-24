@@ -187,13 +187,21 @@ func (s *Server) requireUser(next http.Handler) http.Handler {
 
 func own(r *http.Request) *user { return r.Context().Value(userKey).(*user) }
 
+// requireAdmin admits only verified admins whose session passed TOTP within
+// the step-up window. Clients get a specific code so the UI can prompt.
 func (s *Server) requireAdmin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !own(r).IsAdmin {
+		u := own(r)
+		switch {
+		case !u.IsAdmin || !u.EmailVerified:
 			s.fail(w, r, 403, "forbidden", "admin required")
-			return
+		case !u.MFAEnabled:
+			s.fail(w, r, 403, "mfa_enrollment_required", "set up two-factor authentication to use admin tools")
+		case !u.MFAVerified:
+			s.fail(w, r, 403, "mfa_required", "enter your two-factor code to use admin tools")
+		default:
+			next.ServeHTTP(w, r)
 		}
-		next.ServeHTTP(w, r)
 	})
 }
 

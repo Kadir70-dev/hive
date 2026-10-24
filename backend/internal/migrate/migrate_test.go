@@ -44,7 +44,7 @@ func TestFreshDatabaseAndRepeatRun(t *testing.T) {
 	if pending, err := migrate.Pending(ctx(t), db); err != nil || pending {
 		t.Fatalf("no migrations should be pending: %v %v", pending, err)
 	}
-	for _, table := range []string{"users", "sessions", "gatherings", "reservations", "attendance", "announcements", "partners", "member_reports", "member_blocks", "founding_signups", "audit_events"} {
+	for _, table := range []string{"users", "sessions", "gatherings", "reservations", "attendance", "announcements", "partners", "member_reports", "member_blocks", "founding_signups", "audit_events", "email_tokens", "email_outbox", "mfa_recovery_codes"} {
 		var ok bool
 		if err := db.QueryRow(`SELECT to_regclass($1) IS NOT NULL`, "public."+table).Scan(&ok); err != nil || !ok {
 			t.Errorf("table %s missing", table)

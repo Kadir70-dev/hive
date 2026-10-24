@@ -10,7 +10,7 @@ import (
 )
 
 func (s *Server) members(w http.ResponseWriter, r *http.Request) {
-	rows, err := s.db.QueryContext(r.Context(), "SELECT id::text,email,first_name,status,is_admin FROM users ORDER BY created_at DESC LIMIT 500")
+	rows, err := s.db.QueryContext(r.Context(), "SELECT id::text,email,first_name,status,is_admin,email_verified_at IS NOT NULL FROM users ORDER BY created_at DESC LIMIT 500")
 	if err != nil {
 		s.internal(w, r, "query failed", err)
 		return
@@ -19,12 +19,12 @@ func (s *Server) members(w http.ResponseWriter, r *http.Request) {
 	out := []any{}
 	for rows.Next() {
 		var id, email, name, status string
-		var admin bool
-		if err := rows.Scan(&id, &email, &name, &status, &admin); err != nil {
+		var admin, verified bool
+		if err := rows.Scan(&id, &email, &name, &status, &admin, &verified); err != nil {
 			s.internal(w, r, "query failed", err)
 			return
 		}
-		out = append(out, map[string]any{"id": id, "email": email, "first_name": name, "status": status, "is_admin": admin})
+		out = append(out, map[string]any{"id": id, "email": email, "first_name": name, "status": status, "is_admin": admin, "email_verified": verified})
 	}
 	reply(w, 200, out)
 }
@@ -50,6 +50,22 @@ func (s *Server) memberStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer tx.Rollback()
+	if v.Status == "approved" {
+		var verified bool
+		err = tx.QueryRowContext(r.Context(), "SELECT email_verified_at IS NOT NULL FROM users WHERE id=$1 AND is_admin=false", id).Scan(&verified)
+		if errors.Is(err, sql.ErrNoRows) {
+			s.fail(w, r, 404, "not_found", "member not found")
+			return
+		}
+		if err != nil {
+			s.internal(w, r, "update failed", err)
+			return
+		}
+		if !verified {
+			s.fail(w, r, 409, "email_unverified", "the member has not confirmed their email address yet")
+			return
+		}
+	}
 	if v.Status != "approved" {
 		var isAdmin bool
 		err = tx.QueryRowContext(r.Context(), "SELECT is_admin FROM users WHERE id=$1", id).Scan(&isAdmin)
@@ -74,6 +90,7 @@ func (s *Server) memberStatus(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, 404, "not_found", "member not found")
 		return
 	}
+	s.audit(r.Context(), tx, own(r).ID, "member.status", id, v.Status)
 	if err = tx.Commit(); err != nil {
 		s.internal(w, r, "update failed", err)
 		return
