@@ -25,7 +25,7 @@ func (s *Server) members(w http.ResponseWriter, r *http.Request) {
 		s.internal(w, r, "query failed", err)
 		return
 	}
-	rows, err := s.db.QueryContext(r.Context(), `SELECT id::text,email,first_name,status,is_admin,email_verified_at IS NOT NULL,created_at::text FROM users `+where+`
+	rows, err := s.db.QueryContext(r.Context(), `SELECT id::text,email,first_name,status,is_admin,email_verified_at IS NOT NULL,created_at::text,avatar_path FROM users `+where+`
 ORDER BY (status='pending') DESC, created_at DESC, id LIMIT $4 OFFSET $5`, status, p.Query, like, p.Size, p.offset())
 	if err != nil {
 		s.internal(w, r, "query failed", err)
@@ -35,12 +35,13 @@ ORDER BY (status='pending') DESC, created_at DESC, id LIMIT $4 OFFSET $5`, statu
 	items := []any{}
 	for rows.Next() {
 		var id, email, name, st, created string
+		var avatar sql.NullString
 		var admin, verified bool
-		if err := rows.Scan(&id, &email, &name, &st, &admin, &verified, &created); err != nil {
+		if err := rows.Scan(&id, &email, &name, &st, &admin, &verified, &created, &avatar); err != nil {
 			s.internal(w, r, "query failed", err)
 			return
 		}
-		items = append(items, map[string]any{"id": id, "email": email, "first_name": name, "status": st, "is_admin": admin, "email_verified": verified, "created_at": created})
+		items = append(items, map[string]any{"id": id, "email": email, "first_name": name, "status": st, "is_admin": admin, "email_verified": verified, "created_at": created, "avatar_path": avatar.String})
 	}
 	reply(w, 200, paged(items, p, total))
 }

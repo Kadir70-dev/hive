@@ -1,16 +1,14 @@
 {
 	email {$ACME_EMAIL}
-	# No admin API exposed outside the container.
 	admin off
 }
 
 {$API_DOMAIN} {
-	# Automatic HTTPS (Let's Encrypt). HTTP redirects to HTTPS.
 	encode zstd gzip
 
-	request_body {
-		max_size 1MB
-	}
+	# Never allow public traffic to internal monitoring and operational routes.
+	@internal path /internal /internal/*
+	respond @internal 404
 
 	header {
 		Strict-Transport-Security "max-age=31536000"
@@ -20,7 +18,6 @@
 		-Server
 	}
 
-	# Structured access log without query strings, cookies or auth headers.
 	log {
 		output stdout
 		format filter {
@@ -37,8 +34,28 @@
 		}
 	}
 
-	reverse_proxy api:8080 {
-		health_uri /ready
-		health_interval 15s
+	@photoUpload {
+		method POST
+		path /v1/me/photo
+	}
+	handle @photoUpload {
+		# 5 MiB image plus multipart framing, limited again in Go.
+		request_body {
+			max_size 6MB
+		}
+		reverse_proxy api:8080 {
+			health_uri /ready
+			health_interval 15s
+		}
+	}
+
+	handle {
+		request_body {
+			max_size 1MB
+		}
+		reverse_proxy api:8080 {
+			health_uri /ready
+			health_interval 15s
+		}
 	}
 }

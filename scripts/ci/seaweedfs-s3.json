@@ -1,0 +1,12 @@
+{
+  "identities": [
+    {
+      "name": "ci_only",
+      "credentials": [{
+        "accessKey": "hive-ci-access-key",
+        "secretKey": "hive-ci-secret-key-not-for-production"
+      }],
+      "actions": ["Admin", "Read", "Write", "List"]
+    }
+  ]
+}
