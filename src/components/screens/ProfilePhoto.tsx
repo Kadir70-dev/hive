@@ -15,6 +15,7 @@ export function ProfilePhoto({ me }: { me: Me }) {
   const [selected, setSelected] = useState<File | null>(null);
   const [preview, setPreview] = useState('');
   const [version, setVersion] = useState(0);
+  const [photoError, setPhotoError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ text: string; tone: 'ok' | 'err' }>({ text: '', tone: 'ok' });
 
@@ -27,6 +28,7 @@ export function ProfilePhoto({ me }: { me: Me }) {
     setSelected(null);
     setPreview('');
     setMessage({ text: '', tone: 'ok' });
+    setPhotoError(false);
     if (!allowed.has(chosen.type) || chosen.size > maximum || chosen.size === 0) {
       setMessage({ text: 'Choose a JPEG, PNG or WebP photo up to 5 MB.', tone: 'err' });
       return;
@@ -54,6 +56,7 @@ export function ProfilePhoto({ me }: { me: Me }) {
       setSelected(null);
       setPreview('');
       setVersion((v) => v + 1);
+      setPhotoError(false);
       await qc.invalidateQueries({ queryKey: ['me'] });
       setMessage({ text: method === 'POST' ? 'Profile photo updated.' : 'Profile photo removed.', tone: 'ok' });
     } catch (e) {
@@ -72,13 +75,13 @@ export function ProfilePhoto({ me }: { me: Me }) {
     );
   }
 
-  const src = preview || (me.has_photo ? `/api/backend/me/photo?v=${version}` : '');
+  const src = photoError ? '' : (preview || (me.has_photo ? `/api/backend/me/photo?v=${version}` : ''));
   return (
     <section className="hv-card" aria-labelledby="profile-photo-heading" aria-busy={busy}>
       <h2 id="profile-photo-heading">Your profile photo</h2>
       <div className="hv-photo-layout">
         {src
-          ? <Image className="hv-avatar" src={src} width={112} height={112} unoptimized alt={preview ? 'Selected photo preview' : 'Your private profile photo'} />
+          ? <Image className="hv-avatar" src={src} width={112} height={112} unoptimized alt={preview ? 'Selected photo preview' : 'Your private profile photo'} onError={() => setPhotoError(true)} />
           : <div className="hv-avatar" aria-hidden="true">{me.first_name.slice(0, 1).toUpperCase()}</div>}
         <div className="hv-stack">
           <label className="hv-photo-label">Choose a photo
@@ -93,6 +96,7 @@ export function ProfilePhoto({ me }: { me: Me }) {
             {me.has_photo && <button className="hv-btn danger sm" type="button" onClick={() => void requestPhoto('DELETE')} disabled={busy}>Remove photo</button>}
           </div>
           <Notice message={message.text} tone={message.tone} />
+          {photoError && <p className="hv-msg err" role="alert">The photo could not be displayed. The private storage service may be temporarily unavailable.</p>}
         </div>
       </div>
     </section>

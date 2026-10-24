@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { ProfilePhoto } from '@/components/screens/ProfilePhoto';
+import { AdminTools } from '@/components/screens/AdminScreen';
 import { AdminSafetyConflicts } from '@/components/admin/AdminSafetyConflicts';
 import type { Me } from '@/components/hive/HiveShell';
 
@@ -114,5 +115,26 @@ describe('admin safety-conflict actions', () => {
       gatheringID: 'g1', reportID: 'r1', decision: 'released_reported', note: 'Separate future sessions',
     });
     expect(await screen.findByText('Safety decision recorded')).toBeInTheDocument();
+  });
+});
+
+describe('admin keyboard accessibility', () => {
+  it('supports roving tab focus with arrow keys, Home and End', () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({
+      items: [], page: 1, page_size: 25, has_more: false, total: 0,
+    })));
+    wrap(<AdminTools />);
+    const members = screen.getByRole('tab', { name: 'Members' });
+    const gatherings = screen.getByRole('tab', { name: 'Gatherings' });
+    const conflicts = screen.getByRole('tab', { name: 'Safety conflicts' });
+    expect(members).toHaveAttribute('tabindex', '0');
+    expect(gatherings).toHaveAttribute('tabindex', '-1');
+    fireEvent.keyDown(members, { key: 'ArrowRight' });
+    expect(gatherings).toHaveFocus();
+    expect(gatherings).toHaveAttribute('aria-selected', 'true');
+    fireEvent.keyDown(gatherings, { key: 'End' });
+    expect(conflicts).toHaveFocus();
+    fireEvent.keyDown(conflicts, { key: 'Home' });
+    expect(members).toHaveFocus();
   });
 });

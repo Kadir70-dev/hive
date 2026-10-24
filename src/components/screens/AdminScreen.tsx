@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useRef, useState, type KeyboardEvent } from 'react';
 import { HiveShell, useMe } from '@/components/hive/HiveShell';
 import { MfaGate } from '@/components/screens/MfaGate';
 import { Loading } from '@/components/hive/ui';
@@ -19,14 +19,36 @@ const TABS = [
   ['safety-conflicts', 'Safety conflicts', AdminSafetyConflicts],
 ] as const;
 
-function AdminTools() {
+export function AdminTools() {
   const [tab, setTab] = useState<(typeof TABS)[number][0]>('members');
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  function moveTab(e: KeyboardEvent<HTMLButtonElement>, index: number) {
+    const last = TABS.length - 1;
+    let next: number;
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowDown': next = (index + 1) % TABS.length; break;
+      case 'ArrowLeft':
+      case 'ArrowUp': next = (index + last) % TABS.length; break;
+      case 'Home': next = 0; break;
+      case 'End': next = last; break;
+      default: return;
+    }
+    e.preventDefault();
+    setTab(TABS[next]![0]);
+    tabRefs.current[next]?.focus();
+  }
   const Panel = TABS.find(([id]) => id === tab)![2];
   return (
     <div className="hv-card">
       <div className="hv-tabs" role="tablist" aria-label="Admin sections">
-        {TABS.map(([id, label]) => (
-          <button key={id} type="button" role="tab" id={`tab-${id}`} aria-selected={tab === id} aria-controls={`panel-${id}`} className="hv-link" onClick={() => setTab(id)}>{label}</button>
+        {TABS.map(([id, label], index) => (
+          <button key={id} type="button" role="tab" id={`tab-${id}`}
+            ref={(element) => { tabRefs.current[index] = element; }}
+            tabIndex={tab === id ? 0 : -1}
+            aria-selected={tab === id} aria-controls={`panel-${id}`}
+            className="hv-link" onClick={() => setTab(id)}
+            onKeyDown={(event) => moveTab(event, index)}>{label}</button>
         ))}
       </div>
       <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}><Panel /></div>
