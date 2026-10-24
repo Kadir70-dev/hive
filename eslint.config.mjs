@@ -4,5 +4,6 @@ import nextTs from 'eslint-config-next/typescript';
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
-  globalIgnores(['.next/**', 'out/**', 'build/**', 'dist/**', 'next-env.d.ts']),
+  // public/vendor holds third-party minified builds (marked, DOMPurify) served as-is.
+  globalIgnores(['.next/**', 'out/**', 'build/**', 'dist/**', 'next-env.d.ts', 'public/vendor/**']),
 ]);

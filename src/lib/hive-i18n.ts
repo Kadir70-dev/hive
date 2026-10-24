@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
 export type Lang = "en" | "ar";
 const KEY = "hive.site.lang";
@@ -278,22 +278,39 @@ const ar: Dict = {
 
 export const DICT: Record<Lang, Dict> = { en, ar };
 
+// The chosen language lives in localStorage; useSyncExternalStore reads it
+// without a hydration mismatch (the server always renders English).
+const langListeners = new Set<() => void>();
+let memoryLang: Lang = "en"; // used when localStorage is unavailable
+
+function subscribeLang(onChange: () => void) {
+  langListeners.add(onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    langListeners.delete(onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+function readLang(): Lang {
+  try {
+    const stored = localStorage.getItem(KEY);
+    return stored === "ar" || stored === "en" ? stored : memoryLang;
+  } catch {
+    return memoryLang; /* storage unavailable */
+  }
+}
+
 export function useLang() {
-  const [lang, setLangState] = useState<Lang>("en");
-  useEffect(() => {
-    try {
-      if (localStorage.getItem(KEY) === "ar") setLangState("ar");
-    } catch {
-      /* storage unavailable */
-    }
-  }, []);
+  const lang = useSyncExternalStore(subscribeLang, readLang, () => "en" as Lang);
   const setLang = useCallback((next: Lang) => {
-    setLangState(next);
+    memoryLang = next;
     try {
       localStorage.setItem(KEY, next);
     } catch {
       /* storage unavailable */
     }
+    langListeners.forEach((notify) => notify());
   }, []);
   return { lang, setLang, t: DICT[lang] };
 }

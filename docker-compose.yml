@@ -1,3 +1,10 @@
+# Hetzner VPS stack. Run with secrets from an untracked env file:
+#   docker compose --env-file backend/.env up -d --build
+# Only Caddy publishes ports; PostgreSQL and Redis stay on the private network.
+name: hive
+
+x-database-url: &database-url postgres://hive:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@db:5432/hive?sslmode=disable
+
 services:
   db:
     image: postgres:17-alpine
@@ -8,25 +15,60 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks: [internal]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U hive -d hive"]
       interval: 10s
+      timeout: 5s
       retries: 5
+
   redis:
     image: redis:7-alpine
-    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:?set REDIS_PASSWORD}"]
     restart: unless-stopped
+    # The password is passed via env, not argv, so it is not visible in `ps`.
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD}
+    command: ["sh", "-c", "exec redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy volatile-ttl --requirepass \"$$REDIS_PASSWORD\""]
     volumes: ["redis_data:/data"]
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # One-shot schema migration. The API only starts after it exits 0, so a
+  # failed migration stops the deploy. It never resets or drops data.
+  migrate:
+    build: ./backend
+    entrypoint: ["/usr/local/bin/migrate", "up"]
+    restart: "no"
+    environment:
+      DATABASE_URL: *database-url
+    networks: [internal]
+    depends_on:
+      db: {condition: service_healthy}
+
   api:
     build: ./backend
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgres://hive:${POSTGRES_PASSWORD}@db:5432/hive?sslmode=disable
+      DATABASE_URL: *database-url
+      REDIS_URL: redis://:${REDIS_PASSWORD:?set REDIS_PASSWORD}@redis:6379/0
       COOKIE_SECURE: "true"
-      PUBLIC_ORIGIN: https://thehivesociety.ae
+      ALLOWED_ORIGINS: https://thehivesociety.ae
+      # Only Caddy may supply X-Forwarded-For; see backend/internal/clientip.
+      TRUSTED_PROXY_CIDRS: ${HIVE_CADDY_IP:-10.250.70.10}/32
+      HIVE_PROXY_SHARED_SECRET: ${HIVE_PROXY_SHARED_SECRET:?set HIVE_PROXY_SHARED_SECRET}
+      PASSWORD_HASH_CONCURRENCY: "4"
+    expose: ["8080"]
+    networks: [internal]
     depends_on:
       db: {condition: service_healthy}
-    expose: ["8080"]
+      redis: {condition: service_healthy}
+      migrate: {condition: service_completed_successfully}
+    stop_grace_period: 25s
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -35,7 +77,18 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
-    depends_on: [api]
+    networks:
+      internal:
+        ipv4_address: ${HIVE_CADDY_IP:-10.250.70.10}
+    depends_on:
+      api: {condition: service_healthy}
+
+networks:
+  internal:
+    ipam:
+      config:
+        - subnet: ${HIVE_DOCKER_SUBNET:-10.250.70.0/24}
+
 volumes:
   postgres_data:
   redis_data:
