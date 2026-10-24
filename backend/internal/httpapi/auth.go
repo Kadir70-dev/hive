@@ -240,6 +240,7 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 		s.internal(w, r, "session failed", err)
 		return
 	}
+	s.audit(r.Context(), s.db, id, "login.success", id, "")
 	reply(w, 200, map[string]any{"ok": true, "mfa_required": mfaEnabled})
 }
 

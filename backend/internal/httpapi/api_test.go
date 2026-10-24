@@ -272,7 +272,8 @@ func TestEssentialRoutes(t *testing.T) {
 		t.Fatalf("b should be promoted, got %q", s)
 	}
 	// Account deletion promotes c.
-	expect(t, e.do("DELETE", "/v1/me", nil, session(b)), 200, "b deletes account")
+	expect(t, e.do("DELETE", "/v1/me", map[string]any{"password": "wrong-password-000"}, session(b)), 401, "deletion needs the password")
+	expect(t, e.do("DELETE", "/v1/me", map[string]any{"password": goodPass}, session(b)), 200, "b deletes account")
 	if s := myStatus(t, e, c); s != "confirmed" {
 		t.Fatalf("c should be promoted after deletion, got %q", s)
 	}

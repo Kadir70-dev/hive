@@ -100,7 +100,14 @@ func (s *Server) verifyEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err == nil {
-		_, err = tx.ExecContext(r.Context(), `UPDATE users SET email_verified_at=COALESCE(email_verified_at,now()) WHERE id=$1`, uid)
+		var res sql.Result
+		res, err = tx.ExecContext(r.Context(), `UPDATE users SET email_verified_at=now() WHERE id=$1 AND email_verified_at IS NULL`, uid)
+		if err == nil {
+			if n, _ := res.RowsAffected(); n == 1 {
+				// First confirmation: the member is now ready for review.
+				err = s.notifyAdminsNewMember(r.Context(), tx, uid)
+			}
+		}
 	}
 	if err == nil {
 		s.audit(r.Context(), tx, uid, "email.verified", uid, "")

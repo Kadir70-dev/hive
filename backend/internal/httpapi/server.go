@@ -201,6 +201,7 @@ func (s *Server) routes() http.Handler {
 				r.Patch("/members/{id}", s.memberStatus)
 				r.Get("/gatherings", s.adminGatherings)
 				r.Post("/gatherings", s.createGathering)
+				r.Put("/gatherings/{id}", s.updateGathering)
 				r.Delete("/gatherings/{id}", s.deleteGathering)
 				r.Get("/gatherings/{id}/attendees", s.attendees)
 				r.Post("/checkin", s.checkin)

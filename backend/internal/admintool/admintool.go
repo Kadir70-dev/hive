@@ -8,6 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"thehivesociety/api/internal/mail"
 )
 
 var (
@@ -118,4 +120,28 @@ func List(ctx context.Context, db *sql.DB) ([]string, error) {
 		out = append(out, fmt.Sprintf("%s verified=%t mfa=%t", email, verified, mfa))
 	}
 	return out, rows.Err()
+}
+
+// TestEmail queues a delivery test through the normal outbox, so it exercises
+// the configured provider (e.g. Resend) exactly like real mail.
+func TestEmail(ctx context.Context, db *sql.DB, to string) error {
+	to = strings.TrimSpace(to)
+	if !strings.Contains(to, "@") {
+		return errors.New("--email must be an email address")
+	}
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	msg := mail.Message{To: to, Subject: "The Hive Society email delivery test",
+		Text: "This is a delivery test sent by an administrator from the server.",
+		HTML: "<p>This is a delivery test sent by an administrator from the server.</p>"}
+	if err = mail.Enqueue(ctx, tx, "", "delivery_test", msg); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `INSERT INTO audit_events(actor_id,action,detail) VALUES(NULL,'mail.test','via admin CLI')`); err != nil {
+		return err
+	}
+	return tx.Commit()
 }

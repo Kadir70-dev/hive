@@ -65,3 +65,18 @@ func TestPromoteRequiresAllowlistAndVerifiedEmail(t *testing.T) {
 		t.Fatalf("demote: admin=%v audits=%d", admin, audits)
 	}
 }
+
+func TestTestEmailQueuesThroughOutbox(t *testing.T) {
+	db := testdb.Open(t)
+	if err := admintool.TestEmail(context.Background(), db, "not-an-address"); err == nil {
+		t.Fatal("invalid address accepted")
+	}
+	if err := admintool.TestEmail(context.Background(), db, "ops@example.test"); err != nil {
+		t.Fatal(err)
+	}
+	var n int
+	_ = db.QueryRow(`SELECT count(*) FROM email_outbox WHERE to_addr='ops@example.test' AND template='delivery_test' AND sent_at IS NULL`).Scan(&n)
+	if n != 1 {
+		t.Fatalf("queued test emails = %d", n)
+	}
+}
