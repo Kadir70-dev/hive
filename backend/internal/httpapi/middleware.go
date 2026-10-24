@@ -33,6 +33,8 @@ func (s *Server) fail(w http.ResponseWriter, r *http.Request, status int, code, 
 	reply(w, status, map[string]any{"error": msg, "code": code, "request_id": middleware.GetReqID(r.Context())})
 }
 
+func requestID(r *http.Request) string { return middleware.GetReqID(r.Context()) }
+
 func (s *Server) internal(w http.ResponseWriter, r *http.Request, msg string, err error) {
 	if errors.Is(err, context.DeadlineExceeded) {
 		s.log.Warn("request timed out", "request_id", middleware.GetReqID(r.Context()), "op", msg)
@@ -124,13 +126,20 @@ func (s *Server) securityHeaders(next http.Handler) http.Handler {
 	})
 }
 
+// photoBodyLimit allows a 5 MiB image plus multipart framing on the upload route only.
+const photoBodyLimit = 6 << 20
+
 func (s *Server) limitBody(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.ContentLength > s.maxBody {
+		limit := s.maxBody
+		if r.Method == http.MethodPost && r.URL.Path == photoPath {
+			limit = photoBodyLimit
+		}
+		if r.ContentLength > limit {
 			s.fail(w, r, 413, "body_too_large", "request body too large")
 			return
 		}
-		r.Body = http.MaxBytesReader(w, r.Body, s.maxBody)
+		r.Body = http.MaxBytesReader(w, r.Body, limit)
 		next.ServeHTTP(w, r)
 	})
 }

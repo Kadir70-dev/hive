@@ -1,0 +1,9 @@
+legacy_member_id,legacy_gathering_id,status,created_at
+m1,g1,confirmed,2025-03-01T10:00:00Z
+m2,g1,confirmed,2025-03-01T11:00:00Z
+m10,g1,waitlist,2025-03-01T12:00:00Z
+m3,g1,confirmed,2025-03-01T13:00:00Z
+m1,g2,confirmed,
+m99,g1,confirmed,
+m1,g1,confirmed,
+m2,g1,maybe,

@@ -69,4 +69,23 @@ echo "== tampered backup is rejected"
 run --entrypoint sh "$BACKUP_IMAGE" -c "cp /backups/$file /backups/tampered.dump.age && cp /backups/$file.sha256 /backups/tampered.sha && sed 's/$file/tampered.dump.age/' /backups/tampered.sha > /backups/tampered.dump.age.sha256 && printf 'X' | dd of=/backups/tampered.dump.age bs=1 seek=200 conv=notrunc 2>/dev/null"
 if run -e AGE_IDENTITY_FILE=/backups/test-identity.txt "$BACKUP_IMAGE" restore /backups/tampered.dump.age "$dst2" >/dev/null 2>&1; then
   echo "FAIL: tampered backup restored"; exit 1; fi
-echo "PASS: backup, encryption, retention, restore, verify and tamper detection"
+echo "== failure alert: unreachable database -> webhook alert + unhealthy"
+alert_port=$(( 20000 + RANDOM % 20000 ))
+docker run -d --name "hive-alert-$$" --network host alpine:3.21 \
+  sh -c "printf 'HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n' | nc -l -p $alert_port" >/dev/null
+sleep 1
+if run -e PGDATABASE=database_that_does_not_exist -e BACKUP_AGE_RECIPIENT="$recipient" \
+     -e BACKUP_ALERT_WEBHOOK="http://127.0.0.1:$alert_port/hook" "$BACKUP_IMAGE" backup >/dev/null 2>&1; then
+  echo "FAIL: backup of a missing database reported success"; exit 1
+fi
+sleep 1
+alert="$(docker logs "hive-alert-$$" 2>&1 || true)"
+docker rm -f "hive-alert-$$" >/dev/null 2>&1 || true
+echo "$alert" | grep -q '"status":"failed"' || { echo "FAIL: no failure alert received"; echo "$alert"; exit 1; }
+echo "$alert" | grep -q '"step":"dump"' || { echo "FAIL: alert does not name the failing step"; exit 1; }
+if echo "$alert" | grep -qiE "$PGPASSWORD|age1|AGE-SECRET"; then echo "FAIL: alert leaks secrets"; exit 1; fi
+if run --entrypoint /usr/local/bin/entrypoint.sh "$BACKUP_IMAGE" healthy; then
+  echo "FAIL: health check should fail after a failed backup"; exit 1; fi
+echo "alert received and health check unhealthy"
+
+echo "PASS: backup, encryption, retention, restore, verify, tamper detection and failure alerts"

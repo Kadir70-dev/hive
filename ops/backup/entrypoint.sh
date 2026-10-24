@@ -21,8 +21,12 @@ case "$cmd" in
   verify)  exec /usr/local/bin/verify.sh "$@" ;;
   healthy)
     # Healthy when the last successful backup is recent enough.
+    # Unhealthy if the last success is too old, or a later run failed.
     max="${BACKUP_MAX_AGE_HOURS:-26}"
-    f="${BACKUP_DIR:-/backups}/last-success"
-    [ -f "$f" ] && [ $(( $(date +%s) - $(cat "$f") )) -lt $(( max * 3600 )) ] ;;
+    d="${BACKUP_DIR:-/backups}"
+    [ -f "$d/last-success" ] || exit 1
+    ok="$(cat "$d/last-success")"
+    [ $(( $(date +%s) - ok )) -lt $(( max * 3600 )) ] || exit 1
+    if [ -f "$d/last-failure" ] && [ "$(cat "$d/last-failure")" -ge "$ok" ]; then exit 1; fi ;;
   *) exec "$cmd" "$@" ;;
 esac

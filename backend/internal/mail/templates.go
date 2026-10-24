@@ -21,6 +21,8 @@ const (
 	TemplateGatheringUpdate = "gathering_updated"
 	TemplateGatheringCancel = "gathering_cancelled"
 	TemplateAnnouncement    = "announcement"
+	TemplatePlaceReleased   = "place_released"
+	TemplateInvitation      = "member_invitation"
 )
 
 var htmlLayout = template.Must(template.New("email").Parse(`<!doctype html>
@@ -207,5 +209,29 @@ func Announcement(to, name, appURL, title, body string) Message {
 		ButtonLabel: "Read on The Hive Society",
 		ButtonURL:   strings.TrimRight(appURL, "/") + "/announcements",
 		Footer:      "You receive this because you turned on email updates. You can turn them off on your profile page: " + strings.TrimRight(appURL, "/") + "/profile",
+	})
+}
+
+// PlaceReleased tells a member that organisers released their place. It
+// deliberately gives no reason and names nobody else.
+func PlaceReleased(to, name string, g Gathering) Message {
+	return render(to, "Your place has been released: "+g.Title, content{
+		Heading:    "Your place has been released",
+		Paragraphs: []string{fmt.Sprintf("Hello %s,", name), g.line(), "Our team has released your place at this gathering. If you have any questions, please reply to this email or write to hello@thehivesociety.ae."},
+		Footer:     memberFooter,
+	})
+}
+
+// Invitation asks an imported member to set a password on the new platform.
+// It reuses the password-reset flow; the token travels in the URL fragment.
+func Invitation(to, name, appURL, token string, validDays int) Message {
+	return render(to, "Your The Hive Society account has moved", content{
+		Heading: "Welcome to the new members' area",
+		Paragraphs: []string{fmt.Sprintf("Hello %s,", name),
+			"We've moved The Hive Society to a new, private home. Your membership has come with us, but for your security your old password did not.",
+			fmt.Sprintf("Choose a new password to sign in. The link works once and expires in %d days.", validDays)},
+		ButtonLabel: "Choose my password",
+		ButtonURL:   strings.TrimRight(appURL, "/") + "/reset-password#token=" + token,
+		Footer:      "If you no longer want a membership, ignore this email or write to hello@thehivesociety.ae and we will delete your account.",
 	})
 }

@@ -17,6 +17,7 @@ import (
 	"thehivesociety/api/internal/mfa"
 	"thehivesociety/api/internal/password"
 	"thehivesociety/api/internal/ratelimit"
+	"thehivesociety/api/internal/storage"
 )
 
 // Limits groups the rate-limit rules. Zero values fall back to DefaultLimits.
@@ -30,6 +31,7 @@ type Limits struct {
 	ExistsNotice     ratelimit.Rule // "account exists" notices per address
 	MFAPerAccount    ratelimit.Rule // failed TOTP/recovery attempts per admin
 	ReportsPerMember ratelimit.Rule // safety reports per member
+	PhotosPerMember  ratelimit.Rule // profile photo uploads per member
 	HashWait         time.Duration  // how long a request may wait for a hashing slot
 }
 
@@ -45,6 +47,7 @@ func DefaultLimits() Limits {
 		ExistsNotice:     ratelimit.Rule{Name: "exists-acct", Limit: 1, Window: time.Hour},
 		MFAPerAccount:    ratelimit.Rule{Name: "mfa-acct", Limit: 5, Window: 15 * time.Minute},
 		ReportsPerMember: ratelimit.Rule{Name: "report-member", Limit: 10, Window: 24 * time.Hour},
+		PhotosPerMember:  ratelimit.Rule{Name: "photo-member", Limit: 10, Window: time.Hour},
 		HashWait:         3 * time.Second,
 	}
 }
@@ -56,6 +59,7 @@ func withDefaults(l Limits) Limits {
 		{&l.LoginPerIP, &d.LoginPerIP}, {&l.SignupPerIP, &d.SignupPerIP}, {&l.LoginPerAccount, &d.LoginPerAccount},
 		{&l.APIPerIP, &d.APIPerIP}, {&l.TokenPerIP, &d.TokenPerIP}, {&l.EmailPerAccount, &d.EmailPerAccount},
 		{&l.ExistsNotice, &d.ExistsNotice}, {&l.MFAPerAccount, &d.MFAPerAccount}, {&l.ReportsPerMember, &d.ReportsPerMember},
+		{&l.PhotosPerMember, &d.PhotosPerMember},
 	} {
 		if p.got.Limit <= 0 {
 			p.got.Limit = p.def.Limit
@@ -91,6 +95,9 @@ type Config struct {
 	VerifyTTL      time.Duration // email verification link lifetime (default 24h)
 	ResetTTL       time.Duration // password reset link lifetime (default 30m)
 	MFAWindow      time.Duration // how long a TOTP step-up lasts on a session (default 12h)
+	Store          storage.Store // private photo storage (R2); nil disables photos
+	ImageSlots     int           // concurrent image decodes (default 2)
+	MetricsToken   string        // enables GET /internal/metrics with this bearer token
 }
 
 // Server holds handler state.
@@ -112,6 +119,10 @@ type Server struct {
 	verifyTTL time.Duration
 	resetTTL  time.Duration
 	mfaWindow string // Postgres interval literal
+
+	store        storage.Store
+	imageSlots   chan struct{}
+	metricsToken string
 }
 
 // New builds the HTTP handler.
@@ -135,6 +146,12 @@ func New(c Config) http.Handler {
 		c.MFAWindow = 12 * time.Hour
 	}
 	s.mfaWindow = fmt.Sprintf("%d seconds", int(c.MFAWindow.Seconds()))
+	s.store = c.Store
+	s.metricsToken = c.MetricsToken
+	if c.ImageSlots <= 0 {
+		c.ImageSlots = 2
+	}
+	s.imageSlots = make(chan struct{}, c.ImageSlots)
 	if s.log == nil {
 		s.log = slog.Default()
 	}
@@ -167,6 +184,7 @@ func (s *Server) routes() http.Handler {
 	r.Use(middleware.RequestID, s.recoverer, s.logRequests, s.securityHeaders, s.limitBody, s.requestTimeout)
 	r.Get("/health", s.health)
 	r.Get("/ready", s.ready)
+	r.Get("/internal/metrics", s.metrics)
 	r.Route("/v1", func(r chi.Router) {
 		r.Use(s.checkOrigin, s.apiRateLimit)
 		r.Post("/signup", s.signup)
@@ -188,6 +206,9 @@ func (s *Server) routes() http.Handler {
 			r.Get("/announcements", s.announcements)
 			r.Get("/partners", s.partners)
 			r.Get("/me/gatherings", s.myGatherings)
+			r.Get("/me/photo", s.myPhoto)
+			r.Post("/me/photo", s.uploadPhoto)
+			r.Delete("/me/photo", s.deletePhoto)
 			r.Post("/reports", s.createReport)
 			r.Get("/reports/mine", s.myReports)
 			r.Route("/mfa", func(r chi.Router) {
@@ -200,6 +221,7 @@ func (s *Server) routes() http.Handler {
 				r.Use(s.requireAdmin)
 				r.Get("/members", s.members)
 				r.Patch("/members/{id}", s.memberStatus)
+				r.Get("/members/{id}/photo", s.memberPhoto)
 				r.Get("/gatherings", s.adminGatherings)
 				r.Post("/gatherings", s.createGathering)
 				r.Put("/gatherings/{id}", s.updateGathering)
@@ -210,6 +232,8 @@ func (s *Server) routes() http.Handler {
 				r.Patch("/reports/{id}", s.updateReport)
 				r.Post("/reports/{id}/block", s.applyBlock)
 				r.Delete("/reports/{id}/block", s.removeBlock)
+				r.Get("/safety-conflicts", s.safetyConflicts)
+				r.Post("/safety-conflicts/resolve", s.resolveConflict)
 				r.Get("/announcements", s.adminAnnouncements)
 				r.Post("/announcements", s.createAnnouncement)
 				r.Put("/announcements/{id}", s.updateAnnouncement)
@@ -252,5 +276,13 @@ func (s *Server) ready(w http.ResponseWriter, r *http.Request) {
 			redisState = "degraded"
 		}
 	}
-	reply(w, 200, map[string]any{"ok": true, "database": "ok", "redis": redisState})
+	storageState := "not_configured"
+	if s.store != nil {
+		storageState = "ok"
+		if err := s.store.Ping(ctx); err != nil {
+			storageState = "degraded"
+		}
+	}
+	// Redis and photo storage only degrade features, so they never fail readiness.
+	reply(w, 200, map[string]any{"ok": true, "database": "ok", "redis": redisState, "storage": storageState})
 }

@@ -2,11 +2,7 @@ package httpapi
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/sha256"
 	"database/sql"
-	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -15,6 +11,7 @@ import (
 	"thehivesociety/api/internal/mail"
 	"thehivesociety/api/internal/password"
 	"thehivesociety/api/internal/ratelimit"
+	"thehivesociety/api/internal/tokens"
 )
 
 const sessionCookie = "hive_session"
@@ -32,25 +29,17 @@ type user struct {
 	Status        string   `json:"status"`
 	IsAdmin       bool     `json:"isAdmin"`
 	EmailUpdates  bool     `json:"email_updates"`
-	AvatarPath    *string  `json:"avatar_path"`
+	AvatarPath    *string  `json:"-"` // storage key: never sent to clients
+	HasPhoto      bool     `json:"has_photo"`
 	EmailVerified bool     `json:"email_verified"`
 	MFAEnabled    bool     `json:"mfa_enabled"`
 	MFAVerified   bool     `json:"mfa_verified"` // this session passed TOTP recently
 	sessionHash   string
 }
 
-func randomToken() (string, error) {
-	b := make([]byte, 32)
-	if _, err := rand.Read(b); err != nil {
-		return "", err
-	}
-	return base64.RawURLEncoding.EncodeToString(b), nil
-}
+func randomToken() (string, error) { return tokens.Random() }
 
-func digest(token string) string {
-	sum := sha256.Sum256([]byte(token))
-	return hex.EncodeToString(sum[:])
-}
+func digest(token string) string { return tokens.Digest(token) }
 
 func normalizeEmail(e string) string { return strings.ToLower(strings.TrimSpace(e)) }
 
@@ -92,6 +81,7 @@ FROM users u JOIN sessions s ON u.id=s.user_id WHERE s.id_hash=$1 AND s.expires_
 	if err != nil {
 		return nil, err
 	}
+	u.HasPhoto = u.AvatarPath != nil
 	_ = json.Unmarshal([]byte(interestsJSON), &u.Interests)
 	if u.Interests == nil {
 		u.Interests = []string{}
