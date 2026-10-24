@@ -6,6 +6,7 @@ import { HiveShell, useMe, useT, type Me } from '@/components/hive/HiveShell';
 import { api, send } from '@/lib/hive-api';
 import { fill } from '@/lib/hive-i18n';
 import { Empty, ErrorNote, Loading, Notice } from '@/components/hive/ui';
+import { ProfilePhoto } from '@/components/screens/ProfilePhoto';
 
 type MyGathering = { id: string; title: string; starts_on: string; starts_at: string; place: string; status: 'confirmed' | 'waitlist'; waitlist_position?: number; past: boolean; attended: boolean };
 
@@ -103,7 +104,7 @@ function ProfileBody() {
     <>
       <div className="hv-hero"><h1>{t.profile}</h1><p>Your personal details are visible to admins only.</p></div>
       {isLoading && <Loading label={t.loading} />}
-      {me && <div className="hv-stack"><MyGatherings /><ProfileForm key={me.id} me={me} /></div>}
+      {me && <div className="hv-stack"><ProfilePhoto me={me} /><MyGatherings /><ProfileForm key={me.id} me={me} /></div>}
     </>
   );
 }

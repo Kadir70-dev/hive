@@ -7,13 +7,15 @@ RUN go mod download && go mod verify
 COPY . .
 RUN go build -trimpath -ldflags='-s -w' -o /out/api ./cmd/api \
  && go build -trimpath -ldflags='-s -w' -o /out/migrate ./cmd/migrate \
- && go build -trimpath -ldflags='-s -w' -o /out/admin ./cmd/admin
+ && go build -trimpath -ldflags='-s -w' -o /out/admin ./cmd/admin \
+ && go build -trimpath -ldflags='-s -w' -o /out/import-members ./cmd/import-members
 
 FROM alpine:3.21
 RUN apk add --no-cache ca-certificates && addgroup -S app && adduser -S app -G app
 COPY --from=builder /out/api /usr/local/bin/api
 COPY --from=builder /out/migrate /usr/local/bin/migrate
 COPY --from=builder /out/admin /usr/local/bin/admin
+COPY --from=builder /out/import-members /usr/local/bin/import-members
 USER app
 EXPOSE 8080
 # Readiness: the API answers and PostgreSQL is reachable (busybox wget).

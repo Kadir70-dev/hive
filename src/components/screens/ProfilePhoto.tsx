@@ -1,0 +1,95 @@
+'use client';
+
+import { useEffect, useState, type ChangeEvent } from 'react';
+import Image from 'next/image';
+import { useQueryClient } from '@tanstack/react-query';
+import type { Me } from '@/components/hive/HiveShell';
+import { Notice } from '@/components/hive/ui';
+
+const allowed = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const maximum = 5 * 1024 * 1024;
+
+/** Profile pictures are private: the browser only talks to our authenticated API. */
+export function ProfilePhoto({ me }: { me: Me }) {
+  const qc = useQueryClient();
+  const [selected, setSelected] = useState<File | null>(null);
+  const [preview, setPreview] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<{ text: string; tone: 'ok' | 'err' }>({ text: '', tone: 'ok' });
+
+  useEffect(() => {
+    if (!selected) return;
+    const url = URL.createObjectURL(selected);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [selected]);
+
+  function choose(e: ChangeEvent<HTMLInputElement>) {
+    const chosen = e.currentTarget.files?.[0];
+    e.currentTarget.value = '';
+    if (!chosen) return;
+    setMessage({ text: '', tone: 'ok' });
+    if (!allowed.has(chosen.type) || chosen.size > maximum || chosen.size === 0) {
+      setSelected(null);
+      setPreview('');
+      setMessage({ text: 'Choose a JPEG, PNG or WebP photo up to 5 MB.', tone: 'err' });
+      return;
+    }
+    setSelected(chosen);
+  }
+
+  async function requestPhoto(method: 'POST' | 'DELETE') {
+    setBusy(true);
+    setMessage({ text: '', tone: 'ok' });
+    try {
+      const payload = new FormData();
+      if (method === 'POST') {
+        if (!selected) return;
+        payload.append('photo', selected, selected.name);
+      }
+      // Do not set Content-Type: fetch must supply the multipart boundary.
+      const response = await fetch('/api/backend/me/photo', {
+        method, credentials: 'same-origin', cache: 'no-store',
+        ...(method === 'POST' ? { body: payload } : {}),
+      });
+      if (!response.ok) {
+        const detail = await response.json().catch(() => ({})) as { error?: string };
+        throw new Error(detail.error || 'Could not update your profile photo');
+      }
+      setSelected(null);
+      setPreview('');
+      await qc.invalidateQueries({ queryKey: ['me'] });
+      setMessage({ text: method === 'POST' ? 'Profile photo updated.' : 'Profile photo removed.', tone: 'ok' });
+    } catch (e) {
+      setMessage({ text: e instanceof Error ? e.message : 'Photo update failed', tone: 'err' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const src = preview || (me.avatar_path ? `/api/backend/me/photo?v=${encodeURIComponent(me.avatar_path)}` : '');
+  return (
+    <section className="hv-card" aria-labelledby="profile-photo-heading">
+      <h2 id="profile-photo-heading">Your profile photo</h2>
+      <div className="hv-photo-layout">
+        {src
+          ? <Image className="hv-avatar" src={src} width={112} height={112} unoptimized alt={preview ? 'Selected photo preview' : 'Your private profile photo'} />
+          : <div className="hv-avatar" aria-hidden="true">{me.first_name.slice(0, 1).toUpperCase()}</div>}
+        <div className="hv-stack">
+          <label className="hv-photo-label">Choose a photo
+            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={choose} disabled={busy} aria-describedby="photo-privacy" />
+          </label>
+          <p id="photo-privacy" className="hv-field-hint">JPEG, PNG or WebP, 5 MB maximum. We remove location metadata. Only you and authorized administrators can view the saved photo.</p>
+          {selected && <p className="hv-muted">Selected: {selected.name}</p>}
+          <div className="hv-actions">
+            <button className="hv-btn sm" type="button" onClick={() => void requestPhoto('POST')} disabled={busy || !selected}>
+              {busy ? 'Working…' : me.avatar_path ? 'Replace photo' : 'Upload photo'}
+            </button>
+            {me.avatar_path && <button className="hv-btn danger sm" type="button" onClick={() => void requestPhoto('DELETE')} disabled={busy}>Remove photo</button>}
+          </div>
+          <Notice message={message.text} tone={message.tone} />
+        </div>
+      </div>
+    </section>
+  );
+}

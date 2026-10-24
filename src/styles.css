@@ -257,3 +257,13 @@
   .hv-dialog .hv-actions .hv-btn{flex:1 1 0}
   .hv-nav{flex-wrap:wrap;justify-content:flex-end}
 }
+
+
+/* Batch 5: responsive and private profile photo handling */
+.hv-photo-layout{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
+.hv-photo-layout>.hv-stack{flex:1 1 230px;min-width:0}
+.hv-photo-label{display:flex;flex-direction:column;gap:6px;font-weight:600}
+.hv-photo-label input{max-width:100%;font-size:.85rem}
+.hv-photo-layout .hv-avatar{width:112px;height:112px;border-radius:50%;object-fit:cover}
+.hv-avatar-sm{display:inline-block;width:44px!important;height:44px!important;margin-inline-end:10px;vertical-align:middle}
+@media (max-width:500px){.hv-photo-layout{flex-direction:column}}

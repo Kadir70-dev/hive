@@ -8,6 +8,7 @@ import { AdminGatherings } from '@/components/admin/AdminGatherings';
 import { AdminAnnouncements } from '@/components/admin/AdminAnnouncements';
 import { AdminPartners } from '@/components/admin/AdminPartners';
 import { AdminReports } from '@/components/admin/AdminReports';
+import { AdminSafetyConflicts } from '@/components/admin/AdminSafetyConflicts';
 
 const TABS = [
   ['members', 'Members', AdminMembers],
@@ -15,6 +16,7 @@ const TABS = [
   ['announcements', 'Announcements', AdminAnnouncements],
   ['partners', 'Partners', AdminPartners],
   ['reports', 'Reports', AdminReports],
+  ['safety-conflicts', 'Safety conflicts', AdminSafetyConflicts],
 ] as const;
 
 function AdminTools() {
