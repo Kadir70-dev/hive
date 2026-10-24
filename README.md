@@ -76,3 +76,16 @@ The browser talks to Next.js on Netlify, which forwards to `https://api.thehives
 
 - `GET /health` — liveness (process is serving).
 - `GET /ready` — readiness (PostgreSQL reachable). Used by the Docker healthcheck.
+
+## Batch 5 (engineering; staging credentials still required)
+
+- Private profile photos via S3-compatible R2, 5 MiB content-validated input,
+  re-encoded JPEGs and deletion retries. See
+  [R2 and monitoring](docs/operations/r2-and-monitoring.md).
+- Confidential, MFA-gated safety conflict resolution tools.
+- Offline legacy member CSV import and invitation preparation: see
+  [member migration](docs/operations/member-migration.md).
+- Audit retention is disabled until the legal period is approved.
+- CI runs an authenticated, disposable SeaweedFS server for S3 integration.
+- Do not deploy this commit as production-ready without real R2/Resend tests,
+  off-site backups, staging verification and approved legal texts.

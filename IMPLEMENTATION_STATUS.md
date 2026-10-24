@@ -61,3 +61,20 @@
 4. On Netlify, set HIVE_API_INTERNAL_URL=https://api.thehivesociety.ae, NEXT_PUBLIC_SITE_URL=https://thehivesociety.ae and HIVE_PROXY_SHARED_SECRET (same value as the API, server-only).
 5. Create two administrator accounts, verify mailbox ownership and manually grant admin status inside a secure administrative maintenance workflow.
 6. Verify cookies, redirects, login, approval, membership-only API responses, admin access, concurrent waitlist allocation and backup restoration before domain cutover.
+
+## P1 Batch 5 — integration and staging prerequisites
+
+- R2-backed private profile photo API and member upload/replace/remove interface;
+  authorized administrators can view private photos in the members dashboard.
+- Confidential safety conflict decisions are available to MFA-gated admins.
+- Audit retention is configurable but disabled by default until legal approval.
+- Offline CSV member migration planning, application and invite CLI; real source
+  records have not been transferred.
+- Encrypted backup failure webhooks and internal metrics are available but require
+  operator-supplied secrets. Caddy blocks public `/internal/*` access and permits
+  up to 6 MB multipart requests only for the photo-upload endpoint.
+- Compose examples and staging documentation now describe R2, retention and
+  monitoring. CI uses authenticated disposable S3 storage.
+- **Still unverified in production:** R2 connectivity and access policies,
+  outbound Resend delivery, Netlify static headers, off-site backup and restore,
+  staging end-to-end flows, privacy/legal approval and live member migration.
