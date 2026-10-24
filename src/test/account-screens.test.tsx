@@ -41,7 +41,7 @@ describe('VerifyEmailScreen', () => {
   });
 });
 
-const admin = (over: Partial<Me>): Me => ({ id: '1', first_name: 'A', email: 'a@x.test', phone: null, area: '', interests: [], avatar_path: null, status: 'approved', isAdmin: true, email_verified: true, mfa_enabled: true, mfa_verified: true, ...over });
+const admin = (over: Partial<Me>): Me => ({ id: '1', first_name: 'A', email: 'a@x.test', phone: null, area: '', interests: [], has_photo: false, photos_enabled: false, status: 'approved', isAdmin: true, email_verified: true, mfa_enabled: true, mfa_verified: true, ...over });
 
 describe('MfaGate', () => {
   it('shows admin tools only after MFA verification', () => {

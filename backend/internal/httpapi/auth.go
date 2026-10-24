@@ -31,7 +31,7 @@ type user struct {
 	EmailUpdates  bool     `json:"email_updates"`
 	AvatarPath    *string  `json:"-"` // storage key: never sent to clients
 	HasPhoto      bool     `json:"has_photo"`
-	PhotosEnabled bool    `json:"photos_enabled"`
+	PhotosEnabled bool     `json:"photos_enabled"`
 	EmailVerified bool     `json:"email_verified"`
 	MFAEnabled    bool     `json:"mfa_enabled"`
 	MFAVerified   bool     `json:"mfa_verified"` // this session passed TOTP recently
