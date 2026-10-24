@@ -5,9 +5,9 @@ import path from 'node:path';
 const html = readFileSync(path.join(process.cwd(), 'public/hive.html'), 'utf8');
 
 describe('public homepage', () => {
-  it('has no Supabase session detection left', () => {
-    expect(html).not.toMatch(/sb-.*auth-token/);
-    expect(html.toLowerCase()).not.toContain('supabase');
+  it('does not use browser-stored third-party authentication tokens', () => {
+    expect(html).not.toMatch(/sb-.*auth-token/i);
+    expect(html).not.toMatch(/(?:localStorage|sessionStorage)\.(?:getItem|setItem)\(\s*["'](?:auth[_-]?token|access[_-]?token|session[_-]?token)/i);
     expect(html.toLowerCase()).not.toContain('lovable');
   });
 

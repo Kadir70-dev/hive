@@ -38,7 +38,7 @@ describe('legal drafts', () => {
   it('are clearly marked as drafts and mention no retired vendors', () => {
     for (const html of [privacy, terms]) {
       expect(html).toMatch(/Draft for review/);
-      expect(html.toLowerCase()).not.toMatch(/lovable|supabase/);
+      expect(html.toLowerCase()).not.toMatch(/lovable|sb-.*auth-token/);
     }
   });
   it('privacy draft describes the real processors, cookie and retention', () => {

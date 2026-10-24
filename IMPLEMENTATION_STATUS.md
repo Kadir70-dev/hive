@@ -1,7 +1,7 @@
-# The Hive Society — no-Supabase migration checkpoint
+# The Hive Society — self-hosted implementation status
 
 ## Completed in source
-- Removed Supabase SDK import/dependency, Supabase integration source, and old Supabase SQL migrations.
+- The maintained application uses its own Go authentication, PostgreSQL database and HttpOnly session cookies. Obsolete managed-auth SDKs, external database clients and browser-side token checks have been removed.
 - Built a separate Go + Chi backend using PostgreSQL, Argon2id password hashing, server-side hashed session tokens and secure HttpOnly cookies.
 - Added relational schema for accounts, approval status, gatherings, FIFO waitlist, attendance, announcements, partners, reports, blocks and founding signups.
 - Converted Next.js member login/signup, authorization gate, profile, gatherings, admin basics, safety, announcements and partners to same-origin Next.js proxy calls to the Go backend.
@@ -19,12 +19,12 @@
 - Homepage: Join opens sign-up, member detection uses the Go session, the AI widgets are disabled.
 
 ## P0 Batch 2 (branch feat/p0-batch2-auth-email, stacked on Batch 1)
-- Transactional email: provider interface, Resend client, Postgres outbox + worker; no Lovable/managed backend.
+- Transactional email: provider interface, Resend client, Postgres outbox + worker; no hosted authentication or database backend.
 - Email verification (24 h links), forgot/reset password (30 min links) with all sessions revoked on reset; enumeration-safe responses.
 - Admin bootstrap CLI (allow-listed + verified only); admin TOTP 2FA with encrypted secrets, recovery codes, replay protection and a 12 h step-up window.
 - Hourly cleanup of expired sessions, tokens and outbox rows.
 - Nonce-based CSP for pages, hash-pinned CSP for the static homepage, HSTS and other headers.
-- Removed the Lovable email preview endpoint, AI stubs, AI SDK and Lovable/react-email dependencies.
+- Removed retired email preview endpoints, AI stubs, obsolete AI SDK and email integration dependencies.
 
 ## P0 Batch 3 (branch feat/p0-batch3-production-readiness, stacked on Batch 2)
 - Notifications through the existing outbox: admin alert when a member confirms their email, membership approval, booking/waitlist confirmation, cancellation, waitlist promotion, gathering changed/cancelled. `admin test-email` for delivery checks.
@@ -51,8 +51,8 @@
 - Security-record (audit_events) retention is not automated yet.
 - Avatar uploads / Cloudflare R2 not implemented; prior photos do not automatically migrate.
 - Antifraud, structured audit trail, retention/backups, privacy/legal review, accessibility and security testing are still needed.
-- Existing Supabase accounts/data are NOT migrated. Do not delete prior database before an encrypted export and a validated migration. Passwords cannot simply be copied if hash formats are incompatible; require a safe reset/invite flow.
-- This archive is a development checkpoint, not a production release.
+- Existing accounts and member data from the previous live website have NOT been transferred. Preserve the previous datastore until a secure, encrypted export and validated migration are complete. If password hash formats differ, use a secure invitation/password-reset flow rather than copying credentials.
+- This repository is a development checkpoint, not a production release.
 
 ## Secure deployment outline
 1. Copy backend/.env.example to an actual untracked .env and set unrelated strong random secrets.

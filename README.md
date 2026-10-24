@@ -1,6 +1,6 @@
 # The Hive Society
 
-Next.js 16 frontend + Go/Chi API + self-hosted PostgreSQL and Redis. Supabase is not required or used by the active application.
+Next.js 16 frontend + Go/Chi API + self-hosted PostgreSQL and Redis. Member authentication, sessions and data access are owned by the Go application; no third-party backend or hosted authentication service is required.
 
 - `src/`: Next.js frontend and the server-side same-origin proxy to the Go API (`src/lib/backend-proxy.ts`)
 - `backend/`: Go API (`cmd/api`), migration tool (`cmd/migrate`), embedded SQL migrations (`migrations/`)
