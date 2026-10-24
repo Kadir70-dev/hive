@@ -217,4 +217,3 @@ jobs:
           "$RUNNER_TEMP/migrate" up
       - name: Proxy preserves cookies, client-IP trust, CSRF checks and security headers
         run: API_BIN="$RUNNER_TEMP/api" scripts/staging/proxy-e2e.sh
- | tee /tmp/s3-test.log && ! grep -q -- '--- SKIP' /tmp/s3-test.log
