@@ -246,3 +246,30 @@ func TestPhotoUploadRateLimitAndStorageFailure(t *testing.T) {
 	}
 	expect(t, e.upload(m, "photo", photoJPEG(t, 60, 60)), 429, "11th upload in an hour")
 }
+
+func TestPhotoFlagsAndAdminListDoNotExposeStorageKeys(t *testing.T) {
+	disabled := newEnv(t, nil, 4)
+	memberSession := disabled.signup("disabled@example.test")
+	me := disabled.do("GET", "/v1/me", nil, session(memberSession))
+	expect(t, me, 200, "photo flags disabled")
+	if me.body["photos_enabled"] != false || me.body["has_photo"] != false {
+		t.Fatalf("disabled photo flags incorrect: %s", me.raw)
+	}
+
+	store := storage.NewMemory()
+	e := newEnvStore(t, nil, 4, true, store)
+	adminSession, _ := e.admin("owner@example.test")
+	m := e.signup("photo-flags@example.test")
+	expect(t, e.upload(m, "photo", photoJPEG(t, 100, 100)), 200, "photo flag upload")
+	key := avatarKey(t, e, "photo-flags@example.test")
+	me = e.do("GET", "/v1/me", nil, session(m))
+	expect(t, me, 200, "photo flags enabled")
+	if me.body["photos_enabled"] != true || me.body["has_photo"] != true || strings.Contains(me.raw, key) || strings.Contains(me.raw, "avatar_path") {
+		t.Fatalf("photo status must reveal flags only, never storage keys: %s", me.raw)
+	}
+	list := e.do("GET", "/v1/admin/members", nil, session(adminSession))
+	expect(t, list, 200, "admin members photo metadata")
+	if !strings.Contains(list.raw, "\"has_photo\":true") || strings.Contains(list.raw, key) || strings.Contains(list.raw, "avatar_path") {
+		t.Fatalf("admin list must only reveal has_photo: %s", list.raw)
+	}
+}

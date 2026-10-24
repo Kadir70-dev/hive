@@ -17,7 +17,8 @@ export type Me = {
   phone: string | null;
   area: string;
   interests: string[];
-  avatar_path: string | null;
+  has_photo?: boolean;
+  photos_enabled?: boolean;
   status: "pending" | "approved" | "declined";
   isAdmin: boolean;
   display_name?: string;

@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { ErrorNote, Loading, Empty, Notice, Pager } from '@/components/hive/ui';
 import { SearchBox, useAdminAction, usePaged } from './shared';
 
-type Member = { id: string; first_name: string; email: string; status: string; is_admin: boolean; email_verified: boolean; created_at: string; avatar_path?: string };
+type Member = { id: string; first_name: string; email: string; status: string; is_admin: boolean; email_verified: boolean; created_at: string; has_photo?: boolean };
 
 export function AdminMembers() {
   const [page, setPage] = useState(1), [q, setQ] = useState(''), [status, setStatus] = useState('');
@@ -26,7 +26,7 @@ export function AdminMembers() {
       {data?.items.map((m) => (
         <div className="hv-row" key={m.id}>
           <span>
-            {m.avatar_path && <Image unoptimized width={44} height={44} className="hv-avatar hv-avatar-sm" alt={`Profile photo of ${m.first_name}`} src={`/api/backend/admin/members/${m.id}/photo?v=${encodeURIComponent(m.avatar_path)}`} />}
+            {m.has_photo && <Image unoptimized width={44} height={44} className="hv-avatar hv-avatar-sm" alt={`Profile photo of ${m.first_name}`} src={`/api/backend/admin/members/${encodeURIComponent(m.id)}/photo`} />}
             <strong>{m.first_name}</strong> · {m.email}
             {!m.email_verified && <span className="hv-pill grey"> email not confirmed</span>}
             {m.is_admin && <span className="hv-pill"> admin</span>}

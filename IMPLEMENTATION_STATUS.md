@@ -44,13 +44,13 @@
 ## Known blockers — DO NOT deploy as production ready
 - Resend is integrated but not configured: a Resend account, API key and a verified sending subdomain (DNS records, needs owner approval) are required before any email is delivered. Keep Titan MX/SPF/DMARC as they are.
 - Admins must register, confirm their email, be promoted with the admin CLI (`HIVE_ADMIN_EMAILS`), and enrol TOTP. `MFA_ENCRYPTION_KEY` must be generated and backed up; losing it forces re-enrolment.
-- Profile photos (Cloudflare R2) are not implemented.
-- Blocks do not cancel bookings that already exist when the block is applied; the admin roster flags these conflicts for manual handling.
+- Profile photos are implemented in the Go API and Next.js profile UI. Live R2 configuration and staged delivery/access verification are still required.
+- Blocks do not automatically cancel existing reservations; the MFA-protected safety-conflict panel supports an explicit admin decision and neutral notifications.
 - Backups: the age key pair must be generated and stored offline, and an off-site rclone remote configured; no production backup/restore has been run.
 - Privacy Policy and Terms are drafts with [bracketed] owner decisions (legal entity, retention of security records, governing law, liability).
-- Security-record (audit_events) retention is not automated yet.
-- Avatar uploads / Cloudflare R2 not implemented; prior photos do not automatically migrate.
-- Antifraud, structured audit trail, retention/backups, privacy/legal review, accessibility and security testing are still needed.
+- Audit-event retention is implemented and disabled by default until a legal retention period is approved.
+- Prior photos do not automatically migrate; any imported legacy photos require separately approved handling.
+- Additional fraud/abuse review, live-environment accessibility and penetration testing, operational monitoring and legal approval remain pre-launch checks.
 - Existing accounts and member data from the previous live website have NOT been transferred. Preserve the previous datastore until a secure, encrypted export and validated migration are complete. If password hash formats differ, use a secure invitation/password-reset flow rather than copying credentials.
 - This repository is a development checkpoint, not a production release.
 

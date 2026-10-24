@@ -12,7 +12,12 @@ import (
 	"thehivesociety/api/internal/seats"
 )
 
-func (s *Server) me(w http.ResponseWriter, r *http.Request) { reply(w, 200, own(r)) }
+// The photo capability is a non-secret feature flag. Never expose R2 object keys.
+func (s *Server) me(w http.ResponseWriter, r *http.Request) {
+	u := *own(r)
+	u.PhotosEnabled = s.store != nil
+	reply(w, 200, u)
+}
 
 // phoneRe allows international formats: digits, spaces, +, -, (, ).
 var phoneRe = regexp.MustCompile(`^\+?[0-9 ()\-]{7,20}$`)
