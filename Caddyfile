@@ -1,3 +1,44 @@
-api.thehivesociety.ae {
-  reverse_proxy api:8080
+{
+	email {$ACME_EMAIL}
+	# No admin API exposed outside the container.
+	admin off
+}
+
+{$API_DOMAIN} {
+	# Automatic HTTPS (Let's Encrypt). HTTP redirects to HTTPS.
+	encode zstd gzip
+
+	request_body {
+		max_size 1MB
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	# Structured access log without query strings, cookies or auth headers.
+	log {
+		output stdout
+		format filter {
+			wrap json
+			fields {
+				request>uri query {
+					delete *
+				}
+				request>headers>Cookie delete
+				request>headers>Authorization delete
+				request>headers>X-Hive-Proxy-Secret delete
+				resp_headers>Set-Cookie delete
+			}
+		}
+	}
+
+	reverse_proxy api:8080 {
+		health_uri /ready
+		health_interval 15s
+	}
 }

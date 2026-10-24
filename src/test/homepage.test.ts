@@ -8,6 +8,7 @@ describe('public homepage', () => {
   it('has no Supabase session detection left', () => {
     expect(html).not.toMatch(/sb-.*auth-token/);
     expect(html.toLowerCase()).not.toContain('supabase');
+    expect(html.toLowerCase()).not.toContain('lovable');
   });
 
   it('detects members through the Go-backed session endpoint', () => {

@@ -1,0 +1,15 @@
+# Netlify build for the Next.js frontend (OpenNext adapter is applied automatically).
+# Secrets and per-environment values are set in the Netlify UI, never here:
+#   HIVE_API_INTERNAL_URL      server-only, e.g. https://api.thehivesociety.ae (staging: its own API host)
+#   HIVE_PROXY_SHARED_SECRET   server-only, must equal the API's value (32+ chars)
+#   NEXT_PUBLIC_SITE_URL       public site origin for metadata/sitemap
+# Use a branch deploy (stable URL) for staging and list that exact origin in the
+# staging API's ALLOWED_ORIGINS; per-PR deploy previews have changing origins and
+# will be refused by the API's CSRF check unless added explicitly.
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"

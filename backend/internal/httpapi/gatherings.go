@@ -3,7 +3,9 @@ package httpapi
 import (
 	"errors"
 	"net/http"
+	"time"
 
+	"thehivesociety/api/internal/mail"
 	"thehivesociety/api/internal/seats"
 )
 
@@ -47,7 +49,13 @@ func (s *Server) keep(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer tx.Rollback()
-	status, err := seats.Reserve(r.Context(), tx, id, own(r).ID)
+	b, err := seats.Reserve(r.Context(), tx, id, own(r).ID)
+	if err == nil && b.New {
+		err = s.notifyBooking(r.Context(), tx, id, own(r).ID, b.Status)
+	}
+	if err == nil {
+		err = s.notifyPromotions(r.Context(), tx, b.Promoted)
+	}
 	if err == nil {
 		err = tx.Commit()
 	}
@@ -56,10 +64,12 @@ func (s *Server) keep(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, 404, "not_found", "gathering not found")
 	case errors.Is(err, seats.ErrNotEligible):
 		s.fail(w, r, 403, "approval_required", "approval required")
+	case errors.Is(err, seats.ErrGatheringStarted):
+		s.fail(w, r, 409, "gathering_started", "this gathering has already started")
 	case err != nil:
 		s.internal(w, r, "reservation failed", err)
 	default:
-		reply(w, 200, map[string]any{"ok": true, "status": status})
+		reply(w, 200, map[string]any{"ok": true, "status": b.Status})
 	}
 }
 
@@ -77,7 +87,13 @@ func (s *Server) cancel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer tx.Rollback()
-	err = seats.Cancel(r.Context(), tx, id, own(r).ID)
+	promoted, err := seats.Cancel(r.Context(), tx, id, own(r).ID)
+	if err == nil {
+		err = s.notifyCancellation(r.Context(), tx, id, own(r).ID)
+	}
+	if err == nil {
+		err = s.notifyPromotions(r.Context(), tx, promoted)
+	}
 	if err == nil {
 		err = tx.Commit()
 	}
@@ -91,4 +107,150 @@ func (s *Server) cancel(w http.ResponseWriter, r *http.Request) {
 	default:
 		reply(w, 200, map[string]any{"ok": true})
 	}
+}
+
+type gatheringInput struct {
+	Title, Type, Description, StartsOn, StartsAt, Place string
+	Capacity                                            int
+}
+
+func (v *gatheringInput) valid() bool {
+	_, dateErr := time.Parse("2006-01-02", v.StartsOn)
+	_, timeErr := time.Parse("15:04", v.StartsAt)
+	if timeErr != nil {
+		_, timeErr = time.Parse("15:04:05", v.StartsAt)
+	}
+	if v.Type == "" {
+		v.Type = "community"
+	}
+	return v.Title != "" && len(v.Title) <= 200 && len(v.Type) <= 60 && len(v.Description) <= 5000 && v.Place != "" && len(v.Place) <= 300 &&
+		v.Capacity >= 1 && v.Capacity <= 10000 && dateErr == nil && timeErr == nil
+}
+
+func (s *Server) createGathering(w http.ResponseWriter, r *http.Request) {
+	var v gatheringInput
+	if !s.parse(w, r, &v) {
+		return
+	}
+	if !v.valid() {
+		s.fail(w, r, 400, "invalid_gathering", "invalid gathering")
+		return
+	}
+	var id string
+	err := s.db.QueryRowContext(r.Context(), "INSERT INTO gatherings(title,type,description,starts_on,starts_at,place,capacity) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id::text",
+		v.Title, v.Type, v.Description, v.StartsOn, v.StartsAt, v.Place, v.Capacity).Scan(&id)
+	if err != nil {
+		s.internal(w, r, "insert failed", err)
+		return
+	}
+	s.audit(r.Context(), s.db, own(r).ID, "gathering.create", id, v.Title)
+	reply(w, 201, map[string]any{"ok": true, "id": id})
+}
+
+// updateGathering edits a gathering. Capacity changes go through
+// seats.SetCapacity (FIFO promotion, no overbooking, no demotion); members
+// with a reservation are emailed when the date, time or place changes.
+func (s *Server) updateGathering(w http.ResponseWriter, r *http.Request) {
+	id, ok := s.pathID(w, r)
+	if !ok {
+		return
+	}
+	var v gatheringInput
+	if !s.parse(w, r, &v) {
+		return
+	}
+	if !v.valid() {
+		s.fail(w, r, 400, "invalid_gathering", "invalid gathering")
+		return
+	}
+	tx, err := s.db.BeginTx(r.Context(), nil)
+	if err != nil {
+		s.internal(w, r, "update failed", err)
+		return
+	}
+	defer tx.Rollback()
+	// SetCapacity takes the gathering lock first, so everything below is serialised
+	// with bookings and cancellations.
+	promoted, err := seats.SetCapacity(r.Context(), tx, id, v.Capacity)
+	var capErr *seats.CapacityError
+	switch {
+	case errors.Is(err, seats.ErrGatheringNotFound):
+		s.fail(w, r, 404, "not_found", "gathering not found")
+		return
+	case errors.As(err, &capErr):
+		s.fail(w, r, 409, "capacity_below_confirmed", capErr.Error())
+		return
+	case err != nil:
+		s.internal(w, r, "update failed", err)
+		return
+	}
+	var scheduleChanged bool
+	err = tx.QueryRowContext(r.Context(), `
+WITH old AS (SELECT starts_on, starts_at, place FROM gatherings WHERE id=$1)
+UPDATE gatherings g SET title=$2,type=$3,description=$4,starts_on=$5,starts_at=$6,place=$7
+FROM old WHERE g.id=$1
+RETURNING (old.starts_on, old.starts_at, old.place) IS DISTINCT FROM (g.starts_on, g.starts_at, g.place)`,
+		id, v.Title, v.Type, v.Description, v.StartsOn, v.StartsAt, v.Place).Scan(&scheduleChanged)
+	if err == nil && scheduleChanged {
+		var g mail.Gathering
+		if g, err = gatheringInfo(r.Context(), tx, id); err == nil {
+			err = notifyReservationHolders(r.Context(), tx, id, mail.TemplateGatheringUpdate, func(email, name string) mail.Message {
+				return mail.GatheringUpdated(email, name, s.appURL, g)
+			})
+		}
+	}
+	if err == nil {
+		err = s.notifyPromotions(r.Context(), tx, promoted)
+	}
+	if err == nil {
+		s.audit(r.Context(), tx, own(r).ID, "gathering.update", id, v.Title)
+		err = tx.Commit()
+	}
+	if err != nil {
+		s.internal(w, r, "update failed", err)
+		return
+	}
+	reply(w, 200, map[string]any{"ok": true, "promoted": len(promoted)})
+}
+
+// deleteGathering cancels a gathering and tells everyone who had reserved.
+func (s *Server) deleteGathering(w http.ResponseWriter, r *http.Request) {
+	id, ok := s.pathID(w, r)
+	if !ok {
+		return
+	}
+	tx, err := s.db.BeginTx(r.Context(), nil)
+	if err != nil {
+		s.internal(w, r, "delete failed", err)
+		return
+	}
+	defer tx.Rollback()
+	var started bool
+	err = tx.QueryRowContext(r.Context(), `SELECT ((starts_on + starts_at) AT TIME ZONE 'Asia/Dubai') <= now() FROM gatherings WHERE id=$1 FOR UPDATE`, id).Scan(&started)
+	if err != nil {
+		if isNoRows(err) {
+			s.fail(w, r, 404, "not_found", "not found")
+			return
+		}
+		s.internal(w, r, "delete failed", err)
+		return
+	}
+	g, err := gatheringInfo(r.Context(), tx, id)
+	if err == nil && !started { // no "cancelled" emails for gatherings that already happened
+		err = notifyReservationHolders(r.Context(), tx, id, mail.TemplateGatheringCancel, func(email, name string) mail.Message {
+			return mail.GatheringCancelled(email, name, g)
+		})
+	}
+	if err == nil {
+		_, err = tx.ExecContext(r.Context(), `DELETE FROM gatherings WHERE id=$1`, id)
+	}
+	if err == nil {
+		s.audit(r.Context(), tx, own(r).ID, "gathering.delete", id, g.Title)
+		err = tx.Commit()
+	}
+	if err != nil {
+		s.internal(w, r, "delete failed", err)
+		return
+	}
+	reply(w, 200, map[string]any{"ok": true})
 }

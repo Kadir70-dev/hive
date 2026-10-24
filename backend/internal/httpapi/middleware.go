@@ -144,13 +144,17 @@ func (s *Server) requestTimeout(next http.Handler) http.Handler {
 	})
 }
 
-// checkOrigin rejects state-changing requests from foreign origins. Requests
-// without an Origin header (server-to-server) are allowed; browsers always
-// send Origin on cross-site POST/PATCH/DELETE.
+// checkOrigin is the CSRF defence for cookie-authenticated requests (on top
+// of SameSite=Lax). A state-changing request that carries a session cookie
+// must come with an allowed Origin header: browsers always send Origin on
+// POST/PUT/PATCH/DELETE, and the Next.js proxy forwards it. Cookie-less
+// server-to-server calls without Origin are still accepted.
 func (s *Server) checkOrigin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet && r.Method != http.MethodHead && r.Method != http.MethodOptions && len(s.origins) > 0 {
-			if o := r.Header.Get("Origin"); o != "" && !s.origins[o] {
+			o := r.Header.Get("Origin")
+			_, cookieErr := r.Cookie(sessionCookie)
+			if (o != "" && !s.origins[o]) || (o == "" && cookieErr == nil) {
 				s.fail(w, r, 403, "origin_denied", "origin denied")
 				return
 			}

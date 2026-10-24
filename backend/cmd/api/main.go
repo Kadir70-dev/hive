@@ -166,9 +166,14 @@ func run(log *slog.Logger) error {
 	}
 	appURL := env("PUBLIC_APP_URL", "https://thehivesociety.ae")
 
+	secureCookies := os.Getenv("COOKIE_SECURE") != "false"
+	if secureCookies && len(origins) == 0 {
+		return errors.New("ALLOWED_ORIGINS (or PUBLIC_ORIGIN) is required when COOKIE_SECURE is on; it is the CSRF origin allow-list")
+	}
+
 	handler := httpapi.New(httpapi.Config{
 		DB: db, Redis: rdb, Hasher: password.NewHasher(hashConcurrency), Limiter: ratelimit.New(rdb, log),
-		IPs: ips, Log: log, SecureCookies: os.Getenv("COOKIE_SECURE") != "false", AllowedOrigins: origins,
+		IPs: ips, Log: log, SecureCookies: secureCookies, AllowedOrigins: origins,
 		RequestTimeout: reqTimeout, MaxBodyBytes: int64(maxBody), Limits: httpapi.DefaultLimits(),
 		AppURL: appURL, MFACipher: mfaCipher,
 	})

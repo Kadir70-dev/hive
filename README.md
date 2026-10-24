@@ -5,7 +5,10 @@ Next.js 16 frontend + Go/Chi API + self-hosted PostgreSQL and Redis. Supabase is
 - `src/`: Next.js frontend and the server-side same-origin proxy to the Go API (`src/lib/backend-proxy.ts`)
 - `backend/`: Go API (`cmd/api`), migration tool (`cmd/migrate`), embedded SQL migrations (`migrations/`)
 - `docker-compose.yml`: Hetzner VPS services (PostgreSQL, Redis, one-shot `migrate`, API, Caddy)
-- `.github/workflows/ci.yml`: backend, frontend and infrastructure checks
+- `ops/backup/`: encrypted backup, restore and verify tooling (see `docs/operations/backup-and-restore.md`)
+- `docs/operations/staging.md`: staging deployment guide, environment variables and monitoring
+- `scripts/staging/proxy-e2e.sh`: end-to-end check of the Next.js proxy in front of the Go API
+- `.github/workflows/ci.yml`: backend, frontend, infrastructure and proxy end-to-end checks
 - `IMPLEMENTATION_STATUS.md`: honest feature status, limits and launch checklist
 
 This is a **development checkpoint**, not a validated production-ready build.
@@ -61,6 +64,8 @@ The browser talks to Next.js on Netlify, which forwards to `https://api.thehives
   ```
   `promote` requires the address to be in `HIVE_ADMIN_EMAILS` **and** already verified.
 - **Admin 2FA**: every admin route requires a verified email, enrolled TOTP (RFC 6238, secrets AES-GCM encrypted with `MFA_ENCRYPTION_KEY`) and a code on the current session within 12 hours. Ten single-use recovery codes are issued at enrolment. Codes cannot be replayed; 5 failures per 15 minutes lock MFA attempts.
+- **Notifications** (all through the outbox): admins are alerted when a member confirms their email; members get approval, booking/waitlist confirmation, cancellation, waitlist promotion and gathering changed/cancelled emails. `admin test-email --email you@…` queues a delivery test.
+- **Gatherings**: admins can edit gatherings; raising capacity promotes the waitlist in order, lowering it below confirmed places is refused, and bookings close once a gathering starts (Asia/Dubai time).
 - **Cleanup** runs hourly: expired sessions, week-old tokens, and stale or month-old outbox rows.
 
 ## Browser security headers

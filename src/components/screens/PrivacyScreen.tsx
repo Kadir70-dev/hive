@@ -1,71 +1,119 @@
 'use client';
 import Link from "next/link";
 
-const sections = [
+// DRAFT for owner and legal review. Every statement below describes how the
+// code in this repository actually behaves; items in [brackets] need an owner
+// decision before publication. Do not present this as legally reviewed.
+const sections: { title: string; body: string[]; list?: string[] }[] = [
+  {
+    title: "Who we are",
+    body: [
+      "The Hive Society is a members' community for women in Abu Dhabi, United Arab Emirates. [Legal entity name and registered address to be confirmed.] For anything about your information, email hello@thehivesociety.ae.",
+    ],
+  },
   {
     title: "What we collect",
-    body: ["When you fill in the “Join the founding community” form, we collect:"],
+    body: ["When you create a members' account and use the site we store:"],
     list: [
-      "Your name",
-      "Your email address",
-      "Your phone number, if you choose to share it",
-      "Your note about what draws you to The Hive, if you choose to write one",
-      "The language you were browsing in and the date you sent the form",
+      "Your first name and email address, and optionally a display name, phone number, area of Abu Dhabi and interests",
+      "Your password, stored only as a one-way Argon2id hash that nobody, including us, can read",
+      "Your membership status, when you confirmed your email address, and whether you want optional email updates",
+      "The gatherings you keep a place for or join the waitlist for, and attendance recorded by organisers",
+      "Reports you send about another member, and members you choose to block",
+      "If you joined the earlier founding community list: your name, email, optional phone number, note and language",
+      "Security records: sign-ins, email confirmations, password resets, two-factor events for administrators and administrator actions. These never contain your password",
     ],
   },
   {
     title: "How we use it",
-    body: ["We use these details only to run the founding community:"],
+    body: ["We use your information only to run The Hive Society:"],
     list: [
-      "To read your application personally — every request is read by a person, not filtered by software",
-      "To contact you about the founding community, as you asked us to when you ticked the consent box",
-      "To invite you first when our first season of gatherings opens",
+      "To create and secure your account, confirm your email address and let you reset a forgotten password",
+      "To review membership applications personally. When you confirm your email, our administrators receive an alert with your first name and area",
+      "To manage gatherings: places, the waitlist (the earliest person in line is offered a freed place automatically) and attendance",
+      "To send service emails: confirming your email, password resets, password-change notices, membership approval, booking confirmations, cancellations, waitlist promotions, and changes to or cancellation of gatherings you reserved",
+      "To keep the community safe: handling reports, blocks and misuse, and limiting repeated sign-in attempts",
+      "Optional updates and announcements by email only if you switch them on in your profile [not yet sent]",
     ],
   },
   {
-    title: "What we never do",
+    title: "Who can see it",
     body: [
-      "We never sell your information, and we never share it with advertisers or data brokers.",
-      "We use Google Fonts to display our typefaces, Lovable Cloud to host this website and hold signup submissions, and Lovable AI to answer optional questions and provide interest recommendations. Like most websites, these services may briefly record technical details such as your IP address and browser type to deliver the page and keep it secure. These providers may process information outside the United Arab Emirates.",
-      "Your browser remembers only whether you chose English or Arabic, so the site opens in your language next time. We don't use advertising or tracking cookies.",
+      "Other members cannot see your email address, phone number or the gatherings you attend; there is no member directory.",
+      "Only our administrators can see member details, to review applications and know who is coming to each gathering. Administrator access requires a confirmed email address and two-factor authentication.",
+      "Partners listed on the site receive no member information.",
     ],
   },
   {
-    title: "Optional AI questions and recommendations",
+    title: "Service providers",
     body: [
-      "When you use Ask The Hive, your question, the current conversation and your selected language are sent through the Lovable AI Gateway to an AI model so it can answer questions and follow-ups about The Hive Society. When you request personal suggestions, your interests and language are sent to recommend relevant gathering categories and next steps. We do not send your signup name, email or phone number with either request.",
-      "The Hive website does not save questions, interest requests or AI responses to the community database or browser storage. They remain only in your current page until you reload, leave, change mode or language, or start a fresh conversation. Lovable processes requests to operate the AI service; its logging and privacy settings govern service-side handling.",
-      "Please do not include contact details or sensitive information. You can skip AI entirely and use the founding community form. Suggestions are not bookings, membership decisions or guarantees; applications are still read personally.",
-      "If you choose “Continue to the founding community” after interest recommendations, your original interests are copied into the optional signup note. You can edit or remove them before sending the form. Only then are those interests saved with your application. Chat questions and answers are not copied into the signup form.",
+      "We do not sell your information and we do not share it with advertisers or data brokers. We use these providers to operate the service:",
+    ],
+    list: [
+      "Hetzner Online — servers that run our application, database and backups [data-centre location to be confirmed]",
+      "Netlify — hosting for this website; your requests pass through Netlify to reach our servers",
+      "Resend — delivery of the service emails listed above [once configured]",
+      "Google Fonts — your browser downloads our typefaces from Google, which receives your IP address",
+      "Titan — our business mailbox, if you write to hello@thehivesociety.ae",
     ],
   },
   {
-    title: "Members' area",
+    title: "International processing",
     body: [
-      "When you create a members' account we store your first name, email, optional phone number, area of Abu Dhabi, interests, an optional photo, your password (securely encrypted — we can never read it), the date you agreed to our community guidelines and this policy, your membership status and the gatherings you've reserved or joined the waitlist for.",
-      "Other members can never see your email, phone number or photo. Only our founder, as the site's admin, can see member details, to review applications and to know who is coming to each gathering.",
-      "A new account also triggers an email alert to hello@thehivesociety.ae with your first name, area and interests, plus a link to the private admin page. Lovable manages email delivery; copies received in the admin mailbox are separate from your account and can be removed on request. Alerts begin once the sender domain is verified.",
-      "You can update your details at any time on your profile page, and delete your account there. Deleting removes your profile, photo and places at gatherings straight away.",
+      "Some of these providers may process information outside the United Arab Emirates. [Owner and counsel to confirm the transfer basis and wording required under applicable UAE law.]",
+    ],
+  },
+  {
+    title: "Cookies and browser storage",
+    body: [
+      "We use one strictly necessary cookie, hive_session, to keep you signed in. It is not readable by page scripts and expires after 14 days or when you sign out.",
+      "Your browser remembers whether you chose English or Arabic. We use no analytics, advertising or tracking cookies.",
     ],
   },
   {
     title: "How long we keep it",
-    body: [
-      "We keep your details while the founding community list is active, so we can reach you when the season opens. You can ask us to remove them at any time and we will.",
+    body: ["We keep information only as long as it is needed:"],
+    list: [
+      "Your account and profile: until you delete your account",
+      "Sign-in sessions: up to 14 days",
+      "Email confirmation and password-reset links: valid for 24 hours and 30 minutes respectively, and deleted 7 days after they expire",
+      "Email contents: erased once delivered; delivery records are deleted after 30 days",
+      "Rate-limit counters: hashed IP and email values held for at most one hour",
+      "Server access logs (IP address, time and page requested; never passwords, cookies or form contents): rotated automatically and overwritten after [about 50 MB of logs, typically a few weeks]",
+      "Encrypted database backups: [14] days, after which they are deleted. Information you delete can remain in a backup until that backup expires",
+      "Security records: [retention period to be decided; currently kept until removed]",
+      "The founding community list: until you ask us to remove you",
     ],
   },
   {
-    title: "Your choices",
+    title: "Deleting your account",
     body: [
-      "You can ask to see the details we hold about you, correct them, or have them deleted. You can also withdraw your consent to be contacted at any time.",
-      "Just write to us and we'll take care of it personally.",
+      "You can delete your account from your profile page after confirming your password. This immediately removes your profile, sign-in sessions, places at gatherings, attendance records, blocks and reports you sent. If a place you held is freed, it is offered to the next person on the waitlist. Reports other members made about you keep their text but are no longer linked to your account.",
     ],
   },
   {
-    title: "Talk to us",
+    title: "Your choices and rights",
     body: [
-      "The Hive Society is based in Abu Dhabi, United Arab Emirates. For anything about your information, email hello@thehivesociety.ae.",
-      "This page was last updated in October 2026. If the way we handle your information changes, we'll update this page before it does.",
+      "You can see and correct most of your details on your profile page, switch optional email updates on or off, and delete your account at any time.",
+      "You can also ask us for a copy of the information we hold about you, or ask us to correct or delete it, by writing to hello@thehivesociety.ae. We will reply within [30] days.",
+    ],
+  },
+  {
+    title: "How we protect it",
+    body: [
+      "Connections are encrypted with HTTPS. Passwords are hashed with Argon2id. Repeated sign-in attempts are limited. Administrators must use two-factor authentication. Backups are encrypted before they are stored. Access to member information is limited to our administrators.",
+      "No system is perfectly secure. If we become aware of a breach affecting your information we will tell you and the relevant authorities where required.",
+    ],
+  },
+  {
+    title: "Age",
+    body: ["Membership and gatherings are for women aged 18 and over."],
+  },
+  {
+    title: "Changes and contact",
+    body: [
+      "If the way we handle your information changes, we will update this page before it does, and tell members by email about significant changes.",
+      "Questions or requests: hello@thehivesociety.ae.",
     ],
   },
 ];
@@ -158,7 +206,11 @@ function PrivacyPage() {
           </h1>
           <p>
             This page explains, in plain words, what happens to the information you share with The
-            Hive Society through the founding community signup form.
+            Hive Society when you join and take part.
+          </p>
+          <p role="note" style={{ marginTop: 18, fontWeight: 600 }}>
+            Draft for review — not yet approved by The Hive Society or its legal advisers.
+            Last updated: October 2026 (draft).
           </p>
         </div>
 

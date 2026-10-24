@@ -26,12 +26,23 @@
 - Nonce-based CSP for pages, hash-pinned CSP for the static homepage, HSTS and other headers.
 - Removed the Lovable email preview endpoint, AI stubs, AI SDK and Lovable/react-email dependencies.
 
+## P0 Batch 3 (branch feat/p0-batch3-production-readiness, stacked on Batch 2)
+- Notifications through the existing outbox: admin alert when a member confirms their email, membership approval, booking/waitlist confirmation, cancellation, waitlist promotion, gathering changed/cancelled. `admin test-email` for delivery checks.
+- Gathering editing (`PUT /v1/admin/gatherings/{id}`) via `seats.SetCapacity`: FIFO promotion on capacity increases, refusal below confirmed places (no demotion). Bookings refused once a gathering has started (Asia/Dubai time); no promotions into past gatherings.
+- Security fixes: CSRF origin required for cookie-authenticated mutations; API refuses to start without an origin allow-list when cookies are secure; partner links must be https; account deletion requires the password; proxy rejects dot segments; audit events for logins, admin content changes, check-ins, promotions and deletions.
+- Encrypted backups (age, tmpfs plaintext, sha256, retention, optional rclone off-site, health check) with restore/verify tooling and an automated end-to-end test.
+- Privacy Policy and Terms rewritten as drafts describing actual behaviour (owner/legal review required).
+- Staging readiness: parameterised and hardened Caddy, log rotation, `netlify.toml`, staging guide, proxy end-to-end test in CI.
+
 ## Known blockers — DO NOT deploy as production ready
 - Resend is integrated but not configured: a Resend account, API key and a verified sending subdomain (DNS records, needs owner approval) are required before any email is delivered. Keep Titan MX/SPF/DMARC as they are.
 - Admins must register, confirm their email, be promoted with the admin CLI (`HIVE_ADMIN_EMAILS`), and enrol TOTP. `MFA_ENCRYPTION_KEY` must be generated and backed up; losing it forces re-enrolment.
-- Signup alert email to the owners, gathering notifications and the email-updates opt-in still send nothing (templates and triggers not built).
+- The email-updates opt-in still sends nothing (no announcement emails yet).
+- Backups: the age key pair must be generated and stored offline, and an off-site rclone remote configured; no production backup/restore has been run.
+- Privacy Policy and Terms are drafts with [bracketed] owner decisions (legal entity, retention of security records, governing law, liability).
+- Security-record (audit_events) retention is not automated yet.
 - Avatar uploads / Cloudflare R2 not implemented; prior photos do not automatically migrate.
-- Gathering edits (create and delete work), announcement/partner edit actions and moderation resolution remain incomplete. **Batch 3:** a gathering edit endpoint must run inside a transaction and call `seats.Fill` after changing capacity; reducing capacity below confirmed seats needs an explicit policy (no automatic demotion exists).
+- Announcement/partner editing and moderation (report resolution) remain incomplete.
 - Antifraud, structured audit trail, retention/backups, privacy/legal review, accessibility and security testing are still needed.
 - Existing Supabase accounts/data are NOT migrated. Do not delete prior database before an encrypted export and a validated migration. Passwords cannot simply be copied if hash formats are incompatible; require a safe reset/invite flow.
 - This archive is a development checkpoint, not a production release.

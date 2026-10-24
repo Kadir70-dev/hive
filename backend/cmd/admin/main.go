@@ -4,6 +4,7 @@
 //	admin demote --email you@example.com
 //	admin reset-mfa --email you@example.com (lost authenticator; signs the account out)
 //	admin list
+//	admin test-email --email you@example.com (queues a delivery test through the outbox)
 //
 // Run on the server: docker compose --env-file backend/.env run --rm --entrypoint admin api promote --email ...
 package main
@@ -30,7 +31,7 @@ func main() {
 
 func run(args []string) error {
 	if len(args) == 0 {
-		return fmt.Errorf("usage: admin promote|demote|reset-mfa --email ADDRESS | admin list")
+		return fmt.Errorf("usage: admin promote|demote|reset-mfa|test-email --email ADDRESS | admin list")
 	}
 	cmd := args[0]
 	fs := flag.NewFlagSet(cmd, flag.ContinueOnError)
@@ -59,6 +60,8 @@ func run(args []string) error {
 		err = admintool.Demote(ctx, db, *email)
 	case "reset-mfa":
 		err = admintool.ResetMFA(ctx, db, *email)
+	case "test-email":
+		err = admintool.TestEmail(ctx, db, *email)
 	case "list":
 		var lines []string
 		if lines, err = admintool.List(ctx, db); err == nil {

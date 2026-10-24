@@ -1,9 +1,12 @@
 package httpapi
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
+	"thehivesociety/api/internal/password"
+	"thehivesociety/api/internal/ratelimit"
 	"thehivesociety/api/internal/seats"
 )
 
@@ -35,24 +38,55 @@ func (s *Server) updateMe(w http.ResponseWriter, r *http.Request) {
 	reply(w, 200, map[string]any{"ok": true})
 }
 
-// deleteMe releases the member's seats (promoting the waitlist) and deletes the
-// account in one transaction; sessions, blocks and attendance cascade.
+// deleteMe requires the current password, then releases the member's seats
+// (promoting and notifying the waitlist) and deletes the account in one
+// transaction; sessions, tokens, blocks and attendance cascade.
 func (s *Server) deleteMe(w http.ResponseWriter, r *http.Request) {
+	var v struct{ Password string }
+	if !s.parse(w, r, &v) {
+		return
+	}
+	acct := ratelimit.Key(own(r).Email)
+	if res := s.limiter.Peek(r.Context(), s.limits.LoginPerAccount, acct); !res.Allowed {
+		s.tooMany(w, r, res)
+		return
+	}
+	var hash string
+	if err := s.db.QueryRowContext(r.Context(), `SELECT password_hash FROM users WHERE id=$1`, own(r).ID).Scan(&hash); err != nil {
+		s.internal(w, r, "deletion failed", err)
+		return
+	}
+	ctx, cancel := s.hashSlot(r)
+	ok, err := s.hasher.Verify(ctx, hash, v.Password)
+	cancel()
+	if errors.Is(err, password.ErrBusy) {
+		s.busy(w, r)
+		return
+	}
+	if !ok {
+		s.limiter.Hit(r.Context(), s.limits.LoginPerAccount, acct)
+		s.fail(w, r, 401, "invalid_password", "your password is incorrect")
+		return
+	}
 	tx, err := s.db.BeginTx(r.Context(), nil)
 	if err != nil {
 		s.internal(w, r, "deletion failed", err)
 		return
 	}
 	defer tx.Rollback()
-	if err = seats.ReleaseUser(r.Context(), tx, own(r).ID); err != nil {
-		s.internal(w, r, "deletion failed", err)
-		return
+	promoted, err := seats.ReleaseUser(r.Context(), tx, own(r).ID)
+	if err == nil {
+		err = s.notifyPromotions(r.Context(), tx, promoted)
 	}
-	if _, err = tx.ExecContext(r.Context(), "DELETE FROM users WHERE id=$1", own(r).ID); err != nil {
-		s.internal(w, r, "deletion failed", err)
-		return
+	if err == nil {
+		_, err = tx.ExecContext(r.Context(), "DELETE FROM users WHERE id=$1", own(r).ID)
 	}
-	if err = tx.Commit(); err != nil {
+	if err == nil {
+		// The actor row is gone; keep an anonymous record that a deletion happened.
+		s.audit(r.Context(), tx, "", "account.delete", "", "self-service")
+		err = tx.Commit()
+	}
+	if err != nil {
 		s.internal(w, r, "deletion failed", err)
 		return
 	}

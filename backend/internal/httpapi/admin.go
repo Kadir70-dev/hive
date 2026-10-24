@@ -4,7 +4,10 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
-	"time"
+	"net/url"
+	"strings"
+
+	"thehivesociety/api/internal/mail"
 
 	"thehivesociety/api/internal/seats"
 )
@@ -50,44 +53,39 @@ func (s *Server) memberStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer tx.Rollback()
-	if v.Status == "approved" {
-		var verified bool
-		err = tx.QueryRowContext(r.Context(), "SELECT email_verified_at IS NOT NULL FROM users WHERE id=$1 AND is_admin=false", id).Scan(&verified)
-		if errors.Is(err, sql.ErrNoRows) {
-			s.fail(w, r, 404, "not_found", "member not found")
-			return
-		}
-		if err != nil {
-			s.internal(w, r, "update failed", err)
-			return
-		}
-		if !verified {
-			s.fail(w, r, 409, "email_unverified", "the member has not confirmed their email address yet")
-			return
-		}
+	// Lock the member row; admins are managed only with the admin CLI.
+	var current, email, name string
+	var verified bool
+	err = tx.QueryRowContext(r.Context(), "SELECT status, email, first_name, email_verified_at IS NOT NULL FROM users WHERE id=$1 AND is_admin=false FOR UPDATE", id).
+		Scan(&current, &email, &name, &verified)
+	if errors.Is(err, sql.ErrNoRows) {
+		s.fail(w, r, 404, "not_found", "member not found")
+		return
 	}
-	if v.Status != "approved" {
-		var isAdmin bool
-		err = tx.QueryRowContext(r.Context(), "SELECT is_admin FROM users WHERE id=$1", id).Scan(&isAdmin)
-		if errors.Is(err, sql.ErrNoRows) || (err == nil && isAdmin) {
-			s.fail(w, r, 404, "not_found", "member not found")
-			return
-		}
-		if err == nil {
-			err = seats.ReleaseUser(r.Context(), tx, id)
-		}
-		if err != nil {
-			s.internal(w, r, "update failed", err)
-			return
-		}
-	}
-	res, err := tx.ExecContext(r.Context(), "UPDATE users SET status=$1 WHERE id=$2 AND is_admin=false", v.Status, id)
 	if err != nil {
 		s.internal(w, r, "update failed", err)
 		return
 	}
-	if n, _ := res.RowsAffected(); n == 0 {
-		s.fail(w, r, 404, "not_found", "member not found")
+	if v.Status == "approved" && !verified {
+		s.fail(w, r, 409, "email_unverified", "the member has not confirmed their email address yet")
+		return
+	}
+	if v.Status != "approved" {
+		// Leaving "approved" releases the member's places and promotes the waitlist.
+		var promoted []seats.Promotion
+		promoted, err = seats.ReleaseUser(r.Context(), tx, id)
+		if err == nil {
+			err = s.notifyPromotions(r.Context(), tx, promoted)
+		}
+	}
+	if err == nil {
+		_, err = tx.ExecContext(r.Context(), "UPDATE users SET status=$1 WHERE id=$2", v.Status, id)
+	}
+	if err == nil && v.Status == "approved" && current != "approved" {
+		err = mail.Enqueue(r.Context(), tx, id, mail.TemplateMemberApproved, mail.MemberApproved(email, name, s.appURL))
+	}
+	if err != nil {
+		s.internal(w, r, "update failed", err)
 		return
 	}
 	s.audit(r.Context(), tx, own(r).ID, "member.status", id, v.Status)
@@ -137,39 +135,6 @@ func (s *Server) adminGatherings(w http.ResponseWriter, r *http.Request) {
 	reply(w, 200, out)
 }
 
-func (s *Server) createGathering(w http.ResponseWriter, r *http.Request) {
-	var v struct {
-		Title, Type, Description, StartsOn, StartsAt, Place string
-		Capacity                                            int
-	}
-	if !s.parse(w, r, &v) {
-		return
-	}
-	_, dateErr := time.Parse("2006-01-02", v.StartsOn)
-	_, timeErr := time.Parse("15:04", v.StartsAt)
-	if timeErr != nil {
-		_, timeErr = time.Parse("15:04:05", v.StartsAt)
-	}
-	if v.Title == "" || len(v.Title) > 200 || len(v.Type) > 60 || len(v.Description) > 5000 || v.Place == "" || len(v.Place) > 300 ||
-		v.Capacity < 1 || v.Capacity > 10000 || dateErr != nil || timeErr != nil {
-		s.fail(w, r, 400, "invalid_gathering", "invalid gathering")
-		return
-	}
-	if v.Type == "" {
-		v.Type = "community"
-	}
-	_, err := s.db.ExecContext(r.Context(), "INSERT INTO gatherings(title,type,description,starts_on,starts_at,place,capacity) VALUES($1,$2,$3,$4,$5,$6,$7)", v.Title, v.Type, v.Description, v.StartsOn, v.StartsAt, v.Place, v.Capacity)
-	if err != nil {
-		s.internal(w, r, "insert failed", err)
-		return
-	}
-	reply(w, 201, map[string]any{"ok": true})
-}
-
-func (s *Server) deleteGathering(w http.ResponseWriter, r *http.Request) {
-	s.deleteByID(w, r, "gatherings")
-}
-
 func (s *Server) attendees(w http.ResponseWriter, r *http.Request) {
 	id, ok := s.pathID(w, r)
 	if !ok {
@@ -217,6 +182,7 @@ func (s *Server) checkin(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, 409, "not_confirmed", "only members with a confirmed place can be checked in")
 		return
 	}
+	s.audit(r.Context(), s.db, own(r).ID, "attendance.checkin", v.UserID, v.GatheringID)
 	reply(w, 200, map[string]any{"ok": true})
 }
 
@@ -229,10 +195,12 @@ func (s *Server) createAnnouncement(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, 400, "invalid_announcement", "title and body required")
 		return
 	}
-	if _, err := s.db.ExecContext(r.Context(), "INSERT INTO announcements(title,body) VALUES($1,$2)", v.Title, v.Body); err != nil {
+	var id string
+	if err := s.db.QueryRowContext(r.Context(), "INSERT INTO announcements(title,body) VALUES($1,$2) RETURNING id::text", v.Title, v.Body).Scan(&id); err != nil {
 		s.internal(w, r, "insert failed", err)
 		return
 	}
+	s.audit(r.Context(), s.db, own(r).ID, "announcement.create", id, v.Title)
 	reply(w, 201, map[string]any{"ok": true})
 }
 
@@ -245,14 +213,16 @@ func (s *Server) createPartner(w http.ResponseWriter, r *http.Request) {
 	if !s.parse(w, r, &v) {
 		return
 	}
-	if v.Name == "" || len(v.Name) > 200 || len(v.Description) > 5000 || len(v.LogoURL) > 2000 || len(v.WebsiteURL) > 2000 {
-		s.fail(w, r, 400, "invalid_partner", "name required")
+	if v.Name == "" || len(v.Name) > 200 || len(v.Description) > 5000 || !optionalWebURL(v.LogoURL) || !optionalWebURL(v.WebsiteURL) {
+		s.fail(w, r, 400, "invalid_partner", "a name is required and links must be full https:// addresses")
 		return
 	}
-	if _, err := s.db.ExecContext(r.Context(), "INSERT INTO partners(name,description,logo_url,website_url) VALUES($1,$2,$3,$4)", v.Name, v.Description, v.LogoURL, v.WebsiteURL); err != nil {
+	var id string
+	if err := s.db.QueryRowContext(r.Context(), "INSERT INTO partners(name,description,logo_url,website_url) VALUES($1,$2,$3,$4) RETURNING id::text", v.Name, v.Description, v.LogoURL, v.WebsiteURL).Scan(&id); err != nil {
 		s.internal(w, r, "insert failed", err)
 		return
 	}
+	s.audit(r.Context(), s.db, own(r).ID, "partner.create", id, v.Name)
 	reply(w, 201, map[string]any{"ok": true})
 }
 
@@ -260,9 +230,23 @@ func (s *Server) removePartner(w http.ResponseWriter, r *http.Request) {
 	s.deleteByID(w, r, "partners")
 }
 
+// optionalWebURL accepts "" or an absolute https URL with a host, so stored
+// links can never be javascript:, data: or relative URLs.
+func optionalWebURL(raw string) bool {
+	if raw == "" {
+		return true
+	}
+	if len(raw) > 2000 || strings.ContainsAny(raw, " \t\r\n") {
+		return false
+	}
+	u, err := url.Parse(raw)
+	return err == nil && u.Scheme == "https" && u.Host != "" && u.User == nil
+}
+
+func isNoRows(err error) bool { return errors.Is(err, sql.ErrNoRows) }
+
 // deleteQueries maps allowed tables to fixed statements (no string building).
 var deleteQueries = map[string]string{
-	"gatherings":    "DELETE FROM gatherings WHERE id=$1",
 	"announcements": "DELETE FROM announcements WHERE id=$1",
 	"partners":      "DELETE FROM partners WHERE id=$1",
 }
@@ -281,5 +265,6 @@ func (s *Server) deleteByID(w http.ResponseWriter, r *http.Request, table string
 		s.fail(w, r, 404, "not_found", "not found")
 		return
 	}
+	s.audit(r.Context(), s.db, own(r).ID, strings.TrimSuffix(table, "s")+".delete", id, "")
 	reply(w, 200, map[string]any{"ok": true})
 }
