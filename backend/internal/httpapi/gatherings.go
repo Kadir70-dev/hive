@@ -15,8 +15,13 @@ func (s *Server) gatherings(w http.ResponseWriter, r *http.Request) {
 	}
 	rows, err := s.db.QueryContext(r.Context(), `SELECT g.id::text,g.title,g.type,g.description,g.starts_on::text,g.starts_at::text,g.place,
 GREATEST(g.capacity - (SELECT count(*) FROM reservations WHERE gathering_id=g.id AND status='confirmed'),0) AS places_left,
-COALESCE((SELECT status FROM reservations WHERE gathering_id=g.id AND user_id=$1),'')
-FROM gatherings g ORDER BY g.starts_on,g.starts_at LIMIT 200`, own(r).ID)
+COALESCE(mine.status,''),
+CASE WHEN mine.status='waitlist' THEN (SELECT count(*) FROM reservations w WHERE w.gathering_id=g.id AND w.status='waitlist'
+  AND (w.created_at, w.id) <= (mine.created_at, mine.id)) ELSE 0 END,
+((g.starts_on + g.starts_at) AT TIME ZONE 'Asia/Dubai') <= now()
+FROM gatherings g LEFT JOIN reservations mine ON mine.gathering_id=g.id AND mine.user_id=$1
+WHERE ((g.starts_on + g.starts_at) AT TIME ZONE 'Asia/Dubai') > now() - interval '1 day' OR mine.id IS NOT NULL
+ORDER BY g.starts_on,g.starts_at LIMIT 200`, own(r).ID)
 	if err != nil {
 		s.internal(w, r, "query failed", err)
 		return
@@ -25,12 +30,14 @@ FROM gatherings g ORDER BY g.starts_on,g.starts_at LIMIT 200`, own(r).ID)
 	out := []any{}
 	for rows.Next() {
 		var id, title, typ, desc, date, t, place, status string
-		var left int
-		if err := rows.Scan(&id, &title, &typ, &desc, &date, &t, &place, &left, &status); err != nil {
+		var left, position int
+		var started bool
+		if err := rows.Scan(&id, &title, &typ, &desc, &date, &t, &place, &left, &status, &position, &started); err != nil {
 			s.internal(w, r, "query failed", err)
 			return
 		}
-		out = append(out, map[string]any{"id": id, "title": title, "type": typ, "description": desc, "starts_on": date, "starts_at": t, "place": place, "places_left": left, "my_status": status})
+		out = append(out, map[string]any{"id": id, "title": title, "type": typ, "description": desc, "starts_on": date, "starts_at": t, "place": place,
+			"places_left": left, "my_status": status, "waitlist_position": position, "started": started})
 	}
 	reply(w, 200, out)
 }
@@ -66,6 +73,8 @@ func (s *Server) keep(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, 403, "approval_required", "approval required")
 	case errors.Is(err, seats.ErrGatheringStarted):
 		s.fail(w, r, 409, "gathering_started", "this gathering has already started")
+	case errors.Is(err, seats.ErrRestricted):
+		s.fail(w, r, 403, "not_available", "this gathering isn't available to you; please contact hello@thehivesociety.ae")
 	case err != nil:
 		s.internal(w, r, "reservation failed", err)
 	default:

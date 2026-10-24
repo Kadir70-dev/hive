@@ -1,8 +1,10 @@
 package httpapi
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"thehivesociety/api/internal/password"
@@ -11,6 +13,9 @@ import (
 )
 
 func (s *Server) me(w http.ResponseWriter, r *http.Request) { reply(w, 200, own(r)) }
+
+// phoneRe allows international formats: digits, spaces, +, -, (, ).
+var phoneRe = regexp.MustCompile(`^\+?[0-9 ()\-]{7,20}$`)
 
 func (s *Server) updateMe(w http.ResponseWriter, r *http.Request) {
 	var v struct {
@@ -21,21 +26,76 @@ func (s *Server) updateMe(w http.ResponseWriter, r *http.Request) {
 	if !s.parse(w, r, &v) {
 		return
 	}
-	v.FirstName = strings.TrimSpace(v.FirstName)
-	if v.FirstName == "" || len(v.FirstName) > 60 || len(v.DisplayName) > 60 || len(v.Phone) > 30 || len(v.Area) > 80 || len(v.Interests) > 30 {
-		s.fail(w, r, 400, "invalid_profile", "invalid profile")
+	v.FirstName, v.DisplayName = strings.TrimSpace(v.FirstName), strings.TrimSpace(v.DisplayName)
+	v.Phone, v.Area = strings.TrimSpace(v.Phone), strings.TrimSpace(v.Area)
+	if v.FirstName == "" || !validText(v.FirstName, 60, false) || !validText(v.DisplayName, 60, false) || !validText(v.Area, 80, false) {
+		s.fail(w, r, 400, "invalid_profile", "first name is required; names up to 60 characters, area up to 80")
 		return
 	}
-	if v.Interests == nil {
-		v.Interests = []string{}
+	if v.Phone != "" && !phoneRe.MatchString(v.Phone) {
+		s.fail(w, r, 400, "invalid_phone", "enter a phone number with 7 to 20 digits, e.g. +971 50 123 4567")
+		return
+	}
+	interests := []string{}
+	seen := map[string]bool{}
+	for _, i := range v.Interests {
+		i = strings.TrimSpace(i)
+		if i == "" || seen[strings.ToLower(i)] {
+			continue
+		}
+		if !validText(i, 40, false) {
+			s.fail(w, r, 400, "invalid_interests", "interests can be up to 40 characters each")
+			return
+		}
+		seen[strings.ToLower(i)] = true
+		interests = append(interests, i)
+	}
+	if len(interests) > 10 {
+		s.fail(w, r, 400, "invalid_interests", "choose up to 10 interests")
+		return
 	}
 	_, err := s.db.ExecContext(r.Context(), `UPDATE users SET first_name=$1,display_name=$2,phone=NULLIF($3,''),area=$4,interests=$5,email_updates=$6 WHERE id=$7`,
-		v.FirstName, v.DisplayName, v.Phone, v.Area, v.Interests, v.EmailUpdates, own(r).ID)
+		v.FirstName, v.DisplayName, v.Phone, v.Area, interests, v.EmailUpdates, own(r).ID)
 	if err != nil {
 		s.internal(w, r, "profile update failed", err)
 		return
 	}
 	reply(w, 200, map[string]any{"ok": true})
+}
+
+// myGatherings lists the member's own reservations with their status and,
+// when waitlisted, their position in the queue. Other members are never shown.
+func (s *Server) myGatherings(w http.ResponseWriter, r *http.Request) {
+	rows, err := s.db.QueryContext(r.Context(), `
+SELECT g.id::text, g.title, g.starts_on::text, g.starts_at::text, g.place, r.status,
+  CASE WHEN r.status='waitlist' THEN (SELECT count(*) FROM reservations w
+       WHERE w.gathering_id=r.gathering_id AND w.status='waitlist' AND (w.created_at, w.id) <= (r.created_at, r.id)) END,
+  ((g.starts_on + g.starts_at) AT TIME ZONE 'Asia/Dubai') <= now(),
+  COALESCE(a.attended,false)
+FROM reservations r JOIN gatherings g ON g.id=r.gathering_id
+LEFT JOIN attendance a ON a.gathering_id=r.gathering_id AND a.user_id=r.user_id
+WHERE r.user_id=$1 ORDER BY g.starts_on, g.starts_at`, own(r).ID)
+	if err != nil {
+		s.internal(w, r, "query failed", err)
+		return
+	}
+	defer rows.Close()
+	out := []any{}
+	for rows.Next() {
+		var id, title, date, t, place, status string
+		var position sql.NullInt64
+		var past, attended bool
+		if err := rows.Scan(&id, &title, &date, &t, &place, &status, &position, &past, &attended); err != nil {
+			s.internal(w, r, "query failed", err)
+			return
+		}
+		row := map[string]any{"id": id, "title": title, "starts_on": date, "starts_at": t, "place": place, "status": status, "past": past, "attended": attended}
+		if position.Valid {
+			row["waitlist_position"] = position.Int64
+		}
+		out = append(out, row)
+	}
+	reply(w, 200, out)
 }
 
 // deleteMe requires the current password, then releases the member's seats
@@ -110,140 +170,6 @@ func (s *Server) foundingSignup(w http.ResponseWriter, r *http.Request) {
 	_, err := s.db.ExecContext(r.Context(), "INSERT INTO founding_signups(name,email,phone,why,lang) VALUES($1,$2,$3,$4,$5)", v.Name, v.Email, v.Phone, v.Why, v.Lang)
 	if err != nil {
 		s.internal(w, r, "signup failed", err)
-		return
-	}
-	reply(w, 201, map[string]any{"ok": true})
-}
-
-func (s *Server) announcements(w http.ResponseWriter, r *http.Request) {
-	if !s.approved(w, r) {
-		return
-	}
-	rows, err := s.db.QueryContext(r.Context(), "SELECT id::text,title,body,created_at::text FROM announcements WHERE published=true ORDER BY created_at DESC LIMIT 200")
-	if err != nil {
-		s.internal(w, r, "query failed", err)
-		return
-	}
-	defer rows.Close()
-	out := []any{}
-	for rows.Next() {
-		var id, title, body, created string
-		if err := rows.Scan(&id, &title, &body, &created); err != nil {
-			s.internal(w, r, "query failed", err)
-			return
-		}
-		out = append(out, map[string]any{"id": id, "title": title, "body": body, "created_at": created})
-	}
-	reply(w, 200, out)
-}
-
-func (s *Server) partners(w http.ResponseWriter, r *http.Request) {
-	if !s.approved(w, r) {
-		return
-	}
-	rows, err := s.db.QueryContext(r.Context(), "SELECT id::text,name,description,logo_url,website_url FROM partners WHERE published=true ORDER BY created_at DESC LIMIT 200")
-	if err != nil {
-		s.internal(w, r, "query failed", err)
-		return
-	}
-	defer rows.Close()
-	out := []any{}
-	for rows.Next() {
-		var id, name, desc, logo, site string
-		if err := rows.Scan(&id, &name, &desc, &logo, &site); err != nil {
-			s.internal(w, r, "query failed", err)
-			return
-		}
-		out = append(out, map[string]any{"id": id, "name": name, "description": desc, "logo_url": logo, "website_url": site})
-	}
-	reply(w, 200, out)
-}
-
-func (s *Server) blocks(w http.ResponseWriter, r *http.Request) {
-	if !s.approved(w, r) {
-		return
-	}
-	rows, err := s.db.QueryContext(r.Context(), "SELECT blocked_id::text FROM member_blocks WHERE blocker_id=$1", own(r).ID)
-	if err != nil {
-		s.internal(w, r, "query failed", err)
-		return
-	}
-	defer rows.Close()
-	out := []string{}
-	for rows.Next() {
-		var id string
-		if err := rows.Scan(&id); err != nil {
-			s.internal(w, r, "query failed", err)
-			return
-		}
-		out = append(out, id)
-	}
-	reply(w, 200, out)
-}
-
-func (s *Server) block(w http.ResponseWriter, r *http.Request) {
-	if !s.approved(w, r) {
-		return
-	}
-	var v struct{ ID string }
-	if !s.parse(w, r, &v) {
-		return
-	}
-	if !validUUID(v.ID) || v.ID == own(r).ID {
-		s.fail(w, r, 400, "invalid_member", "invalid member reference")
-		return
-	}
-	res, err := s.db.ExecContext(r.Context(), "INSERT INTO member_blocks(blocker_id,blocked_id) SELECT $1,id FROM users WHERE id=$2 ON CONFLICT DO NOTHING", own(r).ID, v.ID)
-	if err != nil {
-		s.internal(w, r, "block failed", err)
-		return
-	}
-	if n, _ := res.RowsAffected(); n == 0 {
-		var exists bool
-		_ = s.db.QueryRowContext(r.Context(), "SELECT EXISTS(SELECT 1 FROM member_blocks WHERE blocker_id=$1 AND blocked_id=$2)", own(r).ID, v.ID).Scan(&exists)
-		if !exists {
-			s.fail(w, r, 400, "invalid_member", "invalid member reference")
-			return
-		}
-	}
-	reply(w, 200, map[string]any{"ok": true})
-}
-
-func (s *Server) unblock(w http.ResponseWriter, r *http.Request) {
-	id, ok := s.pathID(w, r)
-	if !ok {
-		return
-	}
-	if _, err := s.db.ExecContext(r.Context(), "DELETE FROM member_blocks WHERE blocker_id=$1 AND blocked_id=$2", own(r).ID, id); err != nil {
-		s.internal(w, r, "unblock failed", err)
-		return
-	}
-	reply(w, 200, map[string]any{"ok": true})
-}
-
-func (s *Server) report(w http.ResponseWriter, r *http.Request) {
-	if !s.approved(w, r) {
-		return
-	}
-	var v struct{ ID, Reason string }
-	if !s.parse(w, r, &v) {
-		return
-	}
-	if len(v.Reason) < 10 || len(v.Reason) > 2000 {
-		s.fail(w, r, 400, "invalid_reason", "reason must be 10 to 2000 characters")
-		return
-	}
-	if !validUUID(v.ID) || v.ID == own(r).ID {
-		s.fail(w, r, 400, "invalid_member", "invalid member reference")
-		return
-	}
-	res, err := s.db.ExecContext(r.Context(), "INSERT INTO member_reports(reporter_id,reported_member_id,reason) SELECT $1,id,$3 FROM users WHERE id=$2", own(r).ID, v.ID, v.Reason)
-	if err != nil {
-		s.internal(w, r, "report failed", err)
-		return
-	}
-	if n, _ := res.RowsAffected(); n == 0 {
-		s.fail(w, r, 400, "invalid_member", "invalid member reference")
 		return
 	}
 	reply(w, 201, map[string]any{"ok": true})

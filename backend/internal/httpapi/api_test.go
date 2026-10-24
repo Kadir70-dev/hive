@@ -289,7 +289,7 @@ func TestEssentialRoutes(t *testing.T) {
 	expect(t, e.do("POST", "/v1/admin/partners", map[string]any{"name": "Cafe"}, session(adminC)), 201, "partner")
 	expect(t, e.do("GET", "/v1/partners", nil, session(a)), 200, "list partners")
 	expect(t, e.do("POST", "/v1/reports", map[string]any{"id": e.userID("admin@example.test"), "reason": "a test report reason"}, session(a)), 201, "report")
-	expect(t, e.do("POST", "/v1/blocks", map[string]any{"id": e.userID("a@example.test")}, session(a)), 400, "self block")
+	expect(t, e.do("POST", "/v1/blocks", map[string]any{"id": e.userID("a@example.test")}, session(a)), 404, "members cannot create blocks directly (admin-mediated)")
 	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "Noor", "displayName": "N", "interests": []string{"wellness"}}, session(a)), 200, "update profile")
 	expect(t, e.do("DELETE", "/v1/admin/gatherings/"+gid, nil, session(adminC)), 200, "delete gathering")
 	expect(t, e.do("DELETE", "/v1/admin/gatherings/"+gid, nil, session(adminC)), 404, "delete gathering twice")

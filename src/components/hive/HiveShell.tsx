@@ -71,7 +71,7 @@ export function HiveShell({ children, member = false }: { children: ReactNode; m
                     <Link href="/gatherings">{t.gatherings}</Link>
                   ) : null}
                   <Link href="/profile">{t.profile}</Link>
-                  {(me.status === "approved" || me.isAdmin) && <><Link href="/announcements">News</Link><Link href="/partners">Partners</Link><Link href="/safety">Safety</Link></>}
+                  {(me.status === "approved" || me.isAdmin) && <><Link href="/announcements">{t.news}</Link><Link href="/partners">{t.partnersNav}</Link><Link href="/safety">{t.safety}</Link></>}
                   {me.isAdmin ? <Link href="/admin">{t.admin}</Link> : null}
                   <button type="button" className="hv-link" onClick={signOut}>{t.signOut}</button>
                 </>

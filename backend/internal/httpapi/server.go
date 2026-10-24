@@ -21,29 +21,31 @@ import (
 
 // Limits groups the rate-limit rules. Zero values fall back to DefaultLimits.
 type Limits struct {
-	LoginPerIP      ratelimit.Rule
-	SignupPerIP     ratelimit.Rule
-	LoginPerAccount ratelimit.Rule // counts failed logins per email
-	APIPerIP        ratelimit.Rule
-	TokenPerIP      ratelimit.Rule // verify/reset/forgot/resend calls per IP
-	EmailPerAccount ratelimit.Rule // verification or reset emails per address
-	ExistsNotice    ratelimit.Rule // "account exists" notices per address
-	MFAPerAccount   ratelimit.Rule // failed TOTP/recovery attempts per admin
-	HashWait        time.Duration  // how long a request may wait for a hashing slot
+	LoginPerIP       ratelimit.Rule
+	SignupPerIP      ratelimit.Rule
+	LoginPerAccount  ratelimit.Rule // counts failed logins per email
+	APIPerIP         ratelimit.Rule
+	TokenPerIP       ratelimit.Rule // verify/reset/forgot/resend calls per IP
+	EmailPerAccount  ratelimit.Rule // verification or reset emails per address
+	ExistsNotice     ratelimit.Rule // "account exists" notices per address
+	MFAPerAccount    ratelimit.Rule // failed TOTP/recovery attempts per admin
+	ReportsPerMember ratelimit.Rule // safety reports per member
+	HashWait         time.Duration  // how long a request may wait for a hashing slot
 }
 
 // DefaultLimits are the production limits.
 func DefaultLimits() Limits {
 	return Limits{
-		LoginPerIP:      ratelimit.Rule{Name: "login-ip", Limit: 30, Window: 10 * time.Minute},
-		SignupPerIP:     ratelimit.Rule{Name: "signup-ip", Limit: 10, Window: time.Hour},
-		LoginPerAccount: ratelimit.Rule{Name: "login-acct", Limit: 5, Window: 15 * time.Minute},
-		APIPerIP:        ratelimit.Rule{Name: "api-ip", Limit: 600, Window: time.Minute},
-		TokenPerIP:      ratelimit.Rule{Name: "token-ip", Limit: 20, Window: 15 * time.Minute},
-		EmailPerAccount: ratelimit.Rule{Name: "email-acct", Limit: 3, Window: time.Hour},
-		ExistsNotice:    ratelimit.Rule{Name: "exists-acct", Limit: 1, Window: time.Hour},
-		MFAPerAccount:   ratelimit.Rule{Name: "mfa-acct", Limit: 5, Window: 15 * time.Minute},
-		HashWait:        3 * time.Second,
+		LoginPerIP:       ratelimit.Rule{Name: "login-ip", Limit: 30, Window: 10 * time.Minute},
+		SignupPerIP:      ratelimit.Rule{Name: "signup-ip", Limit: 10, Window: time.Hour},
+		LoginPerAccount:  ratelimit.Rule{Name: "login-acct", Limit: 5, Window: 15 * time.Minute},
+		APIPerIP:         ratelimit.Rule{Name: "api-ip", Limit: 600, Window: time.Minute},
+		TokenPerIP:       ratelimit.Rule{Name: "token-ip", Limit: 20, Window: 15 * time.Minute},
+		EmailPerAccount:  ratelimit.Rule{Name: "email-acct", Limit: 3, Window: time.Hour},
+		ExistsNotice:     ratelimit.Rule{Name: "exists-acct", Limit: 1, Window: time.Hour},
+		MFAPerAccount:    ratelimit.Rule{Name: "mfa-acct", Limit: 5, Window: 15 * time.Minute},
+		ReportsPerMember: ratelimit.Rule{Name: "report-member", Limit: 10, Window: 24 * time.Hour},
+		HashWait:         3 * time.Second,
 	}
 }
 
@@ -53,7 +55,7 @@ func withDefaults(l Limits) Limits {
 	for _, p := range []struct{ got, def *ratelimit.Rule }{
 		{&l.LoginPerIP, &d.LoginPerIP}, {&l.SignupPerIP, &d.SignupPerIP}, {&l.LoginPerAccount, &d.LoginPerAccount},
 		{&l.APIPerIP, &d.APIPerIP}, {&l.TokenPerIP, &d.TokenPerIP}, {&l.EmailPerAccount, &d.EmailPerAccount},
-		{&l.ExistsNotice, &d.ExistsNotice}, {&l.MFAPerAccount, &d.MFAPerAccount},
+		{&l.ExistsNotice, &d.ExistsNotice}, {&l.MFAPerAccount, &d.MFAPerAccount}, {&l.ReportsPerMember, &d.ReportsPerMember},
 	} {
 		if p.got.Limit <= 0 {
 			p.got.Limit = p.def.Limit
@@ -185,10 +187,9 @@ func (s *Server) routes() http.Handler {
 			r.Post("/gatherings/{id}/cancel", s.cancel)
 			r.Get("/announcements", s.announcements)
 			r.Get("/partners", s.partners)
-			r.Get("/blocks", s.blocks)
-			r.Post("/blocks", s.block)
-			r.Delete("/blocks/{id}", s.unblock)
-			r.Post("/reports", s.report)
+			r.Get("/me/gatherings", s.myGatherings)
+			r.Post("/reports", s.createReport)
+			r.Get("/reports/mine", s.myReports)
 			r.Route("/mfa", func(r chi.Router) {
 				r.Use(s.requireAdminAccount)
 				r.Post("/totp/setup", s.mfaSetup)
@@ -205,10 +206,18 @@ func (s *Server) routes() http.Handler {
 				r.Delete("/gatherings/{id}", s.deleteGathering)
 				r.Get("/gatherings/{id}/attendees", s.attendees)
 				r.Post("/checkin", s.checkin)
-				r.Get("/reports", s.reports)
+				r.Get("/reports", s.adminReports)
+				r.Patch("/reports/{id}", s.updateReport)
+				r.Post("/reports/{id}/block", s.applyBlock)
+				r.Delete("/reports/{id}/block", s.removeBlock)
+				r.Get("/announcements", s.adminAnnouncements)
 				r.Post("/announcements", s.createAnnouncement)
+				r.Put("/announcements/{id}", s.updateAnnouncement)
 				r.Delete("/announcements/{id}", s.removeAnnouncement)
+				r.Post("/announcements/{id}/email", s.emailAnnouncement)
+				r.Get("/partners", s.adminPartners)
 				r.Post("/partners", s.createPartner)
+				r.Put("/partners/{id}", s.updatePartner)
 				r.Delete("/partners/{id}", s.removePartner)
 			})
 		})

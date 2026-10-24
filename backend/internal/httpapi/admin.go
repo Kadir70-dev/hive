@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
-	"net/url"
 	"strings"
 
 	"thehivesociety/api/internal/mail"
@@ -13,23 +12,37 @@ import (
 )
 
 func (s *Server) members(w http.ResponseWriter, r *http.Request) {
-	rows, err := s.db.QueryContext(r.Context(), "SELECT id::text,email,first_name,status,is_admin,email_verified_at IS NOT NULL FROM users ORDER BY created_at DESC LIMIT 500")
+	p := pageParams(r, 25, 100)
+	status := r.URL.Query().Get("status")
+	if status != "" && status != "pending" && status != "approved" && status != "declined" {
+		s.fail(w, r, 400, "invalid_status", "invalid status filter")
+		return
+	}
+	like := likePattern(p.Query)
+	const where = `WHERE ($1='' OR status=$1) AND ($2='' OR first_name ILIKE $3 OR display_name ILIKE $3 OR email ILIKE $3)`
+	var total int
+	if err := s.db.QueryRowContext(r.Context(), "SELECT count(*) FROM users "+where, status, p.Query, like).Scan(&total); err != nil {
+		s.internal(w, r, "query failed", err)
+		return
+	}
+	rows, err := s.db.QueryContext(r.Context(), `SELECT id::text,email,first_name,status,is_admin,email_verified_at IS NOT NULL,created_at::text FROM users `+where+`
+ORDER BY (status='pending') DESC, created_at DESC, id LIMIT $4 OFFSET $5`, status, p.Query, like, p.Size, p.offset())
 	if err != nil {
 		s.internal(w, r, "query failed", err)
 		return
 	}
 	defer rows.Close()
-	out := []any{}
+	items := []any{}
 	for rows.Next() {
-		var id, email, name, status string
+		var id, email, name, st, created string
 		var admin, verified bool
-		if err := rows.Scan(&id, &email, &name, &status, &admin, &verified); err != nil {
+		if err := rows.Scan(&id, &email, &name, &st, &admin, &verified, &created); err != nil {
 			s.internal(w, r, "query failed", err)
 			return
 		}
-		out = append(out, map[string]any{"id": id, "email": email, "first_name": name, "status": status, "is_admin": admin, "email_verified": verified})
+		items = append(items, map[string]any{"id": id, "email": email, "first_name": name, "status": st, "is_admin": admin, "email_verified": verified, "created_at": created})
 	}
-	reply(w, 200, out)
+	reply(w, 200, paged(items, p, total))
 }
 
 // memberStatus changes approval. Moving a member out of "approved" releases
@@ -96,27 +109,14 @@ func (s *Server) memberStatus(w http.ResponseWriter, r *http.Request) {
 	reply(w, 200, map[string]any{"ok": true})
 }
 
-func (s *Server) reports(w http.ResponseWriter, r *http.Request) {
-	rows, err := s.db.QueryContext(r.Context(), "SELECT id::text,reporter_id::text,COALESCE(reported_member_id::text,''),reason,status FROM member_reports ORDER BY created_at DESC LIMIT 200")
-	if err != nil {
-		s.internal(w, r, "query failed", err)
-		return
-	}
-	defer rows.Close()
-	out := []any{}
-	for rows.Next() {
-		var id, reporter, target, reason, status string
-		if err := rows.Scan(&id, &reporter, &target, &reason, &status); err != nil {
-			s.internal(w, r, "query failed", err)
-			return
-		}
-		out = append(out, map[string]any{"id": id, "reporter_id": reporter, "reported_member_id": target, "reason": reason, "status": status})
-	}
-	reply(w, 200, out)
-}
-
 func (s *Server) adminGatherings(w http.ResponseWriter, r *http.Request) {
-	rows, err := s.db.QueryContext(r.Context(), "SELECT id::text,title,type,description,starts_on::text,starts_at::text,place,capacity FROM gatherings ORDER BY starts_on")
+	rows, err := s.db.QueryContext(r.Context(), `
+SELECT g.id::text,g.title,g.type,g.description,g.starts_on::text,g.starts_at::text,g.place,g.capacity,
+  count(*) FILTER (WHERE r.status='confirmed'), count(*) FILTER (WHERE r.status='waitlist'),
+  (SELECT count(*) FROM attendance a WHERE a.gathering_id=g.id AND a.attended),
+  ((g.starts_on + g.starts_at) AT TIME ZONE 'Asia/Dubai') <= now()
+FROM gatherings g LEFT JOIN reservations r ON r.gathering_id=g.id
+GROUP BY g.id ORDER BY g.starts_on DESC, g.starts_at DESC LIMIT 500`)
 	if err != nil {
 		s.internal(w, r, "query failed", err)
 		return
@@ -125,22 +125,36 @@ func (s *Server) adminGatherings(w http.ResponseWriter, r *http.Request) {
 	out := []any{}
 	for rows.Next() {
 		var id, title, typ, desc, date, t, place string
-		var capacity int
-		if err := rows.Scan(&id, &title, &typ, &desc, &date, &t, &place, &capacity); err != nil {
+		var capacity, confirmed, waiting, attended int
+		var started bool
+		if err := rows.Scan(&id, &title, &typ, &desc, &date, &t, &place, &capacity, &confirmed, &waiting, &attended, &started); err != nil {
 			s.internal(w, r, "query failed", err)
 			return
 		}
-		out = append(out, map[string]any{"id": id, "title": title, "type": typ, "description": desc, "starts_on": date, "starts_at": t, "place": place, "capacity": capacity})
+		out = append(out, map[string]any{"id": id, "title": title, "type": typ, "description": desc, "starts_on": date, "starts_at": t, "place": place,
+			"capacity": capacity, "confirmed": confirmed, "waitlisted": waiting, "attended": attended, "started": started})
 	}
 	reply(w, 200, out)
 }
 
+// attendees is the admin roster for one gathering: confirmed members first,
+// then the waitlist in queue order, with check-in state and a flag when a
+// safety block exists between two people on the list.
 func (s *Server) attendees(w http.ResponseWriter, r *http.Request) {
 	id, ok := s.pathID(w, r)
 	if !ok {
 		return
 	}
-	rows, err := s.db.QueryContext(r.Context(), `SELECT u.id::text,u.first_name,u.email,r.status,COALESCE(a.attended,false) FROM reservations r JOIN users u ON u.id=r.user_id LEFT JOIN attendance a ON a.gathering_id=r.gathering_id AND a.user_id=u.id WHERE r.gathering_id=$1 ORDER BY r.created_at, r.id`, id)
+	rows, err := s.db.QueryContext(r.Context(), `
+SELECT u.id::text, u.first_name, u.email, r.status,
+  CASE WHEN r.status='waitlist' THEN row_number() OVER (PARTITION BY r.status ORDER BY r.created_at, r.id) END,
+  COALESCE(a.attended,false),
+  EXISTS(SELECT 1 FROM reservations o JOIN member_blocks b
+    ON (b.blocker_id=u.id AND b.blocked_id=o.user_id) OR (b.blocked_id=u.id AND b.blocker_id=o.user_id)
+    WHERE o.gathering_id=r.gathering_id)
+FROM reservations r JOIN users u ON u.id=r.user_id
+LEFT JOIN attendance a ON a.gathering_id=r.gathering_id AND a.user_id=u.id
+WHERE r.gathering_id=$1 ORDER BY (r.status='confirmed') DESC, r.created_at, r.id`, id)
 	if err != nil {
 		s.internal(w, r, "query failed", err)
 		return
@@ -149,12 +163,17 @@ func (s *Server) attendees(w http.ResponseWriter, r *http.Request) {
 	out := []any{}
 	for rows.Next() {
 		var uid, name, email, status string
-		var attended bool
-		if err := rows.Scan(&uid, &name, &email, &status, &attended); err != nil {
+		var position sql.NullInt64
+		var attended, conflict bool
+		if err := rows.Scan(&uid, &name, &email, &status, &position, &attended, &conflict); err != nil {
 			s.internal(w, r, "query failed", err)
 			return
 		}
-		out = append(out, map[string]any{"user_id": uid, "first_name": name, "email": email, "status": status, "attended": attended})
+		row := map[string]any{"user_id": uid, "first_name": name, "email": email, "status": status, "attended": attended, "block_conflict": conflict}
+		if position.Valid {
+			row["waitlist_position"] = position.Int64
+		}
+		out = append(out, row)
 	}
 	reply(w, 200, out)
 }
@@ -184,63 +203,6 @@ func (s *Server) checkin(w http.ResponseWriter, r *http.Request) {
 	}
 	s.audit(r.Context(), s.db, own(r).ID, "attendance.checkin", v.UserID, v.GatheringID)
 	reply(w, 200, map[string]any{"ok": true})
-}
-
-func (s *Server) createAnnouncement(w http.ResponseWriter, r *http.Request) {
-	var v struct{ Title, Body string }
-	if !s.parse(w, r, &v) {
-		return
-	}
-	if v.Title == "" || v.Body == "" || len(v.Title) > 200 || len(v.Body) > 10000 {
-		s.fail(w, r, 400, "invalid_announcement", "title and body required")
-		return
-	}
-	var id string
-	if err := s.db.QueryRowContext(r.Context(), "INSERT INTO announcements(title,body) VALUES($1,$2) RETURNING id::text", v.Title, v.Body).Scan(&id); err != nil {
-		s.internal(w, r, "insert failed", err)
-		return
-	}
-	s.audit(r.Context(), s.db, own(r).ID, "announcement.create", id, v.Title)
-	reply(w, 201, map[string]any{"ok": true})
-}
-
-func (s *Server) removeAnnouncement(w http.ResponseWriter, r *http.Request) {
-	s.deleteByID(w, r, "announcements")
-}
-
-func (s *Server) createPartner(w http.ResponseWriter, r *http.Request) {
-	var v struct{ Name, Description, LogoURL, WebsiteURL string }
-	if !s.parse(w, r, &v) {
-		return
-	}
-	if v.Name == "" || len(v.Name) > 200 || len(v.Description) > 5000 || !optionalWebURL(v.LogoURL) || !optionalWebURL(v.WebsiteURL) {
-		s.fail(w, r, 400, "invalid_partner", "a name is required and links must be full https:// addresses")
-		return
-	}
-	var id string
-	if err := s.db.QueryRowContext(r.Context(), "INSERT INTO partners(name,description,logo_url,website_url) VALUES($1,$2,$3,$4) RETURNING id::text", v.Name, v.Description, v.LogoURL, v.WebsiteURL).Scan(&id); err != nil {
-		s.internal(w, r, "insert failed", err)
-		return
-	}
-	s.audit(r.Context(), s.db, own(r).ID, "partner.create", id, v.Name)
-	reply(w, 201, map[string]any{"ok": true})
-}
-
-func (s *Server) removePartner(w http.ResponseWriter, r *http.Request) {
-	s.deleteByID(w, r, "partners")
-}
-
-// optionalWebURL accepts "" or an absolute https URL with a host, so stored
-// links can never be javascript:, data: or relative URLs.
-func optionalWebURL(raw string) bool {
-	if raw == "" {
-		return true
-	}
-	if len(raw) > 2000 || strings.ContainsAny(raw, " \t\r\n") {
-		return false
-	}
-	u, err := url.Parse(raw)
-	return err == nil && u.Scheme == "https" && u.Host != "" && u.User == nil
 }
 
 func isNoRows(err error) bool { return errors.Is(err, sql.ErrNoRows) }

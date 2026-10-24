@@ -427,3 +427,39 @@ func TestDeclineRacingReserve(t *testing.T) {
 		}
 	}
 }
+
+// Two members with a block between them booking at the same moment: at most
+// one gets in, in either direction of the block.
+func TestBlockedPairNeverBothBooked(t *testing.T) {
+	for i := 0; i < 15; i++ {
+		db := testdb.Open(t)
+		g := testdb.Gathering(t, db, 10)
+		a := testdb.User(t, db, "a@example.test", "approved", false)
+		b := testdb.User(t, db, "b@example.test", "approved", false)
+		blocker, blocked := a, b
+		if i%2 == 1 {
+			blocker, blocked = b, a
+		}
+		if _, err := db.Exec(`INSERT INTO member_blocks(blocker_id,blocked_id) VALUES($1,$2)`, blocker, blocked); err != nil {
+			t.Fatal(err)
+		}
+		var wg sync.WaitGroup
+		errs := make([]error, 2)
+		for k, u := range []string{a, b} {
+			wg.Add(1)
+			go func(k int, u string) {
+				defer wg.Done()
+				errs[k] = inTx(t, db, func(tx *sql.Tx) error { _, err := seats.Reserve(context.Background(), tx, g, u); return err })
+			}(k, u)
+		}
+		wg.Wait()
+		var n int
+		_ = db.QueryRow(`SELECT count(*) FROM reservations WHERE gathering_id=$1`, g).Scan(&n)
+		if n != 1 {
+			t.Fatalf("iteration %d: %d of the blocked pair booked (errs %v)", i, n, errs)
+		}
+		if !errors.Is(errs[0], seats.ErrRestricted) && !errors.Is(errs[1], seats.ErrRestricted) {
+			t.Fatalf("iteration %d: expected one ErrRestricted, got %v", i, errs)
+		}
+	}
+}

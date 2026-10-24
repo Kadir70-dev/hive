@@ -32,6 +32,9 @@ var (
 	ErrNoReservation     = errors.New("no reservation")
 	ErrNotEligible       = errors.New("member is not approved")
 	ErrGatheringStarted  = errors.New("gathering has already started")
+	// ErrRestricted: a block exists between this member and someone already
+	// booked. Callers must not reveal who; the message stays generic.
+	ErrRestricted = errors.New("gathering not available to this member")
 )
 
 // CapacityError is returned when a new capacity is below the confirmed seats.
@@ -172,6 +175,19 @@ func Reserve(ctx context.Context, q Querier, gatheringID, userID string) (Bookin
 	}
 	if g.started {
 		return Booking{}, ErrGatheringStarted
+	}
+	// Blocks apply in both directions. Checked under the gathering lock, so two
+	// blocked members booking at the same moment cannot both get in.
+	var blocked bool
+	err = q.QueryRowContext(ctx, `SELECT EXISTS(
+  SELECT 1 FROM reservations r JOIN member_blocks b
+    ON (b.blocker_id=$2 AND b.blocked_id=r.user_id) OR (b.blocked_id=$2 AND b.blocker_id=r.user_id)
+  WHERE r.gathering_id=$1)`, gatheringID, userID).Scan(&blocked)
+	if err != nil {
+		return Booking{}, err
+	}
+	if blocked {
+		return Booking{}, ErrRestricted
 	}
 	// Repair any free seat for people already queued before considering this request.
 	promoted, err := fill(ctx, q, gatheringID, g)

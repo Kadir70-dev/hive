@@ -34,15 +34,22 @@
 - Privacy Policy and Terms rewritten as drafts describing actual behaviour (owner/legal review required).
 - Staging readiness: parameterised and hardened Caddy, log rotation, `netlify.toml`, staging guide, proxy end-to-end test in CI.
 
+## P1 Batch 4 (committed directly to main)
+- Announcements: admin list/search/pagination, create, edit, publish/unpublish, delete; paginated member feed; email to opted-in, approved, verified members via the outbox with per-member de-duplication (`announcement_deliveries`).
+- Safety: admin-mediated reports (category, optional own gathering, description of the person, block request); "my reports" status; admin moderation (status, internal note, link member from roster/search) and admin-applied blocks enforced at booking time in both directions, under the gathering lock, with generic refusals. Member-created blocks by member id were removed.
+- Admin dashboard tabs: members (search, status filter, pagination), gatherings (create/edit/cancel, roster with check-in, waitlist positions, safety-conflict flags), announcements, partners (CRUD, https-only), reports.
+- Member profile: my gatherings with confirmed/waitlist position/past/attended, validated profile fields, email-updates setting wired to announcement delivery.
+- UX: accessible confirm dialog replaces alert()/confirm(); loading/empty/error/success states; Arabic for member screens; small-screen layout fixes.
+
 ## Known blockers — DO NOT deploy as production ready
 - Resend is integrated but not configured: a Resend account, API key and a verified sending subdomain (DNS records, needs owner approval) are required before any email is delivered. Keep Titan MX/SPF/DMARC as they are.
 - Admins must register, confirm their email, be promoted with the admin CLI (`HIVE_ADMIN_EMAILS`), and enrol TOTP. `MFA_ENCRYPTION_KEY` must be generated and backed up; losing it forces re-enrolment.
-- The email-updates opt-in still sends nothing (no announcement emails yet).
+- Profile photos (Cloudflare R2) are not implemented.
+- Blocks do not cancel bookings that already exist when the block is applied; the admin roster flags these conflicts for manual handling.
 - Backups: the age key pair must be generated and stored offline, and an off-site rclone remote configured; no production backup/restore has been run.
 - Privacy Policy and Terms are drafts with [bracketed] owner decisions (legal entity, retention of security records, governing law, liability).
 - Security-record (audit_events) retention is not automated yet.
 - Avatar uploads / Cloudflare R2 not implemented; prior photos do not automatically migrate.
-- Announcement/partner editing and moderation (report resolution) remain incomplete.
 - Antifraud, structured audit trail, retention/backups, privacy/legal review, accessibility and security testing are still needed.
 - Existing Supabase accounts/data are NOT migrated. Do not delete prior database before an encrypted export and a validated migration. Passwords cannot simply be copied if hash formats are incompatible; require a safe reset/invite flow.
 - This archive is a development checkpoint, not a production release.

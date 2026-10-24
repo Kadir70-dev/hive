@@ -20,6 +20,7 @@ const (
 	TemplateWaitlistPromote = "waitlist_promoted"
 	TemplateGatheringUpdate = "gathering_updated"
 	TemplateGatheringCancel = "gathering_cancelled"
+	TemplateAnnouncement    = "announcement"
 )
 
 var htmlLayout = template.Must(template.New("email").Parse(`<!doctype html>
@@ -188,5 +189,23 @@ func GatheringCancelled(to, name string, g Gathering) Message {
 		Heading:    "This gathering is cancelled",
 		Paragraphs: []string{fmt.Sprintf("Hello %s,", name), g.line(), "We are sorry: this gathering will not take place. Your reservation has been removed."},
 		Footer:     memberFooter,
+	})
+}
+
+// Announcement is an optional update, sent only to members who opted in.
+// The body is admin-written plain text; html/template escapes it.
+func Announcement(to, name, appURL, title, body string) Message {
+	paras := []string{fmt.Sprintf("Hello %s,", name)}
+	for _, p := range strings.Split(strings.ReplaceAll(body, "\r\n", "\n"), "\n\n") {
+		if p = strings.TrimSpace(p); p != "" {
+			paras = append(paras, p)
+		}
+	}
+	return render(to, title, content{
+		Heading:     title,
+		Paragraphs:  paras,
+		ButtonLabel: "Read on The Hive Society",
+		ButtonURL:   strings.TrimRight(appURL, "/") + "/announcements",
+		Footer:      "You receive this because you turned on email updates. You can turn them off on your profile page: " + strings.TrimRight(appURL, "/") + "/profile",
 	})
 }
