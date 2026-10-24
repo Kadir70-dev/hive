@@ -29,3 +29,28 @@ describe('AuthScreen', () => {
     expect(screen.queryByLabelText(/First name/)).not.toBeInTheDocument();
   });
 });
+
+describe('AuthScreen account flows', () => {
+  it('shows "check your email" after sign-up instead of logging in', async () => {
+    const { fireEvent, screen: s } = await import('@testing-library/react');
+    renderAuth('mode=signup');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{"ok":true,"status":"verification_sent"}', { status: 202 })));
+    fireEvent.change(s.getByLabelText(/First name/), { target: { value: 'Noor' } });
+    fireEvent.change(s.getByLabelText(/Email/), { target: { value: 'noor@example.test' } });
+    fireEvent.change(s.getByLabelText(/Password/), { target: { value: 'a-long-password-123' } });
+    fireEvent.click(s.getByRole('checkbox'));
+    fireEvent.click(s.getByRole('button', { name: 'Create account' }));
+    expect(await s.findByRole('heading', { name: 'Check your email' })).toBeInTheDocument();
+  });
+
+  it('offers a new confirmation link when the email is unverified', async () => {
+    const { fireEvent, screen: s } = await import('@testing-library/react');
+    renderAuth('');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{"error":"please confirm your email address first","code":"email_unverified"}', { status: 403 })));
+    fireEvent.change(s.getByLabelText(/Email/), { target: { value: 'noor@example.test' } });
+    fireEvent.change(s.getByLabelText(/Password/), { target: { value: 'whatever' } });
+    fireEvent.submit(s.getByLabelText(/Email/).closest('form')!);
+    expect(await s.findByRole('button', { name: 'Send a new confirmation link' })).toBeInTheDocument();
+    expect(s.getByRole('link', { name: 'Forgot your password?' })).toHaveAttribute('href', '/reset-password');
+  });
+});

@@ -18,9 +18,18 @@
 - CI: backend (verify, vet, build, race tests on PostgreSQL), frontend (lint, typecheck, test, build), infrastructure (compose config, image build, migrations).
 - Homepage: Join opens sign-up, member detection uses the Go session, the AI widgets are disabled.
 
+## P0 Batch 2 (branch feat/p0-batch2-auth-email, stacked on Batch 1)
+- Transactional email: provider interface, Resend client, Postgres outbox + worker; no Lovable/managed backend.
+- Email verification (24 h links), forgot/reset password (30 min links) with all sessions revoked on reset; enumeration-safe responses.
+- Admin bootstrap CLI (allow-listed + verified only); admin TOTP 2FA with encrypted secrets, recovery codes, replay protection and a 12 h step-up window.
+- Hourly cleanup of expired sessions, tokens and outbox rows.
+- Nonce-based CSP for pages, hash-pinned CSP for the static homepage, HSTS and other headers.
+- Removed the Lovable email preview endpoint, AI stubs, AI SDK and Lovable/react-email dependencies.
+
 ## Known blockers — DO NOT deploy as production ready
-- Email verification, password reset, signup alert email, notifications and email opt-in delivery need transactional email integration. Keep Titan MX/SPF/DMARC as they are.
-- Admin bootstrap requires manual verified elevation after each of the two intended addresses registers. Never elevate accounts solely from matching email text.
+- Resend is integrated but not configured: a Resend account, API key and a verified sending subdomain (DNS records, needs owner approval) are required before any email is delivered. Keep Titan MX/SPF/DMARC as they are.
+- Admins must register, confirm their email, be promoted with the admin CLI (`HIVE_ADMIN_EMAILS`), and enrol TOTP. `MFA_ENCRYPTION_KEY` must be generated and backed up; losing it forces re-enrolment.
+- Signup alert email to the owners, gathering notifications and the email-updates opt-in still send nothing (templates and triggers not built).
 - Avatar uploads / Cloudflare R2 not implemented; prior photos do not automatically migrate.
 - Gathering edits (create and delete work), announcement/partner edit actions and moderation resolution remain incomplete. **Batch 3:** a gathering edit endpoint must run inside a transaction and call `seats.Fill` after changing capacity; reducing capacity below confirmed seats needs an explicit policy (no automatic demotion exists).
 - Antifraud, structured audit trail, retention/backups, privacy/legal review, accessibility and security testing are still needed.

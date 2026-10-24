@@ -61,6 +61,17 @@ services:
       TRUSTED_PROXY_CIDRS: ${HIVE_CADDY_IP:-10.250.70.10}/32
       HIVE_PROXY_SHARED_SECRET: ${HIVE_PROXY_SHARED_SECRET:?set HIVE_PROXY_SHARED_SECRET}
       PASSWORD_HASH_CONCURRENCY: "4"
+      PUBLIC_APP_URL: https://thehivesociety.ae
+      # Transactional email (Resend). Sending domain must be verified in Resend
+      # on a dedicated subdomain first; Titan MX/SPF/DMARC stay untouched.
+      MAIL_PROVIDER: ${MAIL_PROVIDER:?set MAIL_PROVIDER (resend or log)}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      MAIL_REPLY_TO: hello@thehivesociety.ae
+      # 32 random bytes, base64. Encrypts admin TOTP secrets at rest.
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:?set MFA_ENCRYPTION_KEY}
+      # Only these verified addresses can be promoted with the admin CLI.
+      HIVE_ADMIN_EMAILS: meeraahbabi@gmail.com,hello@thehivesociety.ae
     expose: ["8080"]
     networks: [internal]
     depends_on:

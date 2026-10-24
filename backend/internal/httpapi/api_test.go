@@ -13,11 +13,14 @@ import (
 	"testing"
 	"time"
 
+	"regexp"
+
 	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
 
 	"thehivesociety/api/internal/clientip"
 	"thehivesociety/api/internal/httpapi"
+	"thehivesociety/api/internal/mfa"
 	"thehivesociety/api/internal/password"
 	"thehivesociety/api/internal/ratelimit"
 	"thehivesociety/api/internal/testdb"
@@ -25,6 +28,7 @@ import (
 
 const (
 	origin      = "https://thehivesociety.ae"
+	testMFAKey  = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
 	proxySecret = "test-proxy-secret-0123456789abcdef"
 	goodPass    = "a-long-enough-password"
 )
@@ -49,6 +53,11 @@ func testLimits() httpapi.Limits {
 
 func newEnv(t *testing.T, mutate func(*httpapi.Limits), hashSlots int) *env {
 	t.Helper()
+	return newEnvWith(t, mutate, hashSlots, true)
+}
+
+func newEnvWith(t *testing.T, mutate func(*httpapi.Limits), hashSlots int, withMFA bool) *env {
+	t.Helper()
 	db := testdb.Open(t)
 	mr := miniredis.RunT(t)
 	rdb := redis.NewClient(&redis.Options{Addr: mr.Addr(), MaxRetries: -1, DialTimeout: 100 * time.Millisecond})
@@ -62,7 +71,14 @@ func newEnv(t *testing.T, mutate func(*httpapi.Limits), hashSlots int) *env {
 		t.Fatal(err)
 	}
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
+	var cipher *mfa.Cipher
+	if withMFA {
+		if cipher, err = mfa.NewCipher(testMFAKey); err != nil {
+			t.Fatal(err)
+		}
+	}
 	h := httpapi.New(httpapi.Config{
+		AppURL: origin, MFACipher: cipher,
 		DB: db, Redis: rdb, Hasher: password.NewHasher(hashSlots), Limiter: ratelimit.New(rdb, log), IPs: ips, Log: log,
 		SecureCookies: true, AllowedOrigins: []string{origin}, RequestTimeout: 10 * time.Second, MaxBodyBytes: 4096, Limits: lim,
 	})
@@ -117,13 +133,63 @@ func (e *env) do(method, path string, body any, opts ...opt) resp {
 	return out
 }
 
-func (e *env) signup(email string, opts ...opt) string {
+// rawSignup submits the signup form and expects the uniform 202 response.
+func (e *env) rawSignup(email string, opts ...opt) resp {
 	e.t.Helper()
 	r := e.do("POST", "/v1/signup", map[string]any{"email": email, "password": goodPass, "firstName": "Noor"}, opts...)
-	if r.code != 201 || r.cookie == "" {
-		e.t.Fatalf("signup %s: %d %s", email, r.code, r.raw)
+	if r.code != 202 || r.cookie != "" {
+		e.t.Fatalf("signup %s: %d %s (cookie=%q)", email, r.code, r.raw, r.cookie)
+	}
+	return r
+}
+
+var tokenRe = regexp.MustCompile(`#token=([A-Za-z0-9_-]+)`)
+
+// lastToken extracts the one-time token from the newest queued email of a template.
+func (e *env) lastToken(email, template string) string {
+	e.t.Helper()
+	var body string
+	err := e.db.QueryRow(`SELECT text_body FROM email_outbox WHERE to_addr=$1 AND template=$2 ORDER BY id DESC LIMIT 1`, email, template).Scan(&body)
+	if err != nil {
+		e.t.Fatalf("no %s email for %s: %v", template, email, err)
+	}
+	m := tokenRe.FindStringSubmatch(body)
+	if m == nil {
+		e.t.Fatalf("no token in %s email", template)
+	}
+	return m[1]
+}
+
+func (e *env) login(email, pass string, opts ...opt) resp {
+	e.t.Helper()
+	return e.do("POST", "/v1/login", map[string]any{"email": email, "password": pass}, opts...)
+}
+
+// signup runs the full member flow (sign up, confirm email, log in) and returns the session.
+func (e *env) signup(email string, opts ...opt) string {
+	e.t.Helper()
+	e.rawSignup(email, opts...)
+	expect(e.t, e.do("POST", "/v1/verify-email", map[string]any{"token": e.lastToken(email, "verify_email")}, opts...), 200, "verify "+email)
+	r := e.login(email, goodPass, opts...)
+	if r.code != 200 || r.cookie == "" {
+		e.t.Fatalf("login %s: %d %s", email, r.code, r.raw)
 	}
 	return r.cookie
+}
+
+// admin creates a verified admin with TOTP enrolled; returns session and secret.
+func (e *env) admin(email string) (string, string) {
+	e.t.Helper()
+	c := e.signup(email)
+	if _, err := e.db.Exec(`UPDATE users SET is_admin=true, status='approved' WHERE email=$1`, email); err != nil {
+		e.t.Fatal(err)
+	}
+	setup := e.do("POST", "/v1/mfa/totp/setup", nil, session(c))
+	expect(e.t, setup, 200, "mfa setup")
+	secret := setup.body["secret"].(string)
+	code, _ := mfa.Code(secret, time.Now())
+	expect(e.t, e.do("POST", "/v1/mfa/totp/enable", map[string]any{"code": code}, session(c)), 200, "mfa enable")
+	return c, secret
 }
 
 func (e *env) userID(email string) string {
@@ -159,10 +225,7 @@ func TestEssentialRoutes(t *testing.T) {
 	expect(t, e.do("GET", "/health", nil), 200, "health")
 	expect(t, e.do("GET", "/ready", nil), 200, "ready")
 
-	adminC := e.signup("admin@example.test")
-	if _, err := e.db.Exec(`UPDATE users SET is_admin=true, status='approved' WHERE email='admin@example.test'`); err != nil {
-		t.Fatal(err)
-	}
+	adminC, _ := e.admin("admin@example.test")
 	a := e.signup("a@example.test")
 	b := e.signup("b@example.test")
 	c := e.signup("c@example.test")
@@ -249,7 +312,8 @@ func TestLoginErrorsAreGeneric(t *testing.T) {
 	if ok.cookie == "" {
 		t.Fatal("no session cookie")
 	}
-	expect(t, e.do("POST", "/v1/signup", map[string]any{"email": "known@example.test", "password": goodPass, "firstName": "X"}), 409, "duplicate signup")
+	dup := e.do("POST", "/v1/signup", map[string]any{"email": "known@example.test", "password": goodPass, "firstName": "X"})
+	expect(t, dup, 202, "duplicate signup looks like a new one")
 	expect(t, e.do("POST", "/v1/signup", map[string]any{"email": "short@example.test", "password": "short", "firstName": "X"}), 400, "short password")
 }
 
@@ -314,9 +378,10 @@ func TestPerIPLimitsAndSpoofing(t *testing.T) {
 	expect(t, e.do("POST", "/v1/login", map[string]any{"email": "w@example.test", "password": "pw-not-valid-123"},
 		from("10.0.0.2"), header("X-Hive-Proxy-Secret", "wrong"), header("X-Hive-Client-IP", "192.0.2.200")), 429, "wrong secret")
 
-	e.signup("s1@example.test", from("203.0.113.8"))
-	e.signup("s2@example.test", from("203.0.113.8"))
+	e.rawSignup("s1@example.test", from("203.0.113.8"))
+	e.rawSignup("s2@example.test", from("203.0.113.8"))
 	expect(t, e.do("POST", "/v1/signup", map[string]any{"email": "s3@example.test", "password": goodPass, "firstName": "S"}, from("203.0.113.8")), 429, "signup IP limit")
+	expect(t, e.do("POST", "/v1/verify-email", map[string]any{"token": e.lastToken("s1@example.test", "verify_email")}), 200, "verify s1")
 
 	e.mr.FastForward(11 * time.Minute)
 	expect(t, e.do("POST", "/v1/login", map[string]any{"email": "s1@example.test", "password": goodPass}, from("203.0.113.5")), 200, "IP login limit expired")

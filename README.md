@@ -47,6 +47,26 @@ The browser talks to Next.js on Netlify, which forwards to `https://api.thehives
 - Limits: login 30/10 min per IP, signup 10/hour per IP, 5 failed logins/15 min per account (applied to unknown emails too), 600 API calls/min per IP, and at most `PASSWORD_HASH_CONCURRENCY` (default 4) concurrent Argon2id operations; extra requests get `503` + `Retry-After` instead of queuing.
 - Rate limits live in Redis. If Redis is down the API keeps enforcing the same limits per process and `/ready` reports `"redis":"degraded"`.
 
+## Accounts, email and admin access
+
+- **Signup** returns the same `202` whether or not the address already has an account; new accounts get a confirmation link, existing ones an "account exists" notice. Login is refused until the email is confirmed.
+- **Links** (verification 24 h, reset 30 min) are single-use, stored only as SHA-256 hashes, and carry the token in the URL fragment (`#token=`) so it never reaches server or CDN logs. A reset signs the account out everywhere.
+- **Email delivery** goes through a Postgres outbox written in the same transaction as the token, delivered by a worker inside the API (retries with backoff, `SKIP LOCKED` for multiple instances, bodies erased after delivery). Provider: `MAIL_PROVIDER=resend` (`RESEND_API_KEY`, `MAIL_FROM`) or `log` for development.
+- **Resend sending domain** must be verified on a dedicated subdomain (e.g. `mailer.thehivesociety.ae`: DKIM TXT + SPF/MX on that subdomain only). This is a DNS change that needs owner approval; Titan MX/SPF/DMARC on the root domain are not touched.
+- **Admin bootstrap** happens only from a shell on the server, never over HTTP:
+  ```bash
+  docker compose --env-file backend/.env run --rm --entrypoint admin api promote --email hello@thehivesociety.ae
+  docker compose --env-file backend/.env run --rm --entrypoint admin api list
+  docker compose --env-file backend/.env run --rm --entrypoint admin api reset-mfa --email ...   # lost phone
+  ```
+  `promote` requires the address to be in `HIVE_ADMIN_EMAILS` **and** already verified.
+- **Admin 2FA**: every admin route requires a verified email, enrolled TOTP (RFC 6238, secrets AES-GCM encrypted with `MFA_ENCRYPTION_KEY`) and a code on the current session within 12 hours. Ten single-use recovery codes are issued at enrolment. Codes cannot be replayed; 5 failures per 15 minutes lock MFA attempts.
+- **Cleanup** runs hourly: expired sessions, week-old tokens, and stale or month-old outbox rows.
+
+## Browser security headers
+
+`src/proxy.ts` gives every page a per-request nonce CSP (`script-src 'nonce-…' 'strict-dynamic'`), so pages render dynamically. The static homepage `public/hive.html` gets a hash-pinned CSP computed at build time, so editing its inline script needs a rebuild (automatic on deploy). HSTS (production only, no `includeSubDomains`), `nosniff`, `Referrer-Policy`, `Permissions-Policy`, COOP and frame protections apply everywhere (`next.config.ts`). Netlify's handling of `next.config.ts` headers for static files must be confirmed on a deploy preview.
+
 ## Health checks
 
 - `GET /health` — liveness (process is serving).
