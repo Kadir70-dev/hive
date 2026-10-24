@@ -17,12 +17,8 @@ export function ProfilePhoto({ me }: { me: Me }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ text: string; tone: 'ok' | 'err' }>({ text: '', tone: 'ok' });
 
-  useEffect(() => {
-    if (!selected) return;
-    const url = URL.createObjectURL(selected);
-    setPreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [selected]);
+  // Revoke preview URLs on replacement, removal and unmount (no state updates in effects).
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
 
   function choose(e: ChangeEvent<HTMLInputElement>) {
     const chosen = e.currentTarget.files?.[0];
@@ -36,6 +32,7 @@ export function ProfilePhoto({ me }: { me: Me }) {
       return;
     }
     setSelected(chosen);
+    if (typeof URL.createObjectURL === 'function') setPreview(URL.createObjectURL(chosen));
   }
 
   async function requestPhoto(method: 'POST' | 'DELETE') {

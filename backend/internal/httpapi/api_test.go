@@ -8,12 +8,11 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"strings"
 	"sync"
 	"testing"
 	"time"
-
-	"regexp"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
@@ -28,11 +27,11 @@ import (
 )
 
 const (
-	origin      = "https://thehivesociety.ae"
-	testMFAKey  = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
+	origin           = "https://thehivesociety.ae"
+	testMFAKey       = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
 	testMetricsToken = "test-metrics-token-0123456789abcdef"
-	proxySecret = "test-proxy-secret-0123456789abcdef"
-	goodPass    = "a-long-enough-password"
+	proxySecret     = "test-proxy-secret-0123456789abcdef"
+	goodPass        = "a-long-enough-password"
 )
 
 // syncBuffer collects API logs so tests can assert what is (not) logged.
