@@ -39,8 +39,6 @@ jobs:
           go mod download
           go mod verify
           go mod tidy -diff
-      - name: Inspect Go formatting diff
-        run: gofmt -d internal/httpapi/api_test.go
       - name: Check formatting
         run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
       - run: go vet ./...

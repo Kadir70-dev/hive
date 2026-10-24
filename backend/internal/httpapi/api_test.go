@@ -30,8 +30,8 @@ const (
 	origin           = "https://thehivesociety.ae"
 	testMFAKey       = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
 	testMetricsToken = "test-metrics-token-0123456789abcdef"
-	proxySecret     = "test-proxy-secret-0123456789abcdef"
-	goodPass        = "a-long-enough-password"
+	proxySecret      = "test-proxy-secret-0123456789abcdef"
+	goodPass         = "a-long-enough-password"
 )
 
 // syncBuffer collects API logs so tests can assert what is (not) logged.
@@ -54,11 +54,11 @@ func (b *syncBuffer) String() string {
 
 type env struct {
 	logs *syncBuffer
-	t   *testing.T
-	db  *sql.DB
-	mr  *miniredis.Miniredis
-	h   http.Handler
-	lim httpapi.Limits
+	t    *testing.T
+	db   *sql.DB
+	mr   *miniredis.Miniredis
+	h    http.Handler
+	lim  httpapi.Limits
 }
 
 func testLimits() httpapi.Limits {
