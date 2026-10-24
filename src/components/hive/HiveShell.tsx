@@ -56,10 +56,10 @@ export function HiveShell({ children, member = false }: { children: ReactNode; m
       <div className="hv" lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
         <header className="hv-header">
           <div className="hv-bar">
-            <a href="/" className="hv-brand">
+            <Link href="/" className="hv-brand">
               <span className="hv-mono" aria-hidden="true">H</span>
               <span>{t.brand}</span>
-            </a>
+            </Link>
             <nav className="hv-nav" aria-label="Members">
               {member && me ? (
                 <>
@@ -73,7 +73,7 @@ export function HiveShell({ children, member = false }: { children: ReactNode; m
                   <button type="button" className="hv-link" onClick={signOut}>{t.signOut}</button>
                 </>
               ) : (
-                <a href="/">{t.home}</a>
+                <Link href="/">{t.home}</Link>
               )}
               <button type="button" className="hv-lang" onClick={() => setLang(lang === "en" ? "ar" : "en")}>
                 {t.langToggle}

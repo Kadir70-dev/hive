@@ -1,0 +1,122 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (Go)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: ci-only-test-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - name: Verify dependencies
+        run: |
+          go mod download
+          go mod verify
+          go mod tidy -diff
+      - name: Check formatting
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+      - run: go vet ./...
+      - run: go build ./...
+      - name: Test (race detector, PostgreSQL integration)
+        env:
+          TEST_DATABASE_URL: postgres://postgres:ci-only-test-password@localhost:5432/postgres?sslmode=disable
+        run: go test -race -count=1 ./...
+
+  frontend:
+    name: Frontend (Next.js)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - name: Production build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+          HIVE_API_INTERNAL_URL: https://api.example.invalid
+        run: npm run build
+
+  infrastructure:
+    name: Infrastructure (Compose, Docker, migrations)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: ci-only-test-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      # Dummy values for config validation only; never real secrets.
+      POSTGRES_PASSWORD: ci-dummy
+      REDIS_PASSWORD: ci-dummy
+      HIVE_PROXY_SHARED_SECRET: ci-dummy-secret-not-used-anywhere-0123
+      PGPASSWORD: ci-only-test-password
+      PGHOST: localhost
+      PGUSER: postgres
+      DB_BASE: postgres://postgres:ci-only-test-password@localhost:5432
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Docker Compose configuration
+        run: docker compose config -q
+      - name: Build backend image
+        run: docker build -t hive-api:ci backend
+      - name: Migrate a fresh database twice (second run must be a no-op)
+        run: |
+          psql -c 'CREATE DATABASE hive_fresh'
+          DB="$DB_BASE/hive_fresh?sslmode=disable"
+          docker run --rm --network host -e DATABASE_URL="$DB" --entrypoint migrate hive-api:ci up
+          docker run --rm --network host -e DATABASE_URL="$DB" --entrypoint migrate hive-api:ci up | tee second-run.txt
+          grep -q 'no pending migrations' second-run.txt
+          docker run --rm --network host -e DATABASE_URL="$DB" --entrypoint migrate hive-api:ci status
+      - name: Upgrade a database created from the legacy manual schema
+        run: |
+          psql -c 'CREATE DATABASE hive_legacy'
+          psql -d hive_legacy -v ON_ERROR_STOP=1 -f backend/migrations/testdata/legacy_001_init.sql
+          docker run --rm --network host -e DATABASE_URL="$DB_BASE/hive_legacy?sslmode=disable" --entrypoint migrate hive-api:ci up
+      - name: API refuses to start on an unmigrated database
+        run: |
+          psql -c 'CREATE DATABASE hive_empty'
+          if docker run --rm --network host -e DATABASE_URL="$DB_BASE/hive_empty?sslmode=disable" hive-api:ci; then
+            echo "API started against an unmigrated database"; exit 1
+          fi
+      - name: API becomes ready on the migrated database
+        run: |
+          docker run -d --name api --network host -e PORT=18099 -e COOKIE_SECURE=false \
+            -e DATABASE_URL="$DB_BASE/hive_fresh?sslmode=disable" hive-api:ci
+          for i in $(seq 1 30); do curl -fsS http://localhost:18099/ready && exit 0; sleep 1; done
+          docker logs api
+          exit 1

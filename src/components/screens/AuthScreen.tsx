@@ -1,12 +1,14 @@
 'use client';
 import { useState, type FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
-import { api, send } from '@/lib/hive-api';
+import { send } from '@/lib/hive-api';
 import { HiveShell } from '@/components/hive/HiveShell';
 export default function AuthScreen(){
- const router=useRouter(),qc=useQueryClient();const[signup,setSignup]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const router=useRouter(),qc=useQueryClient(),params=useSearchParams();
+ // /auth?mode=signup (the homepage Join buttons) opens the sign-up form.
+ const[signup,setSignup]=useState(()=>params.get('mode')==='signup'),[busy,setBusy]=useState(false),[error,setError]=useState('');
  async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();setBusy(true);setError('');const f=new FormData(e.currentTarget);
  try{ const email=String(f.get('email')||'').trim(),password=String(f.get('password')||'');
  if(signup){await send('/signup',{email,password,firstName:String(f.get('first_name')||''),displayName:String(f.get('display_name')||''),phone:String(f.get('phone')||''),interests:[],area:''})}

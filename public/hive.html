@@ -600,7 +600,9 @@ footer .small{border-top-color:rgba(244,240,230,.16)}
     </div>
   </section>
 
-  <section id="ask" class="paper">
+  <!-- Ask The Hive / Find my Hive is disabled: its AI backend was removed during the
+       infrastructure migration. Re-enable only with a working, privacy-reviewed backend. -->
+  <section id="ask" class="paper" hidden style="display:none">
     <div class="wrap askgrid">
       <div class="sec-head">
         <span class="eyebrow" data-t="askEyebrow">A conversation with The Hive</span>
@@ -827,7 +829,8 @@ for(const [id,mode] of [["chatMode","chat"],["interestMode","interests"]])docume
 document.getElementById("chatReset").addEventListener("click",()=>{interestIn.value="";resetConversation()});
 interestIn.addEventListener("input",()=>{document.getElementById("interestCount").textContent=interestIn.value.length+" / 600"});
 document.getElementById("chips").addEventListener("click",e=>{const b=e.target.closest("[data-interest]");if(b&&!busy){interestIn.value=modeText("chatExamples","askExamples")[Number(b.dataset.interest)];drawChat();interestIn.focus()}});
-document.getElementById("askForm").addEventListener("submit",e=>{e.preventDefault();ask(interestIn.value)});
+const ASK_ENABLED=false; /* AI widgets disabled: no backend */
+document.getElementById("askForm").addEventListener("submit",e=>{e.preventDefault();if(ASK_ENABLED)ask(interestIn.value)});
 document.getElementById("askStop").addEventListener("click",()=>ctl?.abort());
 document.getElementById("recommendJoin").addEventListener("click",()=>{window.top.location.href="/auth?mode=signup"});
 async function ask(q){
@@ -878,7 +881,8 @@ paint();
  if(!("IntersectionObserver" in window))return;els.forEach(e=>e.classList.add("rv"));
  const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add("in");io.unobserve(x.target)}}),{rootMargin:"0px 0px -8% 0px"});
  els.forEach(e=>io.observe(e));setTimeout(()=>els.forEach(e=>e.classList.add("in")),4000)})();
-(function(){try{const on=Object.keys(localStorage).some(k=>/^sb-.*-auth-token$/.test(k)&&localStorage.getItem(k));document.querySelectorAll("[data-guest]").forEach(e=>e.hidden=on);document.querySelectorAll("[data-member]").forEach(e=>e.hidden=!on)}catch(e){}})();
+/* Show Join/Log in or My profile from the Go-backed session (HttpOnly cookie). */
+(function(){const show=on=>{document.querySelectorAll("[data-guest]").forEach(e=>e.hidden=on);document.querySelectorAll("[data-member]").forEach(e=>e.hidden=!on)};fetch("/api/backend/me",{credentials:"same-origin",cache:"no-store"}).then(r=>show(r.ok)).catch(()=>show(false))})();
 </script>
 
 </body></html>

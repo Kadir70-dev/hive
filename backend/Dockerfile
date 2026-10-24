@@ -1,12 +1,20 @@
-FROM golang:1.23-alpine AS builder
+# syntax=docker/dockerfile:1
+FROM golang:1.24-alpine AS builder
 WORKDIR /src
-COPY go.mod ./
-RUN go mod download
+ENV CGO_ENABLED=0 GOTOOLCHAIN=local
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
 COPY . .
-RUN CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o /api ./cmd/api
+RUN go build -trimpath -ldflags='-s -w' -o /out/api ./cmd/api \
+ && go build -trimpath -ldflags='-s -w' -o /out/migrate ./cmd/migrate
+
 FROM alpine:3.21
-RUN addgroup -S app && adduser -S app -G app
+RUN apk add --no-cache ca-certificates && addgroup -S app && adduser -S app -G app
+COPY --from=builder /out/api /usr/local/bin/api
+COPY --from=builder /out/migrate /usr/local/bin/migrate
 USER app
-COPY --from=builder /api /api
 EXPOSE 8080
-ENTRYPOINT ["/api"]
+# Readiness: the API answers and PostgreSQL is reachable (busybox wget).
+HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=3 \
+  CMD wget -q -O /dev/null http://127.0.0.1:8080/ready || exit 1
+ENTRYPOINT ["/usr/local/bin/api"]

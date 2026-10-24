@@ -1,7 +1,7 @@
 'use client';
 import {useState,type FormEvent} from 'react';
 import {useQuery,useQueryClient} from '@tanstack/react-query';
-import {api,send} from '@/lib/hive-api';
+import {api} from '@/lib/hive-api';
 import {HiveShell,useMe} from '@/components/hive/HiveShell';
 type Member={id:string;first_name:string;email:string;status:string};
 type Gathering={id:string;title:string;starts_on:string;starts_at:string;type:string;description:string;place:string;capacity:number};
