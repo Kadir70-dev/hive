@@ -1,0 +1,884 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>The Hive Society</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<style>
+/* Modern AI look in the brand's warm world: sand ground, soft honey + sage glows, glass cards with hairline borders, honey-to-sage gradient accents. Single light theme by choice. */
+:root{
+  color-scheme:light;
+  --bg:#F7F2EA; --bg2:#F1EADF; --deep:#F1EADF; --sand:#F7F2EA; --paper:#FFFCF7; --on-btn:#FFFCF7;
+  --ink:#1F1A14; --on-deep:#1F1A14; --muted:#6E6253; --line:rgba(70,45,15,.10); --line2:rgba(70,45,15,.18);
+  --card:rgba(255,255,255,.55); --card2:rgba(255,255,255,.85);
+  --honey:#A4621A; --honey-ink:#8A5216; --sage:#3F6E5E; --sage-soft:rgba(63,110,94,.10);
+  --grad:linear-gradient(100deg,#C98432 0%,#A4621A 42%,#3F6E5E 100%);
+  --sans:"Plus Jakarta Sans","Helvetica Neue",Arial,sans-serif;
+  --serif:"Instrument Serif","Iowan Old Style",Georgia,serif;
+  --display:var(--sans); --body:var(--sans);
+  --r:22px;
+}
+:root:lang(ar){--sans:"IBM Plex Sans Arabic","Geeza Pro",Tahoma,sans-serif;--serif:"IBM Plex Sans Arabic","Geeza Pro",Tahoma,sans-serif}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+h1,h2,h3{font-family:var(--sans);font-weight:700;letter-spacing:-.025em;line-height:1.05;margin:0;text-wrap:balance}
+:lang(ar) h1,:lang(ar) h2,:lang(ar) h3{letter-spacing:0;line-height:1.35}
+p{margin:0}
+a{color:var(--honey-ink)}
+:focus-visible{outline:2px solid var(--sage);outline-offset:3px;border-radius:8px}
+em{font-family:var(--serif);font-style:italic;font-weight:400;letter-spacing:-.01em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;padding-inline-end:.06em}
+:lang(ar) em{font-style:normal;font-weight:700}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;font-size:.74rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px 6px 10px}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--sage);box-shadow:0 0 10px var(--sage)}
+:lang(ar) .eyebrow{letter-spacing:0;font-size:.82rem}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* header: floating glass pill */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;padding-top:12px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:10px;background:rgba(255,252,247,.72);backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);border:1px solid var(--line);border-radius:999px;max-width:1180px;margin-inline:max(12px,env(safe-area-inset-left,0px));}
+@media (min-width:1204px){.bar{margin-inline:auto}}
+.bar{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
+:root[dir="rtl"] .bar{padding-left:10px;padding-right:20px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+.brand b{font-family:"Plus Jakarta Sans",Arial,sans-serif;font-weight:800;font-size:1rem;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}
+.brand b::before{content:"";display:inline-block;width:9px;height:9px;margin-inline-end:10px;border-radius:3px;transform:rotate(45deg) translateY(-2px);background:var(--grad)}
+nav{display:flex;align-items:center;gap:6px}
+.navlinks{display:flex;gap:2px}
+.navlinks a{color:var(--muted);text-decoration:none;font-size:.88rem;font-weight:500;padding:8px 12px;border-radius:999px;transition:color .2s,background .2s}
+.navlinks a:hover{color:var(--ink);background:var(--card2)}
+@media (max-width:860px){.navlinks{display:none}}
+.navacts{display:flex;align-items:center;gap:10px;margin-inline:8px}.navacts [hidden]{display:none}.navjoin{padding:8px 18px;font-size:.86rem}.navlogin{color:var(--sage-d);font-size:.86rem;font-weight:500;text-decoration:none}.navlogin:hover{text-decoration:underline}
+.lang{border:1px solid var(--line2);background:var(--card2);color:var(--ink);border-radius:999px;padding:8px 16px;font:600 .82rem var(--sans);cursor:pointer}
+.lang span{font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif}
+@media (max-width:480px){.brand b{font-size:.86rem;letter-spacing:.1em}}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;padding:14px 24px;font:600 .94rem var(--sans);text-decoration:none;cursor:pointer;border:1px solid transparent;transition:transform .15s,box-shadow .25s,background .2s}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--honey);color:var(--on-btn);box-shadow:0 10px 30px -10px rgba(164,98,26,.55)}
+.btn.primary:hover{box-shadow:0 14px 40px -10px rgba(63,110,94,.55)}
+.btn.ghost{border-color:var(--line2);color:var(--ink);background:var(--card)}
+.btn.ghost:hover{background:var(--card2)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+
+/* hero */
+.hero{position:relative;isolation:isolate;overflow:hidden;margin-top:-76px;padding-top:76px}
+.aurora{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.aurora::before,.aurora::after{content:"";position:absolute;border-radius:50%;filter:blur(90px);opacity:.55}
+.aurora::before{width:620px;height:620px;max-width:none;left:50%;top:-220px;transform:translateX(-80%);background:radial-gradient(circle,#F0C27E,transparent 65%);animation:drift 16s ease-in-out infinite alternate}
+.aurora::after{width:560px;height:560px;max-width:none;left:50%;top:-120px;transform:translateX(5%);background:radial-gradient(circle,#A9D3C1,transparent 65%);animation:drift2 18s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translateX(-60%) translateY(60px)}}
+@keyframes drift2{to{transform:translateX(-15%) translateY(40px)}}
+.hero .gridbg{position:absolute;inset:0;z-index:-1;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 30%,#000 30%,transparent 75%);mask-image:radial-gradient(ellipse 70% 60% at 50% 30%,#000 30%,transparent 75%);opacity:.6}
+.herowrap{display:flex;flex-direction:column;align-items:center;text-align:center;gap:24px;padding-block:clamp(72px,12vw,150px) clamp(64px,9vw,110px)}
+.badge{display:inline-flex;align-items:center;gap:10px;font-size:.84rem;font-weight:500;color:var(--ink);background:var(--card2);border:1px solid var(--line2);border-radius:999px;padding:7px 16px 7px 8px}
+.badge .bd{font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--on-btn);background:var(--grad);border-radius:999px;padding:3px 9px}
+:lang(ar) .badge .bd{letter-spacing:0}
+.hero h1{font-size:clamp(3rem,9vw,7rem);max-width:13ch;letter-spacing:-.045em;line-height:.98}
+.hero h1 em{display:inline-block;padding-bottom:.14em;margin-bottom:-.14em}
+:lang(ar) .hero h1{font-size:clamp(2.6rem,8vw,5.6rem);line-height:1.25;letter-spacing:0}
+.hero .line{font-size:clamp(1.05rem,2vw,1.3rem);color:var(--muted);max-width:40ch}
+:root[dir="rtl"] .sendq svg{transform:scaleX(-1)}
+.hero .ctas{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:4px}
+
+/* sections */
+section{padding-block:clamp(64px,9vw,120px);position:relative}
+.paper{background:transparent}
+.sec-head{display:flex;flex-direction:column;gap:16px;max-width:680px}
+.sec-head h2{font-size:clamp(2.2rem,5vw,3.8rem)}
+.sec-head p{color:var(--muted);font-size:1.08rem;max-width:58ch}
+.card,.pillar,.gcat,.chat,form#joinForm,.done,.fcard{background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.6));border:1px solid var(--line);border-radius:var(--r)}
+
+/* about: bento */
+.pillars{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:48px}
+@media (max-width:860px){.pillars{grid-template-columns:1fr}}
+.pillar{padding:28px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden;min-height:220px;justify-content:flex-end;transition:border-color .3s,transform .3s}
+.pillar::before{content:"";position:absolute;width:220px;height:220px;border-radius:50%;top:-90px;inset-inline-end:-70px;background:radial-gradient(circle,rgba(164,98,26,.28),transparent 70%)}
+.pillar:nth-child(2)::before{background:radial-gradient(circle,rgba(63,110,94,.28),transparent 70%)}
+.pillar:hover{border-color:var(--line2);transform:translateY(-3px)}
+.pillar h3{font-size:1.7rem;position:relative}
+.pillar p{color:var(--muted);position:relative}
+
+/* who */
+.forwho{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,6vw,80px);align-items:center}
+@media (max-width:860px){.forwho{grid-template-columns:1fr}}
+.forwho blockquote{margin:0;font-family:var(--serif);font-style:italic;font-size:clamp(2rem,4.6vw,3.4rem);line-height:1.12;letter-spacing:-.01em}
+:lang(ar) .forwho blockquote{font-style:normal;font-weight:600;line-height:1.6;font-size:clamp(1.6rem,3.6vw,2.4rem)}
+.forwho .who{display:flex;flex-direction:column;gap:16px}
+.forwho .who h2{font-size:clamp(1.8rem,3.6vw,2.6rem)!important}
+.forwho .who p{color:var(--muted);font-size:1.05rem}
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+.tag{border:1px solid var(--line2);border-radius:999px;padding:7px 15px;font-size:.84rem;font-weight:500;color:var(--ink);background:var(--card)}
+
+/* founder */
+.founder .fgrid{position:relative;max-width:1000px;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:clamp(10px,3vw,40px);padding:clamp(32px,5.5vw,64px);border-radius:28px;border:1px solid var(--line);background:radial-gradient(120% 140% at 0% 0%,rgba(164,98,26,.12),transparent 50%),radial-gradient(120% 140% at 100% 100%,rgba(63,110,94,.12),transparent 50%),var(--card)}
+.fmark{font-family:"Instrument Serif",Georgia,serif;font-size:clamp(6.5rem,14vw,10rem);line-height:.72;margin-top:-.06em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+:root[dir="rtl"] .fmark{transform:scaleX(-1)}
+.ftext{display:flex;flex-direction:column;gap:clamp(14px,2vw,22px);min-width:0}
+.fquote{font-family:var(--serif);font-style:italic;font-size:clamp(1.65rem,3.4vw,2.5rem);line-height:1.28;letter-spacing:-.005em;text-wrap:balance}
+:lang(ar) .fquote{font-style:normal;font-weight:600;line-height:1.7;font-size:clamp(1.4rem,3vw,2rem);letter-spacing:0}
+.fbody{color:var(--muted);font-size:clamp(1rem,1.4vw,1.08rem);line-height:1.75;max-width:58ch}
+.fsig{display:flex;flex-direction:column;gap:4px;padding-top:18px;margin-top:2px;border-top:1px solid var(--line);max-width:340px}
+.fsig b{font-weight:600;font-size:1.08rem;letter-spacing:.01em}
+.fsig span{font-size:.8rem;color:var(--muted);letter-spacing:.09em;text-transform:uppercase;padding-top:2px}
+@media (max-width:560px){.founder .fgrid{grid-template-columns:1fr;gap:0;padding:clamp(28px,7vw,36px) clamp(22px,6vw,28px)}.fmark{font-size:clamp(5rem,22vw,6.5rem);height:auto;margin-bottom:-.35em}}
+
+/* gatherings */
+.gcats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px;margin-top:48px}
+.gcat{grid-column:span 2;padding:26px;display:flex;flex-direction:column;gap:12px;min-width:0;position:relative;overflow:hidden;transition:border-color .3s,transform .3s}
+.gcat:nth-child(4),.gcat:nth-child(5){grid-column:span 3}
+@media (max-width:900px){.gcats{grid-template-columns:repeat(2,minmax(0,1fr))}.gcat,.gcat:nth-child(4),.gcat:nth-child(5){grid-column:span 1}.gcat:nth-child(5){grid-column:span 2}}
+@media (max-width:480px){.gcats{grid-template-columns:1fr}.gcat:nth-child(5){grid-column:span 1}}
+.gcat::after{content:"";position:absolute;inset:auto -40% -60% auto;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(63,110,94,.18),transparent 70%);opacity:0;transition:opacity .4s}
+.gcat:hover{border-color:var(--line2);transform:translateY(-3px)}
+.gcat:hover::after{opacity:1}
+.gcat .gi{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;color:var(--honey);background:rgba(164,98,26,.1);border:1px solid rgba(164,98,26,.25)}
+.gcat h3{font-size:1.5rem}
+.gcat p{font-size:.94rem;color:var(--muted)}
+.gnote{margin-top:24px;font-size:.95rem;color:var(--sage);display:flex;align-items:center;gap:10px}
+.gnote::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--sage);box-shadow:0 0 12px var(--sage);flex:none}
+
+/* flow */
+.flow{list-style:none;margin:52px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+@media (max-width:900px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:480px){.flow{grid-template-columns:1fr}}
+.flow li{display:flex;flex-direction:column;gap:12px;min-width:0;padding:24px;border-radius:var(--r);border:1px solid var(--line);background:var(--card)}
+.flow .ft{display:flex;align-items:center;gap:12px}
+.flow .fn{width:40px;height:40px;flex:none;border-radius:12px;background:var(--grad);color:var(--on-btn);display:grid;place-items:center;font-weight:800;font-size:1rem}
+.flow .ln{flex:1;height:1px;background:linear-gradient(90deg,var(--line2),transparent)}
+:root[dir="rtl"] .flow .ln{background:linear-gradient(270deg,var(--line2),transparent)}
+.flow b{font-size:1.3rem;font-weight:700;letter-spacing:-.01em}
+.flow span.d{color:var(--muted);font-size:.94rem}
+
+/* hive way */
+.deep{background:linear-gradient(180deg,transparent,rgba(63,110,94,.05) 30%,rgba(164,98,26,.04) 70%,transparent)}
+.waygrid{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(36px,6vw,88px);align-items:start}
+@media (max-width:900px){.waygrid{grid-template-columns:1fr}}
+.wayhead{display:flex;flex-direction:column;gap:18px;position:sticky;top:110px}
+@media (max-width:900px){.wayhead{position:static}}
+.wayhead h2{font-size:clamp(2.8rem,6.4vw,5rem);line-height:1}
+.wayhead h2 em{display:block}
+:lang(ar) .wayhead h2{line-height:1.35}
+.wayhead .intro{color:var(--muted);font-size:1.08rem;max-width:42ch}
+.wayhead .rule{display:none}
+.honest{display:inline-flex;align-items:center;gap:10px;font-size:.86rem;font-weight:600;color:var(--sage);background:var(--sage-soft);border:1px solid rgba(63,110,94,.3);border-radius:999px;padding:8px 14px;align-self:flex-start}
+.practices{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.practice{display:grid;grid-template-columns:auto 56px minmax(0,1fr);gap:18px;align-items:center;padding:18px 20px;border-radius:18px;border:1px solid var(--line);background:var(--card);transition:border-color .3s,background .3s}
+.practice:hover{border-color:var(--line2);background:var(--card2)}
+.practice .pn{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78rem;color:var(--muted);min-width:2ch}
+.hexi{position:relative;width:56px;height:56px;display:grid;place-items:center;color:var(--honey)}
+.hexi .frame{position:absolute;inset:0;width:100%;height:100%;color:rgba(164,98,26,.5);transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.hexi .frame polygon{fill:rgba(164,98,26,.06);transition:fill .3s}
+.hexi .ic{position:relative;transition:color .3s}
+.practice:hover .hexi .frame{transform:rotate(30deg)}
+.practice:hover .hexi .frame polygon{fill:var(--honey)}
+.practice:hover .hexi .ic{color:var(--on-btn)}
+.practice .ptx{display:flex;flex-direction:column;gap:3px;min-width:0}
+.practice b{color:var(--ink);font-size:1.12rem;font-weight:700;letter-spacing:-.01em}
+.practice span{font-size:.92rem;color:var(--muted)}
+@media (max-width:480px){.practice{grid-template-columns:48px minmax(0,1fr);gap:14px;padding:16px}.practice .pn{display:none}.hexi{width:48px;height:48px}}
+.zayed{margin-top:clamp(64px,9vw,110px);display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px;max-width:820px;margin-inline:auto}
+.zayed svg{color:var(--honey);filter:drop-shadow(0 0 24px rgba(164,98,26,.35))}
+.zayed p{font-family:var(--serif);font-style:italic;font-size:clamp(1.9rem,4.4vw,3.2rem);line-height:1.15;text-wrap:balance}
+:lang(ar) .zayed p{font-style:normal;font-weight:600;line-height:1.6}
+.zayed small{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+:lang(ar) .zayed small{letter-spacing:0}
+
+/* interest recommendations */
+#ask{display:block;scroll-margin-top:100px}
+.interest-label{font-size:.86rem;font-weight:600}
+.askform.interest-form{flex-direction:column;gap:10px}
+.interest-form textarea{min-height:130px;max-height:280px;line-height:1.65}
+.interest-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px}
+.interest-toolbar .btn{max-width:100%;white-space:normal}
+.interest-count{direction:ltr;font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.interest-actions{display:flex;align-items:center;gap:8px}
+.interest-stop{width:44px;height:44px;padding:0;flex:none}
+.interest-stop svg{width:14px;height:14px}
+.interest-status,.interest-error{font-size:.88rem;color:var(--sage-d);overflow-wrap:anywhere}
+.interest-error{color:var(--honey-ink)}
+.interest-result{border-top:1px solid var(--line);padding-top:20px;margin-top:6px;display:flex;flex-direction:column;gap:16px}
+.interest-result h3{font-size:1.8rem;letter-spacing:0;line-height:1.2}
+.interest-answer{font-size:.96rem;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}
+.interest-reasoning{font-size:.82rem;color:var(--muted)}
+.interest-reasoning summary{cursor:pointer}
+.interest-reasoning p{margin-top:8px;white-space:pre-wrap;overflow-wrap:anywhere}
+.interest-result .btn{align-self:flex-start;white-space:normal;text-align:center}
+.interest-privacy{font-size:.78rem;color:var(--muted);line-height:1.7}
+.interest-privacy a{color:var(--sage-d)}
+@media(max-width:480px){.interest-toolbar{align-items:flex-start;flex-wrap:wrap}.interest-actions{flex:1}.interest-actions .btn.primary{flex:1;padding:12px 18px}.interest-count{padding-top:12px}.interest-result h3{font-size:1.6rem}}
+.askgrid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(28px,5vw,64px);align-items:start}
+@media (max-width:860px){.askgrid{grid-template-columns:1fr}}
+.chat{position:relative;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0;box-shadow:0 30px 80px -30px rgba(63,110,94,.25)}
+.chat::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:var(--grad);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.55;pointer-events:none}
+.msgs{display:flex;flex-direction:column;gap:10px;max-height:400px;overflow-y:auto}
+.msg{max-width:88%;padding:12px 16px;border-radius:18px;font-size:.95rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.ai{background:var(--paper);border:1px solid var(--line);align-self:flex-start;border-end-start-radius:6px}
+.msg.me{background:var(--honey);color:var(--on-btn);align-self:flex-end;border-end-end-radius:6px}
+.msg.wait{color:var(--muted);background:linear-gradient(90deg,rgba(70,45,15,.03),rgba(70,45,15,.08),rgba(70,45,15,.03));background-size:200% 100%;animation:shim 1.4s linear infinite}
+@keyframes shim{to{background-position:-200% 0}}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line2);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;font:500 .84rem var(--sans);cursor:pointer;text-align:start}
+.chip:hover{background:var(--card2)}
+.askform{display:flex;flex-direction:row;gap:8px}
+.askform input{background:var(--paper);border-radius:999px;padding:13px 18px}
+.sendq{padding:0;width:48px;height:48px;flex:none}
+.small2{font-size:.78rem}
+
+/* join */
+.join{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(28px,5vw,64px);align-items:start}
+@media (max-width:860px){.join{grid-template-columns:1fr}}
+.join h2{font-size:clamp(2.2rem,5vw,3.6rem)!important}
+.season{display:inline-flex;align-items:center;gap:10px;background:var(--sage-soft);color:var(--sage);border:1px solid rgba(63,110,94,.3);border-radius:999px;padding:7px 14px;font-weight:600;font-size:.82rem;align-self:flex-start}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--sage);box-shadow:0 0 10px var(--sage);animation:pulse 2.4s ease-in-out infinite;display:inline-block}
+@keyframes pulse{50%{opacity:.35}}
+.steps{list-style:none;margin:28px 0 0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{display:grid;grid-template-columns:36px minmax(0,1fr);gap:14px;padding:16px;border-radius:16px;border:1px solid var(--line);background:var(--card)}
+.steps .n{width:36px;height:36px;border-radius:10px;background:var(--card2);border:1px solid var(--line2);color:var(--honey);display:grid;place-items:center;font-weight:700;font-size:.9rem}
+.steps b{display:block}
+.steps span{color:var(--muted);font-size:.94rem}
+form{display:flex;flex-direction:column;gap:16px}
+form#joinForm{padding:clamp(22px,4vw,34px);box-shadow:0 30px 80px -40px rgba(164,98,26,.35)}
+form h3{font-size:1.7rem}
+label{display:flex;flex-direction:column;gap:7px;font-size:.86rem;font-weight:600}
+label .opt{font-weight:400;color:var(--muted)}
+input,textarea{font:inherit;font-size:1rem;color:var(--ink);background:var(--paper);border:1px solid var(--line2);border-radius:14px;padding:13px 15px;width:100%;min-width:0;transition:border-color .2s,box-shadow .2s}
+input::placeholder,textarea::placeholder{color:#A39582}
+textarea{min-height:110px;resize:vertical}
+input:focus,textarea:focus{outline:0;border-color:var(--sage);box-shadow:0 0 0 4px rgba(63,110,94,.15)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:520px){.two{grid-template-columns:1fr}}
+.check{flex-direction:row;align-items:flex-start;gap:10px;font-weight:500;font-size:.88rem;color:var(--muted)}
+.check input{width:18px;height:18px;margin-top:3px;accent-color:var(--sage);flex:none}
+.note{font-size:.88rem;color:var(--muted)}
+.err{color:#B4442F;font-size:.88rem}
+.done{padding:28px;display:flex;flex-direction:column;gap:8px}
+.done h3{font-size:1.8rem;color:var(--sage)}
+.mail{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.mail code{font-family:var(--sans);font-weight:600;user-select:all;background:var(--card2);border:1px solid var(--line2);border-radius:12px;padding:8px 12px;color:var(--ink)}
+.copy{border:1px solid var(--line2);background:transparent;color:var(--ink);border-radius:999px;padding:7px 14px;font:600 .82rem var(--sans);cursor:pointer}
+
+/* faq */
+.faqgrid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(28px,5vw,64px);align-items:start}
+@media (max-width:860px){.faqgrid{grid-template-columns:1fr}}
+.faqs{display:flex;flex-direction:column;gap:10px;min-width:0}
+.faqs details{border:1px solid var(--line);border-radius:18px;background:var(--card);padding-inline:20px;transition:background .2s,border-color .2s}
+.faqs details[open]{background:var(--card2);border-color:var(--line2)}
+.faqs summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;padding-block:18px;font-size:1.05rem;font-weight:600;line-height:1.4}
+.faqs summary::-webkit-details-marker{display:none}
+.faqs summary i{flex:none;width:30px;height:30px;border-radius:50%;background:var(--card2);border:1px solid var(--line2);display:grid;place-items:center;color:var(--honey);font-style:normal;transition:transform .25s}
+.faqs details[open] summary i{transform:rotate(45deg)}
+.faqs details p{color:var(--muted);padding-bottom:20px;max-width:60ch}
+
+/* partners */
+.partners{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:32px;align-items:end;padding:clamp(28px,5vw,56px);border-radius:28px;border:1px solid var(--line);background:radial-gradient(100% 160% at 100% 0%,rgba(164,98,26,.16),transparent 55%),var(--card)}
+@media (max-width:820px){.partners{grid-template-columns:1fr}}
+.partners.wrap{max-width:1148px;margin-inline:auto}
+@media (max-width:1180px){.partners.wrap{margin-inline:16px}}
+
+/* admin */
+.admin{margin-top:40px;border:1.5px dashed var(--line2);border-radius:var(--r);padding:22px;display:flex;flex-direction:column;gap:12px}
+.admin table{width:100%;border-collapse:collapse;font-size:.88rem}
+.admin th,.admin td{text-align:start;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.admin .tw{overflow-x:auto}
+
+/* footer */
+footer{border-top:1px solid var(--line);padding-block:56px 40px;background:linear-gradient(180deg,transparent,rgba(63,110,94,.04))}
+footer .fcols{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(3,minmax(0,1fr));gap:32px}
+@media (max-width:820px){footer .fcols{grid-template-columns:1fr 1fr}}
+@media (max-width:440px){footer .fcols{grid-template-columns:1fr}}
+footer .brand{color:var(--ink)}
+footer p,footer a{color:var(--muted);font-size:.92rem}
+footer .tag-line{font-family:var(--serif);font-style:italic;font-size:1.5rem;color:var(--ink);margin-top:14px}
+:lang(ar) footer .tag-line{font-style:normal;font-weight:600;font-size:1.2rem}
+footer .motto{margin-top:6px}
+footer h4{margin:0 0 12px;font-size:.74rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink)}
+:lang(ar) footer h4{letter-spacing:0;font-size:.85rem}
+footer .fl{display:flex;flex-direction:column;gap:8px}
+footer .fl a{text-decoration:none} footer .fl a:hover{color:var(--ink)}
+footer .small{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-size:.8rem}
+
+/* reveal on scroll */
+.rv{opacity:0;transform:translateY(18px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+.rv.in{opacity:1;transform:none}
+
+/* ===== Elegant botanical layer: cream + sage, Cormorant serif, hand-drawn ghaf & palm line art, soft rounded cards ===== */
+:root{
+  --bg:#FBF8F1; --bg2:#F3EEE3; --paper:#FFFDF8; --sand:#FBF8F1; --on-btn:#FFFDF8;
+  --ink:#22201A; --muted:#6B6558; --line:rgba(63,110,94,.16); --line2:rgba(63,110,94,.28);
+  --card:#FFFDF8; --card2:#F6F2E8;
+  --sage:#3F6E5E; --sage-d:#2F5446; --sage-soft:#E7EEE8; --honey:#A4621A; --honey-ink:#8A5216;
+  --grad:none;
+  --sans:"Manrope","Helvetica Neue",Arial,sans-serif; --serif:"Cormorant Garamond","Iowan Old Style",Georgia,serif;
+  --r:28px;
+}
+:root:lang(ar){--sans:"IBM Plex Sans Arabic","Geeza Pro",Tahoma,sans-serif;--serif:"Noto Naskh Arabic","Geeza Pro",serif}
+body{background:var(--bg);color:var(--ink)}
+html{overflow-x:clip}
+h1,h2,h3{font-family:var(--serif);font-weight:500;letter-spacing:-.01em;line-height:1.05}
+:lang(ar) h1,:lang(ar) h2,:lang(ar) h3{font-weight:600;line-height:1.45}
+em{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--sage);font-family:var(--serif);font-style:italic;font-weight:400;padding:0}
+:lang(ar) em{font-style:normal;font-weight:600;color:var(--sage)}
+.eyebrow{background:none;border:0;padding:0;color:var(--sage);font-size:.74rem;letter-spacing:.2em;font-weight:600;gap:10px}
+.eyebrow::before{width:22px;height:1px;border-radius:0;background:var(--sage);box-shadow:none}
+:lang(ar) .eyebrow{letter-spacing:0}
+.bar{background:rgba(251,248,241,.86);border-color:var(--line);box-shadow:0 10px 30px -22px rgba(47,84,70,.5)}
+.brand b{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;font-size:1.2rem;letter-spacing:.22em}
+.brand b::before{display:none}
+.navlinks a{color:var(--muted)} .navlinks a:hover{background:var(--sage-soft);color:var(--sage-d)}
+.lang{background:var(--paper);border-color:var(--line2)}
+.btn.primary{background:var(--sage);color:var(--on-btn);box-shadow:0 12px 28px -14px rgba(47,84,70,.7)}
+.btn.primary:hover{background:var(--sage-d);box-shadow:0 14px 32px -14px rgba(47,84,70,.8)}
+.btn.ghost{background:transparent;border-color:var(--line2);color:var(--sage-d)}
+.btn.ghost:hover{background:var(--sage-soft)}
+/* hero */
+.hero .gridbg{display:none}
+.aurora::before{background:radial-gradient(circle,#E3EDE6,transparent 65%);opacity:.9;filter:blur(60px)}
+.aurora::after{background:radial-gradient(circle,#F3E6D2,transparent 65%);opacity:.8;filter:blur(60px)}
+.bot{position:absolute;z-index:-1;color:var(--sage);pointer-events:none}
+.bot svg{width:100%;height:auto;display:block}
+.bot.frond{width:min(440px,52vw);top:70px;inset-inline-start:-60px;opacity:.28;transform:rotate(-8deg)}
+.bot.ghaf{width:min(300px,38vw);bottom:-30px;inset-inline-end:-10px;opacity:.32}
+:root[dir="rtl"] .bot.frond{transform:scaleX(-1) rotate(-8deg)}
+@media (max-width:640px){.bot.frond{opacity:.18;top:60px}.bot.ghaf{opacity:.2}}
+.badge{background:var(--paper);border-color:var(--line2);color:var(--sage-d)}
+.badge .bd{background:var(--sage-soft);color:var(--sage-d)}
+.hero h1{font-weight:500;letter-spacing:-.02em;line-height:1;font-size:clamp(3.2rem,9vw,7.2rem)}
+.hero h1 em{display:block}
+:lang(ar) .hero h1{font-weight:600;line-height:1.3}
+.hero .line{font-family:var(--serif);font-style:italic;font-size:clamp(1.3rem,2.4vw,1.7rem);color:var(--honey-ink)}
+:lang(ar) .hero .line{font-style:normal}
+/* dividers */
+.divider{display:flex;justify-content:center;color:var(--sage);opacity:.55;padding-block:8px 0}
+.divider svg{width:70px;height:auto}
+/* cards */
+.card,.pillar,.gcat,.chat,form#joinForm,.done,.fcard{background:var(--paper);border:1px solid var(--line);box-shadow:0 20px 40px -32px rgba(47,84,70,.45)}
+.pillar{min-height:200px;border-radius:28px 28px 28px 8px}
+.pillar::before{background:radial-gradient(circle,#E7EEE8,transparent 70%);top:-70px;inset-inline-end:-60px}
+.pillar:nth-child(2)::before{background:radial-gradient(circle,#F3E6D2,transparent 70%)}
+.pillar h3{font-size:2rem}
+.forwho blockquote{font-family:var(--serif);color:var(--sage-d)}
+.tag{background:var(--sage-soft);border-color:transparent;color:var(--sage-d)}
+.founder .fgrid{background:var(--sage-soft);border-color:transparent;border-radius:40px 40px 40px 10px;overflow:hidden;position:relative;isolation:isolate}
+.founder .fgrid .bot{width:260px;bottom:-40px;inset-inline-end:-30px;opacity:.25}
+.fmark{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--sage);font-family:"Cormorant Garamond",Georgia,serif}
+.fquote{color:var(--sage-d)}
+.gcat{border-radius:26px}
+.gcat .gi{background:var(--sage-soft);border-color:transparent;color:var(--sage);border-radius:50%}
+.gcat::after{background:radial-gradient(circle,#E7EEE8,transparent 70%)}
+.gcat h3{font-size:1.8rem}
+.gnote{color:var(--sage-d);font-family:var(--serif);font-style:italic;font-size:1.2rem}
+.gnote::before{box-shadow:none}
+.flow li{background:var(--paper);border-radius:26px}
+.flow .fn{background:var(--sage);color:var(--on-btn);border-radius:50%;font-family:"Cormorant Garamond",Georgia,serif;font-size:1.3rem;font-weight:600}
+.flow .ln{background:repeating-linear-gradient(90deg,var(--line2) 0 5px,transparent 5px 10px)}
+.flow b{font-family:var(--serif);font-size:1.6rem;font-weight:500}
+:lang(ar) .flow b{font-weight:600;font-size:1.3rem}
+.deep{background:var(--sage-d);color:#F4F0E6;overflow:hidden;isolation:isolate}
+.deep .bot{opacity:.12;color:#F4F0E6}
+.deep .bot.frond{top:auto;bottom:-40px;inset-inline-start:auto;inset-inline-end:-80px;width:520px;transform:rotate(160deg)}
+.deep .eyebrow{color:#E9C48F} .deep .eyebrow::before{background:#E9C48F}
+.deep em{color:#E9C48F}
+.wayhead .intro{color:rgba(244,240,230,.78)}
+.honest{background:rgba(244,240,230,.08);border-color:rgba(244,240,230,.25);color:#F4F0E6}
+.practice{background:rgba(244,240,230,.05);border-color:rgba(244,240,230,.14);border-radius:22px}
+.practice:hover{background:rgba(244,240,230,.1);border-color:rgba(244,240,230,.24)}
+.practice b{color:#F4F0E6;font-family:var(--serif);font-weight:500;font-size:1.45rem}
+:lang(ar) .practice b{font-weight:600;font-size:1.2rem}
+.practice span{color:rgba(244,240,230,.7)}
+.practice .pn{color:#E9C48F;font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-size:1.05rem}
+.hexi,.hexi .frame{color:#E9C48F}
+.hexi .frame polygon{fill:rgba(233,196,143,.08)}
+.practice:hover .hexi .frame polygon{fill:#E9C48F}
+.practice:hover .hexi .ic{color:var(--sage-d)}
+.zayed svg{color:#E9C48F;filter:none}
+.zayed p{color:#F4F0E6}
+.zayed small{color:#E9C48F}
+.chat::before{display:none}
+.chat{box-shadow:0 24px 50px -34px rgba(47,84,70,.55)}
+.msg.ai{background:var(--sage-soft);border-color:transparent}
+.msg.me{background:var(--sage);color:var(--on-btn)}
+.chip{background:transparent;border-color:var(--line2);color:var(--sage-d)} .chip:hover{background:var(--sage-soft)}
+.askform input{background:var(--bg)}
+.season{background:var(--sage-soft);border-color:transparent;color:var(--sage-d)}
+.dot{box-shadow:none}
+.steps li{background:var(--paper);border-radius:20px}
+.steps .n{background:var(--sage-soft);border-color:transparent;color:var(--sage-d);border-radius:50%;font-family:"Cormorant Garamond",Georgia,serif;font-size:1.1rem}
+form#joinForm{box-shadow:0 24px 50px -34px rgba(47,84,70,.55)}
+form h3{font-weight:500;font-size:2rem}
+input,textarea{background:var(--bg);border-color:var(--line2)}
+input:focus,textarea:focus{border-color:var(--sage);box-shadow:0 0 0 4px rgba(63,110,94,.12)}
+.check input{accent-color:var(--sage)}
+.done h3{color:var(--sage)}
+.mail code{background:var(--sage-soft);border-color:transparent}
+.faqs details{background:var(--paper);border-radius:20px}
+.faqs details[open]{background:var(--paper);border-color:var(--line2)}
+.faqs summary{font-family:var(--serif);font-size:1.35rem;font-weight:500}
+:lang(ar) .faqs summary{font-weight:600;font-size:1.1rem}
+.faqs summary i{background:var(--sage-soft);border-color:transparent;color:var(--sage)}
+.partners{background:var(--sage-soft);border-color:transparent;border-radius:40px 40px 10px 40px;position:relative;overflow:hidden;isolation:isolate}
+.partners .bot{width:240px;top:-30px;inset-inline-end:-20px;opacity:.22}
+footer{background:var(--sage-d);border-top:0;color:#F4F0E6}
+footer .brand{color:#F4F0E6}
+footer p,footer a{color:rgba(244,240,230,.72)}
+footer .fl a:hover{color:#F4F0E6}
+footer h4{color:#E9C48F}
+footer .tag-line{color:#E9C48F;font-family:var(--serif)}
+footer .small{border-top-color:rgba(244,240,230,.16)}
+@media (max-width:480px){.brand b{font-size:.98rem;letter-spacing:.12em}.lang{padding:7px 12px}}
+
+/* Ask The Hive: retain the uploaded controls and brand tokens. */
+.ask-modes{display:flex;gap:4px;align-items:center;border-bottom:1px solid var(--line);padding-bottom:12px}
+.ask-modes .btn{padding:9px 14px;font-size:.82rem;box-shadow:none;border-radius:8px;letter-spacing:0}
+.ask-modes .btn[aria-pressed="true"]{background:var(--sage-soft);color:var(--sage-d);border-color:var(--line2)}
+.ask-modes .chat-reset{margin-inline-start:auto;width:40px;height:40px;padding:0;flex:none}
+.chat-transcript{display:flex;flex-direction:column;gap:20px;max-height:420px;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+.chat-question{align-self:flex-end;max-width:90%;background:var(--sage);color:var(--on-btn);border-radius:14px 14px 4px 14px;padding:12px 16px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.94rem}
+.chat-answer{align-self:stretch;min-width:0;font-size:.96rem;line-height:1.8;overflow-wrap:anywhere;color:var(--ink);white-space:normal}
+.chat-answer p{margin-bottom:10px}.chat-answer p:last-child{margin-bottom:0}.chat-answer ul,.chat-answer ol{padding-inline-start:22px;margin:8px 0}.chat-answer pre{white-space:pre-wrap}.chat-answer blockquote{margin:10px 0;padding-inline-start:12px;border-inline-start:2px solid var(--line2)}
+.chat-answer .interest-reasoning{margin-bottom:8px}.chat-identity{font-size:.76rem;font-weight:600;color:var(--sage-d);margin-bottom:8px;letter-spacing:0}
+.chat-pending{font-size:.86rem;color:var(--muted)}
+.interest-toolbar .ask-submit{width:44px;height:44px;padding:0;flex:none}
+:root[dir="rtl"] .ask-submit svg{transform:scaleX(-1)}
+@media(max-width:480px){.ask-modes .btn{padding:8px 10px}.interest-actions{justify-content:flex-end}.interest-actions .btn.primary.ask-submit{flex:none;padding:0}.chat-transcript{max-height:360px}}
+
+/* Bilingual purpose and shared-growth sections, in the existing botanical style. */
+#why,#impact{scroll-margin-top:110px}
+.purpose-head,.growth-head{max-width:760px}
+.purpose-head h2,.growth-head h2{font-size:3.8rem;letter-spacing:0}
+.purpose-head p{max-width:68ch}
+.purpose-botanical{position:absolute;inset-inline-end:max(24px,calc((100% - 1148px)/2));top:100px;width:140px;height:190px;color:var(--sage);opacity:.28;pointer-events:none}
+.about-lead{display:block;margin-bottom:10px}
+.growth-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:40px}
+.growth-card{min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:30px;display:flex;flex-direction:column;align-items:flex-start;gap:14px}
+.growth-icon{display:grid;place-items:center;width:48px;height:48px;flex:none;border-radius:50%;color:var(--sage);background:var(--sage-soft);margin-bottom:6px}
+.growth-icon svg{width:26px;height:26px}
+.growth-card h3{font-size:2rem;letter-spacing:0}
+.growth-card p{color:var(--muted);font-size:.96rem;line-height:1.8;overflow-wrap:break-word}
+.growth-note{margin-top:24px;font:italic 1.2rem/1.6 var(--serif);color:var(--muted)}
+:lang(ar) .growth-note{font-style:normal}
+.navlinks a{padding-inline:9px;font-size:.82rem;white-space:nowrap}
+@media(max-width:1100px){
+  .bar{flex-wrap:wrap;border-radius:24px;padding-inline:20px;gap:8px 16px}
+  :root[dir="rtl"] .bar{padding-inline:20px}
+  nav{display:contents}
+  .lang{margin-inline-start:auto}
+  .navlinks{display:flex;order:3;width:100%;min-width:0;overflow-x:auto;scrollbar-width:thin;gap:4px;border-top:1px solid var(--line);padding-top:6px}
+  .navlinks a{flex:none}
+  .purpose-botanical{display:none}
+  #why,#impact{scroll-margin-top:150px}
+}
+@media(max-width:680px){
+  .purpose-head h2,.growth-head h2{font-size:2.5rem}
+  .growth-cards{grid-template-columns:1fr;gap:20px}
+  .growth-cards{margin-top:28px;gap:16px}
+  .growth-card{padding:26px}
+}
+</style>
+
+<header>
+  <div class="wrap bar">
+    <a class="brand" href="#top" aria-label="The Hive Society, home">
+      <span><b>The Hive Society</b></span>
+    </a>
+    <nav aria-label="Main">
+      <div class="navlinks"><a href="#why" data-t="navWhy">Why we exist</a><a href="#way" data-t="navWay">The Hive Way</a><a href="#gatherings" data-t="navGather">Gatherings</a></div><div class="navacts"><a class="btn primary navjoin" href="/auth?mode=signup" target="_top" data-t="navJoin" data-guest>Join</a><a class="navlogin" href="/auth" target="_top" data-t="navLogin" data-guest>Log in</a><a class="navlogin" href="/profile" target="_top" data-t="navProfile" data-member hidden>My profile</a></div>
+      <button class="lang" id="langBtn" type="button"></button>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero">
+    <div class="aurora"></div><div class="gridbg"></div><div class="bot frond"><svg viewBox="0 0 420 420" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M30 400 Q105 105 390 40 M58 315 Q94 286 152 254 M58 315 Q53 269 34 206 M65 298 Q105 268 167 238 M65 298 Q61 249 44 182 M73 282 Q116 252 182 222 M73 282 Q71 230 55 159 M81 266 Q127 236 198 207 M81 266 Q81 211 67 136 M90 250 Q139 221 214 193 M90 250 Q92 193 80 114 M99 235 Q151 207 231 181 M99 235 Q103 176 94 93 M109 221 Q164 193 248 169 M109 221 Q115 159 109 72 M119 207 Q178 180 266 159 M119 207 Q128 143 125 52 M129 194 Q192 168 284 149 M129 194 Q142 127 142 33 M140 181 Q206 157 303 141 M140 181 Q156 113 160 15 M152 168 Q216 148 310 137 M152 168 Q169 103 177 9 M164 156 Q226 140 317 132 M164 156 Q183 95 194 5 M176 145 Q237 131 324 128 M176 145 Q197 87 211 1 M189 134 Q247 123 331 123 M189 134 Q211 79 228 -3 M202 124 Q259 116 338 119 M202 124 Q226 72 245 -6 M216 114 Q270 108 346 114 M216 114 Q240 65 262 -8 M230 105 Q282 101 354 110 M230 105 Q255 59 278 -10 M245 96 Q294 94 362 105 M245 96 Q270 53 295 -11 M260 87 Q307 88 371 101 M260 87 Q286 48 311 -12 M275 79 Q320 82 380 96 M275 79 Q301 43 327 -12 M292 72 Q333 76 389 91 M292 72 Q317 39 344 -13 M308 65 Q347 70 399 86 M308 65 Q333 35 360 -12 M325 59 Q361 65 409 82 M325 59 Q349 32 376 -12 M342 53 Q376 59 420 77 M342 53 Q366 28 392 -11 M360 48 Q391 55 431 72 M360 48 Q383 26 408 -10"/></svg></div><div class="bot ghaf"><svg viewBox="0 0 300 380" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true"><path d="M150 370 Q105 190 180 20"/><path d="M139 316 L79 289"/><ellipse cx="130.8" cy="308.9" rx="4.2" ry="1.6" transform="rotate(-87 130.8 308.9)"/><ellipse cx="128.2" cy="314.9" rx="4.2" ry="1.6" transform="rotate(-225 128.2 314.9)"/><ellipse cx="122.3" cy="305.1" rx="4.2" ry="1.6" transform="rotate(-87 122.3 305.1)"/><ellipse cx="119.6" cy="311.0" rx="4.2" ry="1.6" transform="rotate(-225 119.6 311.0)"/><ellipse cx="113.8" cy="301.3" rx="4.2" ry="1.6" transform="rotate(-87 113.8 301.3)"/><ellipse cx="111.1" cy="307.2" rx="4.2" ry="1.6" transform="rotate(-225 111.1 307.2)"/><ellipse cx="105.2" cy="297.4" rx="4.2" ry="1.6" transform="rotate(-87 105.2 297.4)"/><ellipse cx="102.5" cy="303.4" rx="4.2" ry="1.6" transform="rotate(-225 102.5 303.4)"/><ellipse cx="96.7" cy="293.6" rx="4.2" ry="1.6" transform="rotate(-87 96.7 293.6)"/><ellipse cx="94.0" cy="299.6" rx="4.2" ry="1.6" transform="rotate(-225 94.0 299.6)"/><ellipse cx="88.1" cy="289.8" rx="4.2" ry="1.6" transform="rotate(-87 88.1 289.8)"/><ellipse cx="85.5" cy="295.8" rx="4.2" ry="1.6" transform="rotate(-225 85.5 295.8)"/><path d="M135 285 L185 246"/><ellipse cx="145.4" cy="280.8" rx="4.2" ry="1.6" transform="rotate(31 145.4 280.8)"/><ellipse cx="141.4" cy="275.7" rx="4.2" ry="1.6" transform="rotate(-107 141.4 275.7)"/><ellipse cx="152.5" cy="275.3" rx="4.2" ry="1.6" transform="rotate(31 152.5 275.3)"/><ellipse cx="148.5" cy="270.2" rx="4.2" ry="1.6" transform="rotate(-107 148.5 270.2)"/><ellipse cx="159.6" cy="269.8" rx="4.2" ry="1.6" transform="rotate(31 159.6 269.8)"/><ellipse cx="155.6" cy="264.7" rx="4.2" ry="1.6" transform="rotate(-107 155.6 264.7)"/><ellipse cx="166.7" cy="264.3" rx="4.2" ry="1.6" transform="rotate(31 166.7 264.3)"/><ellipse cx="162.7" cy="259.1" rx="4.2" ry="1.6" transform="rotate(-107 162.7 259.1)"/><ellipse cx="173.7" cy="258.8" rx="4.2" ry="1.6" transform="rotate(31 173.7 258.8)"/><ellipse cx="169.7" cy="253.6" rx="4.2" ry="1.6" transform="rotate(-107 169.7 253.6)"/><ellipse cx="180.8" cy="253.2" rx="4.2" ry="1.6" transform="rotate(31 180.8 253.2)"/><ellipse cx="176.8" cy="248.1" rx="4.2" ry="1.6" transform="rotate(-107 176.8 248.1)"/><path d="M133 253 L82 222"/><ellipse cx="126.6" cy="245.2" rx="4.2" ry="1.6" transform="rotate(-80 126.6 245.2)"/><ellipse cx="123.3" cy="250.8" rx="4.2" ry="1.6" transform="rotate(-218 123.3 250.8)"/><ellipse cx="119.2" cy="240.8" rx="4.2" ry="1.6" transform="rotate(-80 119.2 240.8)"/><ellipse cx="115.9" cy="246.4" rx="4.2" ry="1.6" transform="rotate(-218 115.9 246.4)"/><ellipse cx="111.8" cy="236.4" rx="4.2" ry="1.6" transform="rotate(-80 111.8 236.4)"/><ellipse cx="108.5" cy="242.0" rx="4.2" ry="1.6" transform="rotate(-218 108.5 242.0)"/><ellipse cx="104.5" cy="232.0" rx="4.2" ry="1.6" transform="rotate(-80 104.5 232.0)"/><ellipse cx="101.1" cy="237.6" rx="4.2" ry="1.6" transform="rotate(-218 101.1 237.6)"/><ellipse cx="97.1" cy="227.6" rx="4.2" ry="1.6" transform="rotate(-80 97.1 227.6)"/><ellipse cx="93.7" cy="233.2" rx="4.2" ry="1.6" transform="rotate(-218 93.7 233.2)"/><ellipse cx="89.7" cy="223.2" rx="4.2" ry="1.6" transform="rotate(-80 89.7 223.2)"/><ellipse cx="86.4" cy="228.8" rx="4.2" ry="1.6" transform="rotate(-218 86.4 228.8)"/><path d="M133 222 L183 192"/><ellipse cx="143.1" cy="219.6" rx="4.2" ry="1.6" transform="rotate(38 143.1 219.6)"/><ellipse cx="139.8" cy="214.0" rx="4.2" ry="1.6" transform="rotate(-100 139.8 214.0)"/><ellipse cx="150.2" cy="215.4" rx="4.2" ry="1.6" transform="rotate(38 150.2 215.4)"/><ellipse cx="146.8" cy="209.8" rx="4.2" ry="1.6" transform="rotate(-100 146.8 209.8)"/><ellipse cx="157.2" cy="211.2" rx="4.2" ry="1.6" transform="rotate(38 157.2 211.2)"/><ellipse cx="153.8" cy="205.6" rx="4.2" ry="1.6" transform="rotate(-100 153.8 205.6)"/><ellipse cx="164.2" cy="206.9" rx="4.2" ry="1.6" transform="rotate(38 164.2 206.9)"/><ellipse cx="160.9" cy="201.3" rx="4.2" ry="1.6" transform="rotate(-100 160.9 201.3)"/><ellipse cx="171.3" cy="202.7" rx="4.2" ry="1.6" transform="rotate(38 171.3 202.7)"/><ellipse cx="167.9" cy="197.1" rx="4.2" ry="1.6" transform="rotate(-100 167.9 197.1)"/><ellipse cx="178.3" cy="198.4" rx="4.2" ry="1.6" transform="rotate(38 178.3 198.4)"/><ellipse cx="174.9" cy="192.8" rx="4.2" ry="1.6" transform="rotate(-100 174.9 192.8)"/><path d="M135 191 L92 157"/><ellipse cx="130.0" cy="182.4" rx="4.2" ry="1.6" transform="rotate(-73 130.0 182.4)"/><ellipse cx="126.0" cy="187.6" rx="4.2" ry="1.6" transform="rotate(-211 126.0 187.6)"/><ellipse cx="123.8" cy="177.6" rx="4.2" ry="1.6" transform="rotate(-73 123.8 177.6)"/><ellipse cx="119.8" cy="182.7" rx="4.2" ry="1.6" transform="rotate(-211 119.8 182.7)"/><ellipse cx="117.6" cy="172.8" rx="4.2" ry="1.6" transform="rotate(-73 117.6 172.8)"/><ellipse cx="113.6" cy="177.9" rx="4.2" ry="1.6" transform="rotate(-211 113.6 177.9)"/><ellipse cx="111.4" cy="168.0" rx="4.2" ry="1.6" transform="rotate(-73 111.4 168.0)"/><ellipse cx="107.4" cy="173.1" rx="4.2" ry="1.6" transform="rotate(-211 107.4 173.1)"/><ellipse cx="105.2" cy="163.2" rx="4.2" ry="1.6" transform="rotate(-73 105.2 163.2)"/><ellipse cx="101.2" cy="168.3" rx="4.2" ry="1.6" transform="rotate(-211 101.2 168.3)"/><ellipse cx="99.0" cy="158.4" rx="4.2" ry="1.6" transform="rotate(-73 99.0 158.4)"/><ellipse cx="95.0" cy="163.5" rx="4.2" ry="1.6" transform="rotate(-211 95.0 163.5)"/><path d="M139 160 L187 138"/><ellipse cx="148.2" cy="159.0" rx="4.2" ry="1.6" transform="rotate(45 148.2 159.0)"/><ellipse cx="145.5" cy="153.0" rx="4.2" ry="1.6" transform="rotate(-93 145.5 153.0)"/><ellipse cx="155.0" cy="155.9" rx="4.2" ry="1.6" transform="rotate(45 155.0 155.9)"/><ellipse cx="152.3" cy="150.0" rx="4.2" ry="1.6" transform="rotate(-93 152.3 150.0)"/><ellipse cx="161.8" cy="152.9" rx="4.2" ry="1.6" transform="rotate(45 161.8 152.9)"/><ellipse cx="159.1" cy="146.9" rx="4.2" ry="1.6" transform="rotate(-93 159.1 146.9)"/><ellipse cx="168.6" cy="149.8" rx="4.2" ry="1.6" transform="rotate(45 168.6 149.8)"/><ellipse cx="165.9" cy="143.9" rx="4.2" ry="1.6" transform="rotate(-93 165.9 143.9)"/><ellipse cx="175.4" cy="146.8" rx="4.2" ry="1.6" transform="rotate(45 175.4 146.8)"/><ellipse cx="172.7" cy="140.8" rx="4.2" ry="1.6" transform="rotate(-93 172.7 140.8)"/><ellipse cx="182.2" cy="143.7" rx="4.2" ry="1.6" transform="rotate(45 182.2 143.7)"/><ellipse cx="179.5" cy="137.8" rx="4.2" ry="1.6" transform="rotate(-93 179.5 137.8)"/><path d="M145 129 L109 94"/><ellipse cx="140.9" cy="120.5" rx="4.2" ry="1.6" transform="rotate(-66 140.9 120.5)"/><ellipse cx="136.3" cy="125.1" rx="4.2" ry="1.6" transform="rotate(-204 136.3 125.1)"/><ellipse cx="135.9" cy="115.5" rx="4.2" ry="1.6" transform="rotate(-66 135.9 115.5)"/><ellipse cx="131.3" cy="120.1" rx="4.2" ry="1.6" transform="rotate(-204 131.3 120.1)"/><ellipse cx="130.9" cy="110.5" rx="4.2" ry="1.6" transform="rotate(-66 130.9 110.5)"/><ellipse cx="126.3" cy="115.2" rx="4.2" ry="1.6" transform="rotate(-204 126.3 115.2)"/><ellipse cx="125.8" cy="105.5" rx="4.2" ry="1.6" transform="rotate(-66 125.8 105.5)"/><ellipse cx="121.3" cy="110.2" rx="4.2" ry="1.6" transform="rotate(-204 121.3 110.2)"/><ellipse cx="120.8" cy="100.6" rx="4.2" ry="1.6" transform="rotate(-66 120.8 100.6)"/><ellipse cx="116.2" cy="105.2" rx="4.2" ry="1.6" transform="rotate(-204 116.2 105.2)"/><ellipse cx="115.8" cy="95.6" rx="4.2" ry="1.6" transform="rotate(-66 115.8 95.6)"/><ellipse cx="111.2" cy="100.2" rx="4.2" ry="1.6" transform="rotate(-204 111.2 100.2)"/><path d="M152 98 L197 84"/><ellipse cx="160.6" cy="98.7" rx="4.2" ry="1.6" transform="rotate(52 160.6 98.7)"/><ellipse cx="158.7" cy="92.5" rx="4.2" ry="1.6" transform="rotate(-86 158.7 92.5)"/><ellipse cx="167.0" cy="96.7" rx="4.2" ry="1.6" transform="rotate(52 167.0 96.7)"/><ellipse cx="165.1" cy="90.5" rx="4.2" ry="1.6" transform="rotate(-86 165.1 90.5)"/><ellipse cx="173.4" cy="94.8" rx="4.2" ry="1.6" transform="rotate(52 173.4 94.8)"/><ellipse cx="171.5" cy="88.5" rx="4.2" ry="1.6" transform="rotate(-86 171.5 88.5)"/><ellipse cx="179.8" cy="92.8" rx="4.2" ry="1.6" transform="rotate(52 179.8 92.8)"/><ellipse cx="177.9" cy="86.5" rx="4.2" ry="1.6" transform="rotate(-86 177.9 86.5)"/><ellipse cx="186.2" cy="90.8" rx="4.2" ry="1.6" transform="rotate(52 186.2 90.8)"/><ellipse cx="184.3" cy="84.6" rx="4.2" ry="1.6" transform="rotate(-86 184.3 84.6)"/><ellipse cx="192.6" cy="88.8" rx="4.2" ry="1.6" transform="rotate(52 192.6 88.8)"/><ellipse cx="190.6" cy="82.6" rx="4.2" ry="1.6" transform="rotate(-86 190.6 82.6)"/><path d="M161 67 L134 33"/><ellipse cx="159.3" cy="59.5" rx="4.2" ry="1.6" transform="rotate(-60 159.3 59.5)"/><ellipse cx="154.2" cy="63.5" rx="4.2" ry="1.6" transform="rotate(-197 154.2 63.5)"/><ellipse cx="155.4" cy="54.5" rx="4.2" ry="1.6" transform="rotate(-60 155.4 54.5)"/><ellipse cx="150.3" cy="58.6" rx="4.2" ry="1.6" transform="rotate(-197 150.3 58.6)"/><ellipse cx="151.5" cy="49.6" rx="4.2" ry="1.6" transform="rotate(-60 151.5 49.6)"/><ellipse cx="146.4" cy="53.6" rx="4.2" ry="1.6" transform="rotate(-197 146.4 53.6)"/><ellipse cx="147.5" cy="44.6" rx="4.2" ry="1.6" transform="rotate(-60 147.5 44.6)"/><ellipse cx="142.4" cy="48.7" rx="4.2" ry="1.6" transform="rotate(-197 142.4 48.7)"/><ellipse cx="143.6" cy="39.7" rx="4.2" ry="1.6" transform="rotate(-60 143.6 39.7)"/><ellipse cx="138.5" cy="43.8" rx="4.2" ry="1.6" transform="rotate(-197 138.5 43.8)"/><ellipse cx="139.7" cy="34.8" rx="4.2" ry="1.6" transform="rotate(-60 139.7 34.8)"/><ellipse cx="134.6" cy="38.8" rx="4.2" ry="1.6" transform="rotate(-197 134.6 38.8)"/></svg></div>
+    <div class="wrap herowrap">
+      <span class="badge"><span class="bd" data-t="heroBadgeTag">Soon</span><span data-t="heroBadge">The founding community opens soon</span></span>
+      <h1 data-t="heroTitle" data-html>The art of <em>getting together</em></h1>
+      <p class="line" data-t="heroLine">One hand, for our Abu Dhabi.</p>
+      <div class="ctas">
+        <a class="btn primary" href="/auth?mode=signup" target="_top" data-t="ctaJoin">Join the founding community</a>
+        <a class="btn ghost" href="#way" data-t="ctaWay">Discover The Hive Way</a>
+      </div>
+    </div>
+  </div>
+
+  <section class="paper" id="why" aria-labelledby="whyTitle">
+    <svg class="purpose-botanical" viewBox="0 0 140 190" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M65 180C45 119 69 56 105 12M61 150l-27-20M62 119l32-21M69 89L44 67M82 57l28-17"/><path d="M34 130c-13-1-22-11-23-24 14 1 24 9 23 24ZM94 98c2-15 13-24 28-24-1 15-12 24-28 24ZM44 67C29 66 20 54 21 42c15 2 23 11 23 25ZM110 40c0-14 10-23 23-24 0 14-9 24-23 24ZM105 12c-13 6-19 16-14 29 12-7 17-16 14-29Z"/></svg>
+    <div class="wrap">
+      <div class="sec-head purpose-head">
+        <span class="eyebrow" data-t="whyEyebrow">Why we exist</span>
+        <h2 id="whyTitle" data-t="whyTitle">Once, every woman had a majlis.</h2>
+        <p data-t="whyText">A place to sit, share and be known. Today, Abu Dhabi has never had more events, yet many women still find it hard to meet people they truly connect with, whether they moved last month or grew up down the road. Most gatherings are big, rushed and forgettable, and many end with a bin full of plastic.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="paper" id="about">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow" data-t="aboutEyebrow">The Hive</span>
+        <h2 data-t="aboutTitle" data-html>A community, <em>not just events</em></h2>
+        <p><span class="about-lead" data-t="aboutLead">So we’re bringing the majlis back.</span><span data-t="aboutText">The Hive Society brings women together through small, meaningful gatherings across Abu Dhabi, where real friendships grow, creativity has space, and every gathering cares for the land. Around a table, on a mat, or in a gallery: no name badges, no pitches, just friendships that grow from shared moments.</span></p>
+      </div>
+      <div class="pillars">
+        <div class="pillar"><h3 data-t="p1t">Belong</h3><p data-t="p1">Small circles and a warm welcome. No name badges, no sales pitches, just women getting to know each other.</p></div>
+        <div class="pillar"><h3 data-t="p2t">Create</h3><p data-t="p2">Pottery, palm weaving, writing, photography. A space to try new things and share what we make.</p></div>
+        <div class="pillar"><h3 data-t="p3t">Care for the land</h3><p data-t="p3">Every gathering is hosted sustainably, and every season we plant something for Abu Dhabi.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap forwho">
+      <blockquote data-t="quote">"Like the ghaf, we grow slowly, with deep roots, so we last."</blockquote>
+      <div class="who">
+        <span class="eyebrow" data-t="whoEyebrow">Who it's for</span>
+        <h2 style="font-size:clamp(1.8rem,3.6vw,2.6rem)" data-t="whoTitle">For the women of Abu Dhabi</h2>
+        <p data-t="whoText">Emirati and expat, every age and background: women who want meaningful friendships, creative and cultural experiences, and a simple way to live sustainably and contribute to their city.</p>
+        <div class="tags"><span class="tag" data-t="t1">Friendship</span><span class="tag" data-t="t2">Culture &amp; heritage</span><span class="tag" data-t="t3">Wellness</span><span class="tag" data-t="t4">Creativity</span><span class="tag" data-t="t5">For the land</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="founder">
+    <div class="wrap fgrid"><div class="bot"><svg viewBox="0 0 300 380" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true"><path d="M150 370 Q105 190 180 20"/><path d="M139 316 L79 289"/><ellipse cx="130.8" cy="308.9" rx="4.2" ry="1.6" transform="rotate(-87 130.8 308.9)"/><ellipse cx="128.2" cy="314.9" rx="4.2" ry="1.6" transform="rotate(-225 128.2 314.9)"/><ellipse cx="122.3" cy="305.1" rx="4.2" ry="1.6" transform="rotate(-87 122.3 305.1)"/><ellipse cx="119.6" cy="311.0" rx="4.2" ry="1.6" transform="rotate(-225 119.6 311.0)"/><ellipse cx="113.8" cy="301.3" rx="4.2" ry="1.6" transform="rotate(-87 113.8 301.3)"/><ellipse cx="111.1" cy="307.2" rx="4.2" ry="1.6" transform="rotate(-225 111.1 307.2)"/><ellipse cx="105.2" cy="297.4" rx="4.2" ry="1.6" transform="rotate(-87 105.2 297.4)"/><ellipse cx="102.5" cy="303.4" rx="4.2" ry="1.6" transform="rotate(-225 102.5 303.4)"/><ellipse cx="96.7" cy="293.6" rx="4.2" ry="1.6" transform="rotate(-87 96.7 293.6)"/><ellipse cx="94.0" cy="299.6" rx="4.2" ry="1.6" transform="rotate(-225 94.0 299.6)"/><ellipse cx="88.1" cy="289.8" rx="4.2" ry="1.6" transform="rotate(-87 88.1 289.8)"/><ellipse cx="85.5" cy="295.8" rx="4.2" ry="1.6" transform="rotate(-225 85.5 295.8)"/><path d="M135 285 L185 246"/><ellipse cx="145.4" cy="280.8" rx="4.2" ry="1.6" transform="rotate(31 145.4 280.8)"/><ellipse cx="141.4" cy="275.7" rx="4.2" ry="1.6" transform="rotate(-107 141.4 275.7)"/><ellipse cx="152.5" cy="275.3" rx="4.2" ry="1.6" transform="rotate(31 152.5 275.3)"/><ellipse cx="148.5" cy="270.2" rx="4.2" ry="1.6" transform="rotate(-107 148.5 270.2)"/><ellipse cx="159.6" cy="269.8" rx="4.2" ry="1.6" transform="rotate(31 159.6 269.8)"/><ellipse cx="155.6" cy="264.7" rx="4.2" ry="1.6" transform="rotate(-107 155.6 264.7)"/><ellipse cx="166.7" cy="264.3" rx="4.2" ry="1.6" transform="rotate(31 166.7 264.3)"/><ellipse cx="162.7" cy="259.1" rx="4.2" ry="1.6" transform="rotate(-107 162.7 259.1)"/><ellipse cx="173.7" cy="258.8" rx="4.2" ry="1.6" transform="rotate(31 173.7 258.8)"/><ellipse cx="169.7" cy="253.6" rx="4.2" ry="1.6" transform="rotate(-107 169.7 253.6)"/><ellipse cx="180.8" cy="253.2" rx="4.2" ry="1.6" transform="rotate(31 180.8 253.2)"/><ellipse cx="176.8" cy="248.1" rx="4.2" ry="1.6" transform="rotate(-107 176.8 248.1)"/><path d="M133 253 L82 222"/><ellipse cx="126.6" cy="245.2" rx="4.2" ry="1.6" transform="rotate(-80 126.6 245.2)"/><ellipse cx="123.3" cy="250.8" rx="4.2" ry="1.6" transform="rotate(-218 123.3 250.8)"/><ellipse cx="119.2" cy="240.8" rx="4.2" ry="1.6" transform="rotate(-80 119.2 240.8)"/><ellipse cx="115.9" cy="246.4" rx="4.2" ry="1.6" transform="rotate(-218 115.9 246.4)"/><ellipse cx="111.8" cy="236.4" rx="4.2" ry="1.6" transform="rotate(-80 111.8 236.4)"/><ellipse cx="108.5" cy="242.0" rx="4.2" ry="1.6" transform="rotate(-218 108.5 242.0)"/><ellipse cx="104.5" cy="232.0" rx="4.2" ry="1.6" transform="rotate(-80 104.5 232.0)"/><ellipse cx="101.1" cy="237.6" rx="4.2" ry="1.6" transform="rotate(-218 101.1 237.6)"/><ellipse cx="97.1" cy="227.6" rx="4.2" ry="1.6" transform="rotate(-80 97.1 227.6)"/><ellipse cx="93.7" cy="233.2" rx="4.2" ry="1.6" transform="rotate(-218 93.7 233.2)"/><ellipse cx="89.7" cy="223.2" rx="4.2" ry="1.6" transform="rotate(-80 89.7 223.2)"/><ellipse cx="86.4" cy="228.8" rx="4.2" ry="1.6" transform="rotate(-218 86.4 228.8)"/><path d="M133 222 L183 192"/><ellipse cx="143.1" cy="219.6" rx="4.2" ry="1.6" transform="rotate(38 143.1 219.6)"/><ellipse cx="139.8" cy="214.0" rx="4.2" ry="1.6" transform="rotate(-100 139.8 214.0)"/><ellipse cx="150.2" cy="215.4" rx="4.2" ry="1.6" transform="rotate(38 150.2 215.4)"/><ellipse cx="146.8" cy="209.8" rx="4.2" ry="1.6" transform="rotate(-100 146.8 209.8)"/><ellipse cx="157.2" cy="211.2" rx="4.2" ry="1.6" transform="rotate(38 157.2 211.2)"/><ellipse cx="153.8" cy="205.6" rx="4.2" ry="1.6" transform="rotate(-100 153.8 205.6)"/><ellipse cx="164.2" cy="206.9" rx="4.2" ry="1.6" transform="rotate(38 164.2 206.9)"/><ellipse cx="160.9" cy="201.3" rx="4.2" ry="1.6" transform="rotate(-100 160.9 201.3)"/><ellipse cx="171.3" cy="202.7" rx="4.2" ry="1.6" transform="rotate(38 171.3 202.7)"/><ellipse cx="167.9" cy="197.1" rx="4.2" ry="1.6" transform="rotate(-100 167.9 197.1)"/><ellipse cx="178.3" cy="198.4" rx="4.2" ry="1.6" transform="rotate(38 178.3 198.4)"/><ellipse cx="174.9" cy="192.8" rx="4.2" ry="1.6" transform="rotate(-100 174.9 192.8)"/><path d="M135 191 L92 157"/><ellipse cx="130.0" cy="182.4" rx="4.2" ry="1.6" transform="rotate(-73 130.0 182.4)"/><ellipse cx="126.0" cy="187.6" rx="4.2" ry="1.6" transform="rotate(-211 126.0 187.6)"/><ellipse cx="123.8" cy="177.6" rx="4.2" ry="1.6" transform="rotate(-73 123.8 177.6)"/><ellipse cx="119.8" cy="182.7" rx="4.2" ry="1.6" transform="rotate(-211 119.8 182.7)"/><ellipse cx="117.6" cy="172.8" rx="4.2" ry="1.6" transform="rotate(-73 117.6 172.8)"/><ellipse cx="113.6" cy="177.9" rx="4.2" ry="1.6" transform="rotate(-211 113.6 177.9)"/><ellipse cx="111.4" cy="168.0" rx="4.2" ry="1.6" transform="rotate(-73 111.4 168.0)"/><ellipse cx="107.4" cy="173.1" rx="4.2" ry="1.6" transform="rotate(-211 107.4 173.1)"/><ellipse cx="105.2" cy="163.2" rx="4.2" ry="1.6" transform="rotate(-73 105.2 163.2)"/><ellipse cx="101.2" cy="168.3" rx="4.2" ry="1.6" transform="rotate(-211 101.2 168.3)"/><ellipse cx="99.0" cy="158.4" rx="4.2" ry="1.6" transform="rotate(-73 99.0 158.4)"/><ellipse cx="95.0" cy="163.5" rx="4.2" ry="1.6" transform="rotate(-211 95.0 163.5)"/><path d="M139 160 L187 138"/><ellipse cx="148.2" cy="159.0" rx="4.2" ry="1.6" transform="rotate(45 148.2 159.0)"/><ellipse cx="145.5" cy="153.0" rx="4.2" ry="1.6" transform="rotate(-93 145.5 153.0)"/><ellipse cx="155.0" cy="155.9" rx="4.2" ry="1.6" transform="rotate(45 155.0 155.9)"/><ellipse cx="152.3" cy="150.0" rx="4.2" ry="1.6" transform="rotate(-93 152.3 150.0)"/><ellipse cx="161.8" cy="152.9" rx="4.2" ry="1.6" transform="rotate(45 161.8 152.9)"/><ellipse cx="159.1" cy="146.9" rx="4.2" ry="1.6" transform="rotate(-93 159.1 146.9)"/><ellipse cx="168.6" cy="149.8" rx="4.2" ry="1.6" transform="rotate(45 168.6 149.8)"/><ellipse cx="165.9" cy="143.9" rx="4.2" ry="1.6" transform="rotate(-93 165.9 143.9)"/><ellipse cx="175.4" cy="146.8" rx="4.2" ry="1.6" transform="rotate(45 175.4 146.8)"/><ellipse cx="172.7" cy="140.8" rx="4.2" ry="1.6" transform="rotate(-93 172.7 140.8)"/><ellipse cx="182.2" cy="143.7" rx="4.2" ry="1.6" transform="rotate(45 182.2 143.7)"/><ellipse cx="179.5" cy="137.8" rx="4.2" ry="1.6" transform="rotate(-93 179.5 137.8)"/><path d="M145 129 L109 94"/><ellipse cx="140.9" cy="120.5" rx="4.2" ry="1.6" transform="rotate(-66 140.9 120.5)"/><ellipse cx="136.3" cy="125.1" rx="4.2" ry="1.6" transform="rotate(-204 136.3 125.1)"/><ellipse cx="135.9" cy="115.5" rx="4.2" ry="1.6" transform="rotate(-66 135.9 115.5)"/><ellipse cx="131.3" cy="120.1" rx="4.2" ry="1.6" transform="rotate(-204 131.3 120.1)"/><ellipse cx="130.9" cy="110.5" rx="4.2" ry="1.6" transform="rotate(-66 130.9 110.5)"/><ellipse cx="126.3" cy="115.2" rx="4.2" ry="1.6" transform="rotate(-204 126.3 115.2)"/><ellipse cx="125.8" cy="105.5" rx="4.2" ry="1.6" transform="rotate(-66 125.8 105.5)"/><ellipse cx="121.3" cy="110.2" rx="4.2" ry="1.6" transform="rotate(-204 121.3 110.2)"/><ellipse cx="120.8" cy="100.6" rx="4.2" ry="1.6" transform="rotate(-66 120.8 100.6)"/><ellipse cx="116.2" cy="105.2" rx="4.2" ry="1.6" transform="rotate(-204 116.2 105.2)"/><ellipse cx="115.8" cy="95.6" rx="4.2" ry="1.6" transform="rotate(-66 115.8 95.6)"/><ellipse cx="111.2" cy="100.2" rx="4.2" ry="1.6" transform="rotate(-204 111.2 100.2)"/><path d="M152 98 L197 84"/><ellipse cx="160.6" cy="98.7" rx="4.2" ry="1.6" transform="rotate(52 160.6 98.7)"/><ellipse cx="158.7" cy="92.5" rx="4.2" ry="1.6" transform="rotate(-86 158.7 92.5)"/><ellipse cx="167.0" cy="96.7" rx="4.2" ry="1.6" transform="rotate(52 167.0 96.7)"/><ellipse cx="165.1" cy="90.5" rx="4.2" ry="1.6" transform="rotate(-86 165.1 90.5)"/><ellipse cx="173.4" cy="94.8" rx="4.2" ry="1.6" transform="rotate(52 173.4 94.8)"/><ellipse cx="171.5" cy="88.5" rx="4.2" ry="1.6" transform="rotate(-86 171.5 88.5)"/><ellipse cx="179.8" cy="92.8" rx="4.2" ry="1.6" transform="rotate(52 179.8 92.8)"/><ellipse cx="177.9" cy="86.5" rx="4.2" ry="1.6" transform="rotate(-86 177.9 86.5)"/><ellipse cx="186.2" cy="90.8" rx="4.2" ry="1.6" transform="rotate(52 186.2 90.8)"/><ellipse cx="184.3" cy="84.6" rx="4.2" ry="1.6" transform="rotate(-86 184.3 84.6)"/><ellipse cx="192.6" cy="88.8" rx="4.2" ry="1.6" transform="rotate(52 192.6 88.8)"/><ellipse cx="190.6" cy="82.6" rx="4.2" ry="1.6" transform="rotate(-86 190.6 82.6)"/><path d="M161 67 L134 33"/><ellipse cx="159.3" cy="59.5" rx="4.2" ry="1.6" transform="rotate(-60 159.3 59.5)"/><ellipse cx="154.2" cy="63.5" rx="4.2" ry="1.6" transform="rotate(-197 154.2 63.5)"/><ellipse cx="155.4" cy="54.5" rx="4.2" ry="1.6" transform="rotate(-60 155.4 54.5)"/><ellipse cx="150.3" cy="58.6" rx="4.2" ry="1.6" transform="rotate(-197 150.3 58.6)"/><ellipse cx="151.5" cy="49.6" rx="4.2" ry="1.6" transform="rotate(-60 151.5 49.6)"/><ellipse cx="146.4" cy="53.6" rx="4.2" ry="1.6" transform="rotate(-197 146.4 53.6)"/><ellipse cx="147.5" cy="44.6" rx="4.2" ry="1.6" transform="rotate(-60 147.5 44.6)"/><ellipse cx="142.4" cy="48.7" rx="4.2" ry="1.6" transform="rotate(-197 142.4 48.7)"/><ellipse cx="143.6" cy="39.7" rx="4.2" ry="1.6" transform="rotate(-60 143.6 39.7)"/><ellipse cx="138.5" cy="43.8" rx="4.2" ry="1.6" transform="rotate(-197 138.5 43.8)"/><ellipse cx="139.7" cy="34.8" rx="4.2" ry="1.6" transform="rotate(-60 139.7 34.8)"/><ellipse cx="134.6" cy="38.8" rx="4.2" ry="1.6" transform="rotate(-197 134.6 38.8)"/></svg></div>
+      <div class="fmark" aria-hidden="true">“</div>
+      <div class="ftext">
+        <span class="eyebrow" data-t="fdEyebrow">A note from our founder</span>
+        <p class="fquote" data-t="fdQuote">A community that isn't sustainable won't last — and a city cannot flourish without a strong, creative community behind it.</p>
+        <p class="fbody" data-t="fdBody">I started The Hive because I believe the best of Abu Dhabi is built by people who truly know one another. Nothing worth keeping grows in a day. Like the ghaf, we plant slowly and deeply — one gathering, one friendship, one tree at a time.</p>
+        <p class="fsig"><b data-t="fdName">Meera Al Ahbabi</b><span data-t="fdRole">Founder, The Hive Society</span></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="paper" id="gatherings">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow" data-t="gEyebrow">Our gatherings</span>
+        <h2 data-t="gTitle" data-html>Five ways to <em>gather</em></h2>
+        <p data-t="gText">Every season brings a small number of gatherings, each hosted The Hive Way.</p>
+      </div>
+      <div class="gcats" id="gcats"></div>
+      <p class="gnote" data-t="gNote">The first season's gatherings will be shared with the founding community first.</p>
+    </div>
+  </section>
+
+  <section id="flow">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow" data-t="flEyebrow">A Hive gathering</span>
+        <h2 data-t="flTitle" data-html>How an evening <em>unfolds</em></h2>
+        <p data-t="flText">Small enough to know everyone's name by the end. Every gathering follows the same gentle rhythm.</p>
+      </div>
+      <ol class="flow" id="flowList"></ol>
+    </div>
+  </section>
+
+  <section class="deep" id="way">
+    <div class="bot frond"><svg viewBox="0 0 420 420" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M30 400 Q105 105 390 40 M58 315 Q94 286 152 254 M58 315 Q53 269 34 206 M65 298 Q105 268 167 238 M65 298 Q61 249 44 182 M73 282 Q116 252 182 222 M73 282 Q71 230 55 159 M81 266 Q127 236 198 207 M81 266 Q81 211 67 136 M90 250 Q139 221 214 193 M90 250 Q92 193 80 114 M99 235 Q151 207 231 181 M99 235 Q103 176 94 93 M109 221 Q164 193 248 169 M109 221 Q115 159 109 72 M119 207 Q178 180 266 159 M119 207 Q128 143 125 52 M129 194 Q192 168 284 149 M129 194 Q142 127 142 33 M140 181 Q206 157 303 141 M140 181 Q156 113 160 15 M152 168 Q216 148 310 137 M152 168 Q169 103 177 9 M164 156 Q226 140 317 132 M164 156 Q183 95 194 5 M176 145 Q237 131 324 128 M176 145 Q197 87 211 1 M189 134 Q247 123 331 123 M189 134 Q211 79 228 -3 M202 124 Q259 116 338 119 M202 124 Q226 72 245 -6 M216 114 Q270 108 346 114 M216 114 Q240 65 262 -8 M230 105 Q282 101 354 110 M230 105 Q255 59 278 -10 M245 96 Q294 94 362 105 M245 96 Q270 53 295 -11 M260 87 Q307 88 371 101 M260 87 Q286 48 311 -12 M275 79 Q320 82 380 96 M275 79 Q301 43 327 -12 M292 72 Q333 76 389 91 M292 72 Q317 39 344 -13 M308 65 Q347 70 399 86 M308 65 Q333 35 360 -12 M325 59 Q361 65 409 82 M325 59 Q349 32 376 -12 M342 53 Q376 59 420 77 M342 53 Q366 28 392 -11 M360 48 Q391 55 431 72 M360 48 Q383 26 408 -10"/></svg></div>
+    <div class="wrap">
+      <div class="waygrid">
+        <div class="wayhead">
+          <span class="eyebrow" data-t="wayEyebrow">Our promise</span>
+          <h2 data-t="wayTitle2" data-html>The Hive <em>Way</em></h2>
+          <span class="rule"></span>
+          <p class="intro" data-t="wayText">Every gathering is hosted the way our grandmothers lived: generously, and in harmony with the land.</p>
+          <span class="honest"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-t="honest">We only claim what we actually do.</span></span>
+        </div>
+        <ol class="practices" id="practices"></ol>
+      </div>
+      <div class="zayed">
+        <svg width="120" height="96" viewBox="0 0 200 160" aria-hidden="true"><path d="M30 92 C40 52 72 36 100 36 C128 36 160 52 170 92 C150 104 126 108 100 108 C74 108 50 104 30 92 Z" fill="currentColor" fill-opacity=".14" stroke="currentColor" stroke-width="2.5"/><path d="M52 84 C70 74 86 72 100 72 C114 72 130 74 148 84" stroke="currentColor" stroke-width="1.5" fill="none" opacity=".55"/><path d="M100 150 V100 M100 126 L82 108 M100 116 L120 100" stroke="currentColor" stroke-width="4" stroke-linecap="round" fill="none"/><path d="M40 150 H160" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".6"/></svg>
+        <p data-t="zayed">Before buildings, the ghaf was our first majlis.</p>
+        <small data-t="zayedBy">Inspired by Sheikh Zayed's love for the land</small>
+      </div>
+    </div>
+  </section>
+
+  <section id="ask" class="paper">
+    <div class="wrap askgrid">
+      <div class="sec-head">
+        <span class="eyebrow" data-t="askEyebrow">A conversation with The Hive</span>
+        <h2 data-t="askTitle" data-html>Ask <em>The Hive</em></h2>
+        <p data-t="askText">The things you love can be the beginning of something shared.</p>
+      </div>
+      <div class="chat" id="chat">
+        <div class="ask-modes" role="group" aria-label="Ask The Hive">
+          <button class="btn ghost" id="chatMode" type="button" aria-pressed="true" data-t="chatMode">Ask The Hive</button>
+          <button class="btn ghost" id="interestMode" type="button" aria-pressed="false" data-t="interestMode">Find my Hive</button>
+          <button class="btn ghost chat-reset" id="chatReset" type="button" aria-label="Start a fresh conversation" title="Start a fresh conversation"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.8 7M3 4v7h7"/></svg></button>
+        </div>
+        <form class="askform interest-form" id="askForm" autocomplete="off">
+          <label class="interest-label" for="askIn" data-t="askLabel">Your interests</label>
+          <textarea id="askIn" maxlength="600" data-ph="askPh" required aria-describedby="interestPrivacy"></textarea>
+          <div class="chips" id="chips"></div>
+          <div class="interest-toolbar">
+            <span class="interest-count" id="interestCount">0 / 600</span>
+            <div class="interest-actions">
+              <button class="btn primary ask-submit" type="submit" id="askBtn" aria-label="Send question" title="Send question"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+              <button class="btn ghost interest-stop" type="button" id="askStop" hidden aria-label="Stop" title="Stop"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="1"/></svg></button>
+            </div>
+          </div>
+        </form>
+        <p class="interest-privacy" id="interestPrivacy"><span data-t="askPrivacy">Your interests are processed by Lovable AI. Please leave out personal details.</span> <a href="/privacy" target="_top" data-t="fPrivacy">Privacy</a></p>
+        <p class="interest-status" id="askStatus" role="status" aria-live="polite" hidden></p>
+        <p class="interest-error" id="askError" role="alert" hidden></p>
+        <div class="interest-result" id="msgs" hidden>
+          <h3 data-t="askResult">Your way into The Hive</h3>
+          <details class="interest-reasoning" id="askReasoning" hidden><summary data-t="askThinking">Considering your interests</summary><p id="reasoningText"></p></details>
+          <div class="chat-transcript" id="chatTranscript" role="log" aria-label="Ask The Hive conversation" hidden></div>
+          <div class="interest-answer chat-answer" id="recommendationText" dir="auto"></div>
+          <button class="btn ghost" type="button" id="recommendJoin" data-t="askJoin" hidden>Join The Hive</button>
+        </div>
+        <p class="note small2" data-t="askNote">Suggestions are not bookings. Our first season is coming soon; applications are read personally.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="paper" id="impact" aria-labelledby="growthTitle">
+    <div class="wrap">
+      <div class="sec-head growth-head">
+        <span class="eyebrow" data-t="impactEyebrow">Our impact</span>
+        <h2 id="growthTitle" data-t="growthTitle">What we grow together</h2>
+        <p data-t="growthIntro">We measure success in friendships made, land cared for and local women supported.</p>
+      </div>
+      <div class="growth-cards">
+        <article class="growth-card">
+          <span class="growth-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="8" r="3"/><circle cx="15.5" cy="8" r="3"/><path d="M3 20c0-3 2.5-5.5 5.5-5.5S14 17 14 20M10 20c0-3 2.5-5.5 5.5-5.5S21 17 21 20"/></svg></span>
+          <h3 data-t="growthFriendshipsTitle">Friendships</h3>
+          <p data-t="growthFriendshipsText">Every woman leaves a gathering knowing at least three new names, and many leave with a friend.</p>
+        </article>
+        <article class="growth-card">
+          <span class="growth-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V10M12 12C12 7 8 5 4 5c0 5 3 7 8 7ZM12 16c0-5 4-7 8-7 0 5-3 7-8 7ZM5 21h14"/></svg></span>
+          <h3 data-t="growthLandTitle">The land</h3>
+          <p data-t="growthLandText">Zero single-use plastic at every gathering, and something planted for Abu Dhabi every season.</p>
+        </article>
+        <article class="growth-card">
+          <span class="growth-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 15l4-2 4 1h4a2 2 0 0 1 0 4h-4M3 15v6l5-2 9 1 5-5M12 10V4M12 8C8 8 6 6 6 3c4 0 6 2 6 5ZM12 10c4 0 6-2 6-5-4 0-6 2-6 5Z"/></svg></span>
+          <h3 data-t="growthWomenTitle">Local women</h3>
+          <p data-t="growthWomenText">Every gathering supports women makers, from the food on the table to the gifts we take home.</p>
+        </article>
+      </div>
+      <p class="growth-note" data-t="growthNote">We’ll share our real numbers here after our first season.</p>
+    </div>
+  </section>
+
+
+  <section id="faq">
+    <div class="wrap faqgrid">
+      <div class="sec-head">
+        <span class="eyebrow" data-t="fqEyebrow">Questions</span>
+        <h2 data-t="fqTitle" data-html>Good to <em>know</em></h2>
+        <p data-t="fqText">Anything else? Write to us at hello@thehivesociety.ae</p>
+      </div>
+      <div class="faqs" id="faqList"></div>
+    </div>
+  </section>
+
+  <section class="paper">
+    <div class="wrap"><div class="partners"><div class="bot"><svg viewBox="0 0 140 180" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true"><path d="M70 170 Q49 90 84 20"/><path d="M65 146 L5 120"/><ellipse cx="56.5" cy="139.0" rx="4.2" ry="1.6" transform="rotate(-88 56.5 139.0)"/><ellipse cx="53.9" cy="145.0" rx="4.2" ry="1.6" transform="rotate(-225 53.9 145.0)"/><ellipse cx="48.0" cy="135.2" rx="4.2" ry="1.6" transform="rotate(-88 48.0 135.2)"/><ellipse cx="45.3" cy="141.2" rx="4.2" ry="1.6" transform="rotate(-225 45.3 141.2)"/><ellipse cx="39.4" cy="131.5" rx="4.2" ry="1.6" transform="rotate(-88 39.4 131.5)"/><ellipse cx="36.8" cy="137.5" rx="4.2" ry="1.6" transform="rotate(-225 36.8 137.5)"/><ellipse cx="30.8" cy="127.8" rx="4.2" ry="1.6" transform="rotate(-88 30.8 127.8)"/><ellipse cx="28.2" cy="133.7" rx="4.2" ry="1.6" transform="rotate(-225 28.2 133.7)"/><ellipse cx="22.2" cy="124.0" rx="4.2" ry="1.6" transform="rotate(-88 22.2 124.0)"/><ellipse cx="19.6" cy="130.0" rx="4.2" ry="1.6" transform="rotate(-225 19.6 130.0)"/><ellipse cx="13.7" cy="120.3" rx="4.2" ry="1.6" transform="rotate(-88 13.7 120.3)"/><ellipse cx="11.0" cy="126.2" rx="4.2" ry="1.6" transform="rotate(-225 11.0 126.2)"/><path d="M63 125 L112 89"/><ellipse cx="72.6" cy="122.1" rx="4.2" ry="1.6" transform="rotate(32 72.6 122.1)"/><ellipse cx="68.7" cy="116.9" rx="4.2" ry="1.6" transform="rotate(-105 68.7 116.9)"/><ellipse cx="79.7" cy="116.9" rx="4.2" ry="1.6" transform="rotate(32 79.7 116.9)"/><ellipse cx="75.8" cy="111.6" rx="4.2" ry="1.6" transform="rotate(-105 75.8 111.6)"/><ellipse cx="86.7" cy="111.7" rx="4.2" ry="1.6" transform="rotate(32 86.7 111.7)"/><ellipse cx="82.9" cy="106.4" rx="4.2" ry="1.6" transform="rotate(-105 82.9 106.4)"/><ellipse cx="93.8" cy="106.4" rx="4.2" ry="1.6" transform="rotate(32 93.8 106.4)"/><ellipse cx="89.9" cy="101.2" rx="4.2" ry="1.6" transform="rotate(-105 89.9 101.2)"/><ellipse cx="100.9" cy="101.2" rx="4.2" ry="1.6" transform="rotate(32 100.9 101.2)"/><ellipse cx="97.0" cy="96.0" rx="4.2" ry="1.6" transform="rotate(-105 97.0 96.0)"/><ellipse cx="107.9" cy="96.0" rx="4.2" ry="1.6" transform="rotate(32 107.9 96.0)"/><ellipse cx="104.0" cy="90.7" rx="4.2" ry="1.6" transform="rotate(-105 104.0 90.7)"/><path d="M62 105 L15 73"/><ellipse cx="56.3" cy="97.0" rx="4.2" ry="1.6" transform="rotate(-77 56.3 97.0)"/><ellipse cx="52.6" cy="102.4" rx="4.2" ry="1.6" transform="rotate(-214 52.6 102.4)"/><ellipse cx="49.5" cy="92.4" rx="4.2" ry="1.6" transform="rotate(-77 49.5 92.4)"/><ellipse cx="45.8" cy="97.7" rx="4.2" ry="1.6" transform="rotate(-214 45.8 97.7)"/><ellipse cx="42.7" cy="87.7" rx="4.2" ry="1.6" transform="rotate(-77 42.7 87.7)"/><ellipse cx="39.0" cy="93.1" rx="4.2" ry="1.6" transform="rotate(-214 39.0 93.1)"/><ellipse cx="35.9" cy="83.1" rx="4.2" ry="1.6" transform="rotate(-77 35.9 83.1)"/><ellipse cx="32.2" cy="88.4" rx="4.2" ry="1.6" transform="rotate(-214 32.2 88.4)"/><ellipse cx="29.2" cy="78.4" rx="4.2" ry="1.6" transform="rotate(-77 29.2 78.4)"/><ellipse cx="25.5" cy="83.8" rx="4.2" ry="1.6" transform="rotate(-214 25.5 83.8)"/><ellipse cx="22.4" cy="73.8" rx="4.2" ry="1.6" transform="rotate(-77 22.4 73.8)"/><ellipse cx="18.7" cy="79.1" rx="4.2" ry="1.6" transform="rotate(-214 18.7 79.1)"/><path d="M64 85 L112 62"/><ellipse cx="73.3" cy="84.2" rx="4.2" ry="1.6" transform="rotate(44 73.3 84.2)"/><ellipse cx="70.5" cy="78.3" rx="4.2" ry="1.6" transform="rotate(-94 70.5 78.3)"/><ellipse cx="80.2" cy="80.9" rx="4.2" ry="1.6" transform="rotate(44 80.2 80.9)"/><ellipse cx="77.4" cy="75.0" rx="4.2" ry="1.6" transform="rotate(-94 77.4 75.0)"/><ellipse cx="87.1" cy="77.7" rx="4.2" ry="1.6" transform="rotate(44 87.1 77.7)"/><ellipse cx="84.3" cy="71.8" rx="4.2" ry="1.6" transform="rotate(-94 84.3 71.8)"/><ellipse cx="94.0" cy="74.4" rx="4.2" ry="1.6" transform="rotate(44 94.0 74.4)"/><ellipse cx="91.3" cy="68.5" rx="4.2" ry="1.6" transform="rotate(-94 91.3 68.5)"/><ellipse cx="101.0" cy="71.2" rx="4.2" ry="1.6" transform="rotate(44 101.0 71.2)"/><ellipse cx="98.2" cy="65.3" rx="4.2" ry="1.6" transform="rotate(-94 98.2 65.3)"/><ellipse cx="107.9" cy="67.9" rx="4.2" ry="1.6" transform="rotate(44 107.9 67.9)"/><ellipse cx="105.1" cy="62.0" rx="4.2" ry="1.6" transform="rotate(-94 105.1 62.0)"/><path d="M67 65 L33 30"/><ellipse cx="64.0" cy="57.1" rx="4.2" ry="1.6" transform="rotate(-65 64.0 57.1)"/><ellipse cx="59.3" cy="61.6" rx="4.2" ry="1.6" transform="rotate(-203 59.3 61.6)"/><ellipse cx="59.1" cy="52.0" rx="4.2" ry="1.6" transform="rotate(-65 59.1 52.0)"/><ellipse cx="54.4" cy="56.5" rx="4.2" ry="1.6" transform="rotate(-203 54.4 56.5)"/><ellipse cx="54.2" cy="46.9" rx="4.2" ry="1.6" transform="rotate(-65 54.2 46.9)"/><ellipse cx="49.5" cy="51.4" rx="4.2" ry="1.6" transform="rotate(-203 49.5 51.4)"/><ellipse cx="49.3" cy="41.8" rx="4.2" ry="1.6" transform="rotate(-65 49.3 41.8)"/><ellipse cx="44.6" cy="46.3" rx="4.2" ry="1.6" transform="rotate(-203 44.6 46.3)"/><ellipse cx="44.3" cy="36.7" rx="4.2" ry="1.6" transform="rotate(-65 44.3 36.7)"/><ellipse cx="39.7" cy="41.3" rx="4.2" ry="1.6" transform="rotate(-203 39.7 41.3)"/><ellipse cx="39.4" cy="31.6" rx="4.2" ry="1.6" transform="rotate(-65 39.4 31.6)"/><ellipse cx="34.7" cy="36.2" rx="4.2" ry="1.6" transform="rotate(-203 34.7 36.2)"/><path d="M73 46 L117 35"/><ellipse cx="81.4" cy="47.3" rx="4.2" ry="1.6" transform="rotate(55 81.4 47.3)"/><ellipse cx="79.8" cy="41.0" rx="4.2" ry="1.6" transform="rotate(-82 79.8 41.0)"/><ellipse cx="87.7" cy="45.8" rx="4.2" ry="1.6" transform="rotate(55 87.7 45.8)"/><ellipse cx="86.1" cy="39.5" rx="4.2" ry="1.6" transform="rotate(-82 86.1 39.5)"/><ellipse cx="94.0" cy="44.3" rx="4.2" ry="1.6" transform="rotate(55 94.0 44.3)"/><ellipse cx="92.5" cy="37.9" rx="4.2" ry="1.6" transform="rotate(-82 92.5 37.9)"/><ellipse cx="100.3" cy="42.7" rx="4.2" ry="1.6" transform="rotate(55 100.3 42.7)"/><ellipse cx="98.8" cy="36.4" rx="4.2" ry="1.6" transform="rotate(-82 98.8 36.4)"/><ellipse cx="106.6" cy="41.2" rx="4.2" ry="1.6" transform="rotate(55 106.6 41.2)"/><ellipse cx="105.1" cy="34.8" rx="4.2" ry="1.6" transform="rotate(-82 105.1 34.8)"/><ellipse cx="112.9" cy="39.6" rx="4.2" ry="1.6" transform="rotate(55 112.9 39.6)"/><ellipse cx="111.4" cy="33.3" rx="4.2" ry="1.6" transform="rotate(-82 111.4 33.3)"/></svg></div>
+      <div class="sec-head">
+        <span class="eyebrow" data-t="partEyebrow">Collaborate</span>
+        <h2 data-t="partTitle" data-html>Create something <em>worth gathering for</em></h2>
+        <p data-t="partText">We work with a small number of brands, venues and cultural institutions each season to host meaningful, sustainable gatherings for the women of Abu Dhabi.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+        <span class="note" data-t="partContact">Partnership enquiries</span>
+        <div class="mail"><code id="mailB">hello@thehivesociety.ae</code><button type="button" class="copy" data-copy="mailB" data-t="copy">Copy</button></div>
+      </div>
+    </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fcols">
+      <div>
+        <span class="brand"><span><b>The Hive Society</b></span></span>
+        <p class="tag-line" data-t="footLine">One hand, for our Abu Dhabi.</p>
+        <p class="motto" data-t="footMotto">A shared appreciation for the finer moments.</p>
+      </div>
+      <div><h4 data-t="fExplore">Explore</h4><div class="fl"><a href="#why" data-t="navWhy">Why we exist</a><a href="#gatherings" data-t="navGather">Gatherings</a><a href="#way" data-t="navWay">The Hive Way</a><a href="/auth?mode=signup" target="_top" data-t="navJoin">Join</a><a href="/privacy" target="_top" data-t="fPrivacy">Privacy</a></div></div>
+      <div><h4 data-t="fGuide">Community guidelines</h4><div class="fl"><p data-t="g1">Kind and generous, always</p><p data-t="g2">No selling or promotion</p><p data-t="g3">Photos only with permission</p><a href="/guidelines" target="_top" data-t="fGuideLink">Read the guidelines</a></div></div>
+      <div><h4 data-t="fContact">Contact</h4><div class="fl"><p>hello@thehivesociety.ae</p><a href="https://www.instagram.com/thehivesociety.ae" target="_blank" rel="noopener">Instagram · @thehivesociety.ae</a><p data-t="footPlace">Abu Dhabi, United Arab Emirates</p></div></div>
+    </div>
+    <p class="small">© 2026 The Hive Society</p>
+  </div>
+</footer>
+
+<script src="/vendor/marked.umd.js"></script>
+<script src="/vendor/purify.min.js"></script>
+<script>
+const L={
+en:{navMembers:"Members",navLogin:"Log in",navProfile:"My profile",fGuideLink:"Read the guidelines",heroBadgeTag:"Soon",heroBadge:"The founding community opens soon",fdEyebrow:"A note from our founder",fdQuote:"A community that isn't sustainable won't last — and a city cannot flourish without a strong, creative community behind it.",fdBody:"I started The Hive because I believe the best of Abu Dhabi is built by people who truly know one another. Nothing worth keeping grows in a day. Like the ghaf, we plant slowly and deeply — one gathering, one friendship, one tree at a time.",fdName:"Meera Al Ahbabi",fdRole:"Founder, The Hive Society",flEyebrow:"A Hive gathering",flTitle:"How an evening <em>unfolds</em>",flText:"Small enough to know everyone's name by the end. Every gathering follows the same gentle rhythm.",flow:[["Arrive","A warm welcome, qahwa and dates, and a host who introduces you."],["Connect","Small circles and real conversation. No name badges, no pitches."],["Create","Make, taste or discover something together, by hand."],["Give back","Every season ends with something for the land: a tree, a clean-up, a seed."]],fqEyebrow:"Questions",fqTitle:"Good to <em>know</em>",fqText:"Anything else? Write to us at hello@thehivesociety.ae",faq:[["Who can join The Hive?","Women living in Abu Dhabi, Emirati and expat, of every age and background, who want meaningful friendships and to give something back to their city."],["How does membership work?","Membership is by application. Join the founding community on this page, a host will reach out for a relaxed chat, and founding members are invited first when the season opens."],["When is the first gathering?","Our first season is coming soon. Dates are shared with the founding community before anyone else."],["What makes a gathering sustainable?","Every gathering follows The Hive Way: reusable tableware, local food and makers, gifts that grow or last, nothing wasted and digital invitations. We only claim what we actually do."],["I don't know anyone. Is that okay?","That's exactly who The Hive is for. Circles are small and hosts make sure every woman is welcomed and introduced."],["Can my brand or venue collaborate?","Yes. We work with a small number of brands, venues and cultural institutions each season. Email hello@thehivesociety.ae."]],navGather:"Gatherings",gEyebrow:"Our gatherings",gTitle:"Five ways to <em>gather</em>",gText:"Every season brings a small number of gatherings, each hosted The Hive Way.",gNote:"The first season's gatherings will be shared with the founding community first.",gcats:[["Wellness","Movement, breath and slow mornings that leave you lighter."],["Majlis","Cushions, qahwa and dates, Emirati hospitality and conversations that run late."],["Culture","Galleries, heritage and crafts, from calligraphy to palm weaving."],["Wander","Unhurried walks through the city, the coast and the desert."],["Social","Warm evenings where strangers become friends."]],footMotto:"A shared appreciation for the finer moments.",fExplore:"Explore",fPrivacy:"Privacy",fGuide:"Community guidelines",g1:"Kind and generous, always",g2:"No selling or promotion",g3:"Photos only with permission",fContact:"Contact",navAbout:"About",navWay:"The Hive Way",navJoin:"Join",heroEyebrow:"Abu Dhabi",heroTitle:"The art of <em>getting together</em>",heroLead:"Sustainable gatherings for the women of Abu Dhabi.",heroLine:"One hand, for our Abu Dhabi.",ctaJoin:"Join the founding community",ctaWay:"Discover The Hive Way",
+aboutEyebrow:"The Hive",aboutTitle:"A community, <em>not just events</em>",aboutText:"The Hive Society brings women together through small, meaningful gatherings across Abu Dhabi, where real friendships grow, creativity has space, and every gathering cares for the land. Around a table, on a mat, or in a gallery: no name badges, no pitches, just friendships that grow from shared moments.",
+p1t:"Belong",p1:"Small circles and a warm welcome. No name badges, no sales pitches, just women getting to know each other.",p2t:"Create",p2:"Pottery, palm weaving, writing, photography. A space to try new things and share what we make.",p3t:"Care for the land",p3:"Every gathering is hosted sustainably, and every season we plant something for Abu Dhabi.",
+quote:"“Like the ghaf, we grow slowly, with deep roots, so we last.”",whoEyebrow:"Who it's for",whoTitle:"For the women of Abu Dhabi",whoText:"Emirati and expat, every age and background: women who want meaningful friendships, creative and cultural experiences, and a simple way to live sustainably and contribute to their city.",
+t1:"Friendship",t2:"Culture & heritage",t3:"Wellness",t4:"Creativity",t5:"For the land",
+wayEyebrow:"Our promise",wayTitle:"The Hive Way",wayText:"Every gathering is hosted the way our grandmothers lived: generously, and in harmony with the land.",wayTitle2:"The Hive <em>Way</em>",honest:"We only claim what we actually do.",zayedBy:"Inspired by Sheikh Zayed's love for the land",
+practices:[["A table set to last","Glass, clay and fine pieces we use again and again, never single-use plastic."],["Made close to home","Local flavours, Emirati hospitality, and pieces crafted by women of the UAE."],["Gifts that grow or last","Seeds, saplings and handmade pieces, or nothing at all."],["Nothing wasted","Leftovers shared, décor reused or borrowed."],["Digital invitations","No printing. Everything lives in our app."],["Close to nature","Gardens, the desert and the coast, when it fits."]],
+zayed:"“Before buildings, the ghaf was our first majlis.”",
+seasonPill:"This season",soonTitle:"Our first season is <em>coming soon</em>",soonText:"We're preparing a season of small, meaningful, sustainable gatherings across Abu Dhabi. Join the founding community to be among the first to hear. Membership is by application, and every request is read personally.",
+s1t:"Tell us about you",s1:"Share who you are and what draws you to The Hive.",s2t:"A personal hello",s2:"A host will be in touch for a relaxed chat over coffee.",s3t:"Your first invitation",s3:"Founding members are the first invited when the season opens.",
+formTitle:"Join the founding community",fName:"Your name",fEmail:"Email",fPhone:"Phone",optional:"(optional)",fWhy:"What draws you to The Hive?",fOk:"I'm happy for The Hive Society to contact me about the founding community.",fSend:"Send",orEmail:"Prefer email? Write to us at",copy:"Copy",copied:"Copied",
+errReq:"Please add your name, a valid email, and tick the box so we can contact you.",errSend:"That didn't send. Please try again, or email us at hello@thehivesociety.ae.",errNoDb:"Sending from this page isn't available in this view. Please email us at hello@thehivesociety.ae and we'll reply personally.",
+doneT:"Thank you",doneP:"You're on the founding community list. We'll be in touch personally.",
+partEyebrow:"Collaborate",partTitle:"Create something <em>worth gathering for</em>",partText:"We work with a small number of brands, venues and cultural institutions each season to host meaningful, sustainable gatherings for the women of Abu Dhabi.",partContact:"Partnership enquiries",
+footLine:"One hand, for our Abu Dhabi.",footPlace:"Abu Dhabi, United Arab Emirates",langBtn:'<span lang="ar">العربية</span>',
+adminT:"Founding community enquiries",adminNone:"No enquiries yet. They'll appear here as women join.",adminOnly:"Only you and editors can see this list.",
+askEyebrow:"A place for you",askTitle:"Find your <em>Hive</em>",askText:"The things you love can be the beginning of something shared.",askPh:"I love pottery, quiet mornings and meeting women who care for the land…",askNote:"Suggestions are not bookings. Our first season is coming soon; applications are read personally.",askLabel:"Your interests",askSend:"Find my Hive",askPrivacy:"Your interests are processed by Lovable AI. Please leave out personal details.",askResult:"Your way into The Hive",askThinking:"Considering your interests",askJoin:"Join The Hive",askStopped:"Stopped. Your interests are still here.",askEmpty:"Tell us a little about what you enjoy.",askStop:"Stop",askComplete:"Your suggestions are ready.",
+askHi:"Marhaba! I'm The Hive's host. Ask me anything about who we are, The Hive Way, or how to join the founding community.",askWait:"Thinking…",askErr:"I couldn't answer just now. Please try again in a moment, or email hello@thehivesociety.ae.",
+askChips:["Arts & heritage","Wellness & nature","Friendship & belonging"],askExamples:["I enjoy pottery, calligraphy and Emirati heritage.","I enjoy gentle movement, slow mornings and walks in nature.","I want meaningful friendships and warm conversations in a small circle."]},
+ar:{navMembers:"العضوات",navLogin:"تسجيل الدخول",navProfile:"ملفي",fGuideLink:"اقرئي الإرشادات",heroBadgeTag:"قريباً",heroBadge:"مجتمع التأسيس يفتح أبوابه قريباً",fdEyebrow:"كلمة من المؤسِّسة",fdQuote:"المجتمع الذي لا يكون مستداماً لن يدوم، ولا تزدهر مدينة دون مجتمع قوي ومبدع يقف خلفها.",fdBody:"أسّست The Hive لأنني أؤمن بأن أجمل ما في أبوظبي يصنعه أناس يعرفون بعضهم حقاً. لا شيء يثمر في يوم واحد. مثل الغافة، نزرع بهدوء وبعمق: جلسة بعد جلسة، وصداقة بعد صداقة، وشجرة بعد شجرة.",fdName:"ميرة الأحبابي",fdRole:"مؤسِّسة The Hive Society",flEyebrow:"جلسة من The Hive",flTitle:"كيف تمضي <em>الأمسية</em>",flText:"صغيرة بما يكفي لتعرفي أسماء الجميع في نهايتها. كل جلسة تتبع الإيقاع الهادئ نفسه.",flow:[["الوصول","ترحيب دافئ، وقهوة وتمر، ومضيفة تعرّفك على الحاضرات."],["التواصل","دوائر صغيرة وأحاديث حقيقية. بلا بطاقات أسماء ولا عروض."],["الإبداع","نصنع أو نتذوق أو نكتشف شيئاً معاً، بأيدينا."],["العطاء","ينتهي كل موسم بشيء للأرض: شجرة، أو حملة تنظيف، أو بذرة."]],fqEyebrow:"أسئلة",fqTitle:"من <em>المفيد معرفته</em>",fqText:"سؤال آخر؟ راسلينا على hello@thehivesociety.ae",faq:[["من يمكنها الانضمام إلى The Hive؟","النساء المقيمات في أبوظبي، مواطنات ومقيمات، من كل الأعمار والخلفيات، ممن يبحثن عن صداقات حقيقية ويرغبن في العطاء لمدينتهن."],["كيف تعمل العضوية؟","العضوية بالتقديم. انضمي إلى مجتمع التأسيس من هذه الصفحة، وستتواصل معك إحدى المضيفات لدردشة هادئة، وعضوات التأسيس أول من يُدعى عند افتتاح الموسم."],["متى أول جلسة؟","موسمنا الأول قريباً. نشارك المواعيد مع مجتمع التأسيس قبل الجميع."],["ما الذي يجعل الجلسة مستدامة؟","كل جلسة تتبع أسلوب The Hive: أدوات مائدة قابلة لإعادة الاستخدام، وضيافة ومنتجات محلية، وهدايا تنمو أو تدوم، وبلا هدر، ودعوات رقمية. ولا ندّعي إلا ما نفعله فعلاً."],["لا أعرف أحداً، هل هذا مناسب؟","هذا تماماً من أجله وُجدت The Hive. الدوائر صغيرة، والمضيفات يحرصن على الترحيب بكل امرأة وتعريفها بالحاضرات."],["هل يمكن لعلامتي التجارية أو مكاني التعاون معكم؟","نعم. نعمل كل موسم مع عدد محدود من العلامات التجارية والأماكن والمؤسسات الثقافية. راسلينا على hello@thehivesociety.ae."]],navGather:"الجلسات",gEyebrow:"جلساتنا",gTitle:"خمس طرق <em>للقاء</em>",gText:"في كل موسم عدد محدود من الجلسات، نستضيف كلاً منها بأسلوب The Hive.",gNote:"سنشارك جلسات الموسم الأول مع مجتمع التأسيس أولاً.",gcats:[["عافية","حركة وتنفّس وصباحات هادئة تتركك أخف."],["مجلس","وسائد وقهوة وتمر، وضيافة إماراتية، وأحاديث تمتد."],["ثقافة","معارض وتراث وحِرف، من الخط العربي إلى سفّ الخوص."],["تجوال","نزهات هادئة في المدينة والساحل والصحراء."],["لقاءات","أمسيات دافئة يصبح فيها الغرباء صديقات."]],footMotto:"تقدير مشترك للحظات الجميلة.",fExplore:"استكشفي",fPrivacy:"الخصوصية",fGuide:"إرشادات المجتمع",g1:"اللطف والكرم دائماً",g2:"بلا بيع أو ترويج",g3:"الصور بإذن فقط",fContact:"تواصل",navAbout:"عن The Hive",navWay:"أسلوب The Hive",navJoin:"انضمي",heroEyebrow:"أبوظبي",heroTitle:"فنّ <em>اللقاء</em>",heroLead:"جلسات مستدامة لنساء أبوظبي.",heroLine:"يدٌ واحدة، لأبوظبي.",ctaJoin:"انضمي إلى مجتمع التأسيس",ctaWay:"اكتشفي أسلوب The Hive",
+aboutEyebrow:"The Hive",aboutTitle:"مجتمع، <em>لا مجرد فعاليات</em>",aboutText:"تجمع The Hive Society النساء في جلسات صغيرة وهادفة في أنحاء أبوظبي، تنمو فيها صداقات حقيقية، ويجد فيها الإبداع مساحته، وتحافظ كل جلسة على الأرض. حول مائدة، أو على بساط، أو في معرض: بلا بطاقات أسماء ولا عروض، فقط صداقات تنمو من لحظات نتشاركها.",
+p1t:"ننتمي",p1:"دوائر صغيرة وترحيب دافئ. بلا بطاقات أسماء ولا عروض بيع، فقط نساء يتعرّفن على بعضهن.",p2t:"نبدع",p2:"الفخار، وسفّ الخوص، والكتابة، والتصوير. مساحة لنجرّب أشياء جديدة ونشارك ما نصنع.",p3t:"نحافظ على الأرض",p3:"نستضيف كل جلسة بأسلوب مستدام، وفي كل موسم نزرع شيئاً لأبوظبي.",
+quote:"«مثل الغافة، ننمو بهدوء، وجذورنا عميقة، لكي ندوم.»",whoEyebrow:"لمن هي",whoTitle:"لنساء أبوظبي",whoText:"مواطنات ومقيمات، من كل الأعمار والخلفيات: نساء يبحثن عن صداقات حقيقية، وتجارب إبداعية وثقافية، وطريقة بسيطة للعيش بأسلوب مستدام والمساهمة في مدينتهن.",
+t1:"صداقة",t2:"ثقافة وتراث",t3:"عافية",t4:"إبداع",t5:"من أجل الأرض",
+wayEyebrow:"وعدنا",wayTitle:"أسلوب The Hive",wayText:"نستضيف كل جلسة كما عاشت جداتنا: بكرم، وبانسجام مع الأرض.",wayTitle2:"أسلوب <em>The Hive</em>",honest:"لا ندّعي إلا ما نفعله فعلاً.",zayedBy:"مستلهمين حب الشيخ زايد للأرض",
+practices:[["مائدة تدوم","زجاج وفخار وقطع جميلة نستخدمها مرة بعد مرة، بلا بلاستيك أحادي الاستخدام."],["صُنع قريباً منّا","نكهات محلية، وضيافة إماراتية، وقطع من صنع نساء الإمارات."],["هدايا تنمو أو تدوم","بذور وشتلات وقطع يدوية، أو لا شيء."],["بلا هدر","نشارك الفائض، ونعيد استخدام الزينة أو نستعيرها."],["دعوات رقمية","بلا طباعة. كل شيء في تطبيقنا."],["قريباً من الطبيعة","الحدائق والصحراء والساحل، متى ناسب."]],
+zayed:"«قبل المباني، كانت الغافة أول مجلس لنا.»",
+seasonPill:"هذا الموسم",soonTitle:"موسمنا الأول <em>قريباً</em>",soonText:"نحضّر لموسم من الجلسات الصغيرة والهادفة والمستدامة في أنحاء أبوظبي. انضمي إلى مجتمع التأسيس لتكوني من أوائل من يعرف. العضوية بالتقديم، ونقرأ كل طلب شخصياً.",
+s1t:"عرّفينا بنفسك",s1:"أخبرينا من أنتِ وما الذي يجذبك إلى The Hive.",s2t:"تحية شخصية",s2:"ستتواصل معك إحدى المضيفات لدردشة هادئة على القهوة.",s3t:"دعوتك الأولى",s3:"عضوات التأسيس أول من يُدعى عند افتتاح الموسم.",
+formTitle:"انضمي إلى مجتمع التأسيس",fName:"اسمك",fEmail:"البريد الإلكتروني",fPhone:"الهاتف",optional:"(اختياري)",fWhy:"ما الذي يجذبك إلى The Hive؟",fOk:"أوافق على أن تتواصل معي The Hive Society بخصوص مجتمع التأسيس.",fSend:"إرسال",orEmail:"تفضّلين البريد؟ راسلينا على",copy:"نسخ",copied:"تم النسخ",
+errReq:"أضيفي اسمك وبريداً إلكترونياً صحيحاً، وضعي علامة الموافقة لنتمكن من التواصل معك.",errSend:"لم يتم الإرسال. حاولي مرة أخرى، أو راسلينا على hello@thehivesociety.ae.",errNoDb:"الإرسال من هذه الصفحة غير متاح في هذا العرض. راسلينا على hello@thehivesociety.ae وسنرد عليك شخصياً.",
+doneT:"شكراً لكِ",doneP:"أصبحتِ في قائمة مجتمع التأسيس. سنتواصل معك شخصياً.",
+partEyebrow:"تعاون",partTitle:"لنصنع شيئاً <em>يستحق اللقاء</em>",partText:"نعمل كل موسم مع عدد محدود من العلامات التجارية والأماكن والمؤسسات الثقافية لاستضافة جلسات هادفة ومستدامة لنساء أبوظبي.",partContact:"استفسارات الشراكة",
+footLine:"يدٌ واحدة، لأبوظبي.",footPlace:"أبوظبي، الإمارات العربية المتحدة",langBtn:"English",
+adminT:"طلبات مجتمع التأسيس",adminNone:"لا توجد طلبات بعد. ستظهر هنا عند انضمام النساء.",adminOnly:"هذه القائمة تظهر لكِ وللمحررين فقط.",
+askEyebrow:"مساحة لكِ",askTitle:"اكتشفي ما يناسبكِ في <em>The Hive</em>",askText:"ما تحبّينه قد يكون بداية لتجربة نتشاركها.",askPh:"أحب الفخار والصباحات الهادئة والتعرّف إلى نساء يهتممن بالأرض…",askNote:"الاقتراحات ليست حجوزات. موسمنا الأول قريباً، وتُقرأ طلبات العضوية شخصياً.",askLabel:"اهتماماتكِ",askSend:"اكتشفي ما يناسبكِ",askPrivacy:"تعالج Lovable AI اهتماماتكِ. يرجى عدم مشاركة تفاصيل شخصية.",askResult:"طريقكِ إلى The Hive",askThinking:"نتأمل اهتماماتكِ",askJoin:"المتابعة إلى مجتمع التأسيس",askStopped:"تم الإيقاف. لا تزال اهتماماتكِ هنا.",askEmpty:"أخبرينا قليلاً عمّا تحبّينه.",askStop:"إيقاف",askComplete:"اقتراحاتكِ جاهزة.",
+askHi:"مرحباً! أنا مضيفة The Hive. اسأليني عن هويتنا، أو أسلوب The Hive، أو كيف تنضمين إلى مجتمع التأسيس.",askWait:"لحظة…",askErr:"لم أتمكن من الإجابة الآن. حاولي بعد قليل، أو راسلينا على hello@thehivesociety.ae.",
+askChips:["فنون وتراث","عافية وطبيعة","صداقة وانتماء"],askExamples:["أحب الفخار والخط العربي والتراث الإماراتي.","أحب الحركة الهادئة والصباحات البطيئة والمشي في الطبيعة.","أبحث عن صداقات حقيقية وأحاديث دافئة في دائرة صغيرة."]}
+};
+Object.assign(L.en,{
+navWhy:"Why we exist",whyEyebrow:"Why we exist",whyTitle:"Once, every woman had a majlis.",whyText:"A place to sit, share and be known. Today, Abu Dhabi has never had more events, yet many women still find it hard to meet people they truly connect with, whether they moved last month or grew up down the road. Most gatherings are big, rushed and forgettable, and many end with a bin full of plastic.",aboutLead:"So we’re bringing the majlis back.",navImpact:"Our impact",impactEyebrow:"Our impact",growthTitle:"What we grow together",growthIntro:"We measure success in friendships made, land cared for and local women supported.",growthFriendshipsTitle:"Friendships",growthFriendshipsText:"Every woman leaves a gathering knowing at least three new names, and many leave with a friend.",growthLandTitle:"The land",growthLandText:"Zero single-use plastic at every gathering, and something planted for Abu Dhabi every season.",growthWomenTitle:"Local women",growthWomenText:"Every gathering supports women makers, from the food on the table to the gifts we take home.",growthNote:"We’ll share our real numbers here after our first season.",
+chatMode:"Ask The Hive",interestMode:"Find my Hive",chatReset:"Start a fresh conversation",chatEyebrow:"A conversation with The Hive",chatTitle:"Ask <em>The Hive</em>",chatText:"A warm welcome starts with a conversation.",chatLabel:"Your question",chatPh:"How do I join? Can I come on my own?",chatSend:"Send question",chatPrivacy:"Your conversation is processed by Lovable AI. Please leave out personal details.",chatResult:"Our conversation",chatThinking:"Thinking",chatIdentity:"The Hive · AI guide",chatStopped:"Stopped. You can ask another question.",chatEmpty:"What would you like to know about The Hive?",chatComplete:"Answered",chatFull:"This conversation is full. Start a fresh conversation to ask more questions.",chatChips:["How do I join?","Can I come alone?","The Hive Way"],chatExamples:["How do I join the founding community?","I don't know anyone. Can I come on my own?","What makes a Hive gathering sustainable?"]
+});
+Object.assign(L.ar,{
+navWhy:"لماذا وُجدنا",whyEyebrow:"لماذا وُجدنا",whyTitle:"في الماضي، كان لكل امرأة مجلس.",whyText:"مكان تجلس فيه، وتشارك، ويعرفها الجميع. واليوم، لم تشهد أبوظبي هذا العدد من الفعاليات من قبل، ومع ذلك تجد كثير من النساء صعوبة في لقاء من يشعرن معهن بانسجام حقيقي، سواء وصلن الشهر الماضي أو نشأن في الحي نفسه. معظم اللقاءات كبيرة ومستعجلة وسريعة النسيان، وكثير منها ينتهي بسلة مليئة بالبلاستيك.",aboutLead:"لذلك نعيد المجلس من جديد.",navImpact:"أثرنا",impactEyebrow:"أثرنا",growthTitle:"ما نزرعه معاً",growthIntro:"نقيس نجاحنا بالصداقات التي تتكوّن، والأرض التي نعتني بها، والنساء المحليات اللواتي ندعمهن.",growthFriendshipsTitle:"صداقات",growthFriendshipsText:"تغادر كل امرأة الجلسة وهي تعرف ثلاثة أسماء جديدة على الأقل، وكثيرات يغادرن بصديقة.",growthLandTitle:"الأرض",growthLandText:"بلا بلاستيك أحادي الاستخدام في كل جلسة، ونزرع شيئاً لأبوظبي في كل موسم.",growthWomenTitle:"نساء محليات",growthWomenText:"كل جلسة تدعم نساء صانعات، من الضيافة على المائدة إلى الهدايا التي نأخذها معنا.",growthNote:"سنشارك أرقامنا الحقيقية هنا بعد موسمنا الأول.",
+chatMode:"اسألي The Hive",interestMode:"اكتشفي ما يناسبكِ",chatReset:"بدء محادثة جديدة",chatEyebrow:"حديث مع The Hive",chatTitle:"اسألي <em>The Hive</em>",chatText:"يبدأ الترحيب الدافئ بمحادثة.",chatLabel:"سؤالكِ",chatPh:"كيف أنضم؟ هل يمكنني الحضور وحدي؟",chatSend:"إرسال السؤال",chatPrivacy:"تعالج Lovable AI محادثتكِ. يرجى عدم مشاركة تفاصيل شخصية.",chatResult:"محادثتنا",chatThinking:"نفكّر",chatIdentity:"The Hive · دليل بالذكاء الاصطناعي",chatStopped:"تم الإيقاف. يمكنكِ طرح سؤال آخر.",chatEmpty:"ما الذي تودّين معرفته عن The Hive؟",chatComplete:"تمت الإجابة",chatFull:"وصلت هذه المحادثة إلى حدّها. ابدئي محادثة جديدة لطرح المزيد من الأسئلة.",chatChips:["كيف أنضم؟","هل أحضر وحدي؟","أسلوب The Hive"],chatExamples:["كيف أنضم إلى مجتمع التأسيس؟","لا أعرف أحداً. هل يمكنني الحضور وحدي؟","ما الذي يجعل جلسات The Hive مستدامة؟"]
+});
+let lang="en";try{lang=localStorage.getItem("hive.site.lang")||"en"}catch(e){}
+const t=k=>L[lang][k]??L.en[k];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const GICONS=["M12 21c-4-2-7-5-7-9 2.5 0 5 1 7 3 2-2 4.5-3 7-3 0 4-3 7-7 9zM12 15c-1.5-2.5-1.5-6 0-9 1.5 3 1.5 6.5 0 9z", "M10 3h3M11.5 3v2M8 9c0-2 1.6-4 3.5-4S15 7 15 9M7 20h9l-1-4c1.5-1 2-2.5 2-4 0-1.7-.8-3-2-3H8c-1.2 0-2 1.3-2 3 0 1.5.5 3 2 4zM16.5 11.5 20 8.5M5 20h14", "M5 20V10l7-5 7 5v10M9 20v-6h6v6M3 20h18", "M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z", "M8.5 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM15.5 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c0-3 2.5-5.5 5.5-5.5S14 17 14 20M10 20c0-3 2.5-5.5 5.5-5.5S21 17 21 20"];
+const ICONS=["M8 3h8M9.5 3v3.2L7 9.8V19a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9.8l-2.5-3.6V3M7 13h10","M4 10h16l-1.6 9.2a2 2 0 0 1-2 1.8H7.6a2 2 0 0 1-2-1.8zM8 10l3-6M16 10l-3-6M9 14v3.5M12 14v3.5M15 14v3.5","M12 21v-9M12 12C12 8 9 6 5 6c0 4 3 6 7 6zM12 15c0-4 3-6 7-6 0 4-3 6-7 6z","M20 12a8 8 0 0 1-14.2 5M4 12a8 8 0 0 1 14.2-5M18.5 3v4h-4M5.5 21v-4h4","M3.5 6.5h17v11h-17zM3.5 7l8.5 6 8.5-6","M12 3.5v2M5.6 6.6 7 8M18.4 6.6 17 8M8 13a4 4 0 0 1 8 0M2.5 17c3.5-2.5 6.5-2.5 9.5 0s6 2.5 9.5 0M2.5 20.5c3.5-2 6.5-2 9.5 0s6 2 9.5 0"];
+const leaf='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8 5-13 14-14 0 9-5 14-13 14"/><path d="M5 19c3-4 6-7 10-9"/></svg>';
+function paint(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+  document.querySelectorAll("[data-t]").forEach(el=>{const v=t(el.dataset.t);if(el.hasAttribute("data-html"))el.innerHTML=v;else el.textContent=v});
+  document.getElementById("langBtn").innerHTML=t("langBtn");
+  document.getElementById("practices").innerHTML=t("practices").map(([b,s],i)=>`<li class="practice"><span class="pn">0${i+1}</span><span class="hexi"><svg class="frame" viewBox="0 0 64 64" aria-hidden="true"><polygon points="32,3 57,17.5 57,46.5 32,61 7,46.5 7,17.5" stroke="currentColor" stroke-width="1.3"/></svg><svg class="ic" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${ICONS[i]}"/></svg></span><span class="ptx"><b>${esc(b)}</b><span>${esc(s)}</span></span></li>`).join("");
+  document.querySelectorAll("[data-ph]").forEach(el=>el.placeholder=t(el.dataset.ph));
+  document.getElementById("gcats").innerHTML=t("gcats").map(([h,d],i)=>`<div class="gcat"><span class="gi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${GICONS[i]}"/></svg></span><h3>${esc(h)}</h3><p>${esc(d)}</p></div>`).join("");
+  document.getElementById("flowList").innerHTML=t("flow").map(([h,d],i)=>`<li><span class="ft"><span class="fn">${i+1}</span><span class="ln"></span></span><b>${esc(h)}</b><span class="d">${esc(d)}</span></li>`).join("");
+  document.getElementById("faqList").innerHTML=t("faq").map(([q,a],i)=>`<details${i===0?" open":""}><summary>${esc(q)}<i aria-hidden="true">+</i></summary><p>${esc(a)}</p></details>`).join("");
+  drawChat();
+  document.getElementById("askStop").title=t("askStop");document.getElementById("askStop").setAttribute("aria-label",t("askStop"));
+}
+/* One page-session conversation; keep the separate interest recommendation mode. */
+let chat=[],busy=false,ctl=null,lastInterests="",askMode="chat",chatError="";
+const msgsEl=document.getElementById("msgs"),interestIn=document.getElementById("askIn");
+const modeText=(chatKey,interestKey)=>t(askMode==="chat"?chatKey:interestKey);
+function formatAnswer(text){
+  if(!window.marked||!window.DOMPurify)return esc(text).replace(/\n/g,"<br>");
+  return DOMPurify.sanitize(marked.parse(text,{breaks:true}),{ALLOWED_TAGS:["p","br","strong","em","ul","ol","li","blockquote","pre","code","h3","h4"],ALLOWED_ATTR:[]});
+}
+function drawChat(){
+  const bot=chat.at(-1),isChat=askMode==="chat",transcript=document.getElementById("chatTranscript");
+  document.getElementById("chatMode").setAttribute("aria-pressed",String(isChat));document.getElementById("interestMode").setAttribute("aria-pressed",String(!isChat));
+  document.getElementById("chatReset").title=t("chatReset");document.getElementById("chatReset").setAttribute("aria-label",t("chatReset"));
+  document.querySelector('[data-t="askEyebrow"]').textContent=modeText("chatEyebrow","askEyebrow");
+  document.querySelector('[data-t="askTitle"]').innerHTML=modeText("chatTitle","askTitle");
+  document.querySelector('[data-t="askText"]').textContent=modeText("chatText","askText");
+  document.querySelector('[data-t="askLabel"]').textContent=modeText("chatLabel","askLabel");
+  document.querySelector('[data-t="askPrivacy"]').textContent=modeText("chatPrivacy","askPrivacy");
+  document.querySelector('[data-t="askResult"]').textContent=modeText("chatResult","askResult");
+  interestIn.placeholder=modeText("chatPh","askPh");
+  const chips=modeText("chatChips","askChips");
+  document.getElementById("chips").innerHTML=chips.map((c,i)=>`<button type="button" class="btn ghost chip" data-interest="${i}"${busy?" disabled":""}>${esc(c)}</button>`).join("");
+  const submit=document.getElementById("askBtn");submit.disabled=busy;submit.title=modeText("chatSend","askSend");submit.setAttribute("aria-label",submit.title);
+  document.getElementById("askStop").hidden=!busy;
+  document.getElementById("askStatus").hidden=!(busy||bot?.stopped||bot?.done);
+  document.getElementById("askStatus").textContent=busy?t("askWait"):bot?.stopped?modeText("chatStopped","askStopped"):bot?.done?modeText("chatComplete","askComplete"):"";
+  document.getElementById("askError").hidden=!(chatError||bot?.error);document.getElementById("askError").textContent=chatError||bot?.error||"";
+  document.getElementById("chat").setAttribute("aria-busy",String(busy));
+  msgsEl.hidden=!chat.length;
+  transcript.hidden=!isChat;
+  if(isChat){
+    const atBottom=transcript.scrollHeight-transcript.scrollTop-transcript.clientHeight<70;
+    transcript.innerHTML=chat.map(message=>message.role==="user"?`<div class="chat-question" dir="auto">${esc(message.content)}</div>`:`<div class="chat-answer" dir="auto"><p class="chat-identity">${esc(t("chatIdentity"))}</p>${message.reasoning?`<details class="interest-reasoning"><summary>${esc(t("chatThinking"))}</summary><p>${esc(message.reasoning)}</p></details>`:""}<div>${message.content?formatAnswer(message.content):message.error||message.stopped?"":`<p class="chat-pending">${esc(t("askWait"))}</p>`}</div></div>`).join("");
+    if(atBottom)transcript.scrollTop=transcript.scrollHeight;
+  }
+  document.getElementById("recommendationText").hidden=isChat;
+  if(!isChat)document.getElementById("recommendationText").innerHTML=formatAnswer(bot?.content||"");
+  document.getElementById("askReasoning").hidden=isChat||!bot?.reasoning;
+  document.getElementById("reasoningText").textContent=bot?.reasoning||"";
+  document.getElementById("recommendJoin").hidden=!bot?.done;
+  document.getElementById("interestCount").textContent=interestIn.value.length+" / 600";
+}
+function resetConversation(focus=true){ctl?.abort();ctl=null;busy=false;chat=[];chatError="";lastInterests="";drawChat();if(focus)interestIn.focus({preventScroll:true})}
+for(const [id,mode] of [["chatMode","chat"],["interestMode","interests"]])document.getElementById(id).addEventListener("click",()=>{if(askMode===mode)return;askMode=mode;interestIn.value="";resetConversation()});
+document.getElementById("chatReset").addEventListener("click",()=>{interestIn.value="";resetConversation()});
+interestIn.addEventListener("input",()=>{document.getElementById("interestCount").textContent=interestIn.value.length+" / 600"});
+document.getElementById("chips").addEventListener("click",e=>{const b=e.target.closest("[data-interest]");if(b&&!busy){interestIn.value=modeText("chatExamples","askExamples")[Number(b.dataset.interest)];drawChat();interestIn.focus()}});
+document.getElementById("askForm").addEventListener("submit",e=>{e.preventDefault();ask(interestIn.value)});
+document.getElementById("askStop").addEventListener("click",()=>ctl?.abort());
+document.getElementById("recommendJoin").addEventListener("click",()=>{window.top.location.href="/auth?mode=signup"});
+async function ask(q){
+  if(busy)return;
+  q=q.trim();chatError="";
+  if(!q||q.length>600){chatError=modeText("chatEmpty","askEmpty");drawChat();interestIn.focus();return}
+  const isChat=askMode==="chat",history=[];
+  if(isChat){for(let i=0;i<chat.length;i+=2){const answer=chat[i+1];if(answer){history.push({role:"user",content:chat[i].content},{role:"assistant",content:answer.content||answer.error||(answer.stopped?t("chatStopped"):t("askErr"))})}}}
+  if(history.length>=40||history.reduce((n,m)=>n+m.content.length,0)+q.length>60000){chatError=t("chatFull");drawChat();return}
+  const bot={role:"assistant",content:"",reasoning:"",done:false,stopped:false,error:""};
+  if(isChat){chat.push({role:"user",content:q},bot);interestIn.value=""}else{lastInterests=q;chat=[bot];interestIn.value=q}
+  const payload=isChat?{messages:[...history,{role:"user",content:q}],lang}:{interests:lastInterests,lang};
+  busy=true;const controller=new AbortController();ctl=controller;drawChat();interestIn.focus({preventScroll:true});
+  const transcript=document.getElementById("chatTranscript");transcript.scrollTop=transcript.scrollHeight;
+  let terminal=false,reader;
+  const accept=line=>{
+    if(!line.trim()||ctl!==controller||terminal)return;
+    const event=JSON.parse(line);
+    if(event.type==="text")bot.content+=event.text;
+    else if(event.type==="reasoning")bot.reasoning+=event.text;
+    else if(event.type==="done"){bot.done=true;terminal=true}
+    else if(event.type==="stopped"){bot.stopped=true;terminal=true}
+    else if(event.type==="error"){bot.error=event.message;terminal=true}
+    drawChat();
+  };
+  try{
+    const response=await fetch(isChat?"/api/public/chat":"/api/public/recommendations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),signal:controller.signal});
+    if(!response.ok){const failure=await response.json();bot.error=failure.message||t("askErr");terminal=true;return}
+    if(!response.body)throw new Error("missing_stream");
+    reader=response.body.getReader();const decoder=new TextDecoder();let buffer="";
+    while(true){
+      const {value,done}=await reader.read();buffer+=decoder.decode(value,{stream:!done});
+      let split;while((split=buffer.indexOf("\n"))>=0){accept(buffer.slice(0,split));buffer=buffer.slice(split+1)}
+      if(terminal)break;
+      if(done){if(buffer.trim())accept(buffer);break}
+    }
+    if(!terminal)bot.error=t("askErr");
+  }catch(error){if(controller.signal.aborted)bot.stopped=true;else bot.error=t("askErr")}
+  finally{reader?.releaseLock();if(ctl===controller){busy=false;ctl=null;drawChat();if(document.activeElement===document.body||document.activeElement===interestIn||document.activeElement===document.getElementById("askStop"))interestIn.focus({preventScroll:true})}}
+}
+document.getElementById("langBtn").addEventListener("click",()=>{resetConversation(false);lang=lang==="en"?"ar":"en";try{localStorage.setItem("hive.site.lang",lang)}catch(e){}paint()});
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-copy]");if(!b)return;const txt=document.getElementById(b.dataset.copy).textContent;
+  try{await navigator.clipboard.writeText(txt);b.textContent=t("copied");setTimeout(()=>{b.textContent=t("copy")},1600)}catch(err){const r=document.createRange();r.selectNodeContents(document.getElementById(b.dataset.copy));const s=getSelection();s.removeAllRanges();s.addRange(r)}});
+paint();
+
+/* reveal */
+(function(){const els=document.querySelectorAll(".sec-head,.pillar,.gcat,.flow li,.practice,.faqs details,.founder .fgrid,.partners,.zayed,.steps li");
+ if(!("IntersectionObserver" in window))return;els.forEach(e=>e.classList.add("rv"));
+ const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add("in");io.unobserve(x.target)}}),{rootMargin:"0px 0px -8% 0px"});
+ els.forEach(e=>io.observe(e));setTimeout(()=>els.forEach(e=>e.classList.add("in")),4000)})();
+(function(){try{const on=Object.keys(localStorage).some(k=>/^sb-.*-auth-token$/.test(k)&&localStorage.getItem(k));document.querySelectorAll("[data-guest]").forEach(e=>e.hidden=on);document.querySelectorAll("[data-member]").forEach(e=>e.hidden=!on)}catch(e){}})();
+</script>
+
+</body></html>
