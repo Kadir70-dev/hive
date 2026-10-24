@@ -129,8 +129,16 @@ func TestSafetyConflictConcurrentResolution(t *testing.T) {
 	if decisions > 1 {
 		t.Fatalf("%d decisions recorded", decisions)
 	}
-	if confirmed != 2 || reservations != 2 {
+	// Both originally confirmed members may independently leave during this race.
+	// If both leave there is only one waiting member to promote, so one remaining
+	// confirmed place is correct; require no overbooking or stranded waitlist.
+	if confirmed < 1 || confirmed > 2 || reservations != confirmed {
 		t.Fatalf("after races: %d confirmed of %d reservations (codes %v)", confirmed, reservations, codes)
+	}
+	var waitingStatus string
+	if err := c.e.db.QueryRow(`SELECT status FROM reservations WHERE gathering_id=$1 AND user_id=$2`,
+		c.g, c.e.userID("wait@example.test")).Scan(&waitingStatus); err != nil || waitingStatus != "confirmed" {
+		t.Fatalf("earliest waiter was not promoted: status=%q err=%v (codes %v)", waitingStatus, err, codes)
 	}
 	for _, code := range codes {
 		if code != 200 && code != 409 && code != 404 {
