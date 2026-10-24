@@ -120,9 +120,12 @@ describe('admin safety-conflict actions', () => {
 
 describe('admin keyboard accessibility', () => {
   it('supports roving tab focus with arrow keys, Home and End', () => {
-    vi.stubGlobal('fetch', vi.fn(async () => Response.json({
-      items: [], page: 1, page_size: 25, has_more: false, total: 0,
-    })));
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (url.endsWith('/admin/gatherings') || url.endsWith('/admin/safety-conflicts')) {
+        return Response.json([]);
+      }
+      return Response.json({ items: [], page: 1, page_size: 25, has_more: false, total: 0 });
+    }));
     wrap(<AdminTools />);
     const members = screen.getByRole('tab', { name: 'Members' });
     const gatherings = screen.getByRole('tab', { name: 'Gatherings' });
