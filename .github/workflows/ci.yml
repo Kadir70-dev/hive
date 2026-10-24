@@ -67,7 +67,9 @@ jobs:
           TEST_S3_ENDPOINT: http://127.0.0.1:8333
           TEST_S3_ACCESS_KEY: hive-ci-access-key
           TEST_S3_SECRET_KEY: hive-ci-secret-key-not-for-production
-        run: go test -v ./internal/storage -run '^TestS3(RoundTrip|RejectsWrongCredentials)
+        run: |
+          go test -v ./internal/storage -run '^TestS3' | tee /tmp/s3-test.log
+          ! grep -q -- '--- SKIP' /tmp/s3-test.log
 
   frontend:
     name: Frontend (Next.js)
