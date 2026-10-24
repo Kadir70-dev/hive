@@ -1,7 +1,11 @@
 # The Hive Society
 
-Private, members-only community platform.
+Source import repository for The Hive Society private membership platform.
 
-**Stack:** Next.js 16 frontend, Go + Chi API, PostgreSQL, Redis, Docker Compose and Caddy. Supabase has been removed from the migration source.
+- Next.js 16 frontend
+- Go + Chi API
+- PostgreSQL and Redis
+- Docker Compose + Caddy
+- No Supabase SDK
 
-**Status:** Development migration; not production-ready. See `IMPLEMENTATION_STATUS.md` and `MIGRATION_NOTES.md` after source import.
+The full source is imported from `import/hive-source.zip` by GitHub Actions. See `IMPLEMENTATION_STATUS.md` and `MIGRATION_NOTES.md` after import for remaining work. This is a development migration, not a production-ready release.
