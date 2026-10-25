@@ -165,7 +165,7 @@ func Reserve(ctx context.Context, q Querier, gatheringID, userID string) (Bookin
 }
 
 // ReserveWithAttestation requires explicit self-attestation for women-only
-// gatherings. It does not assert that a member\'s identity or gender was verified.
+// gatherings. It does not assert that a member's identity or gender was verified.
 // The member lock is taken before the gathering lock, preserving FIFO lock order.
 func ReserveWithAttestation(ctx context.Context, q Querier, gatheringID, userID string, womenOnlyAcknowledged bool) (Booking, error) {
 	var memberStatus string
