@@ -9,6 +9,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 export function readEnv(text) {
+  /** @type {Record<string, string>} */
   const env = {};
   for (const line of text.split(/\r?\n/)) {
     const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
