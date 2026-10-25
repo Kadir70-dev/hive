@@ -8,7 +8,7 @@ const sections: { title: string; body: string[]; list?: string[] }[] = [
   {
     title: "Who we are",
     body: [
-      "The Hive Society is a members' community for women in Abu Dhabi, United Arab Emirates. [Legal entity name and registered address to be confirmed.] For anything about your information, email hello@thehivesociety.ae.",
+      "The Hive Society is a community for women and men of all nationalities in Abu Dhabi, United Arab Emirates. [Legal entity name and registered address to be confirmed.] For anything about your information, email hello@thehivesociety.ae.",
     ],
   },
   {
@@ -39,7 +39,7 @@ const sections: { title: string; body: string[]; list?: string[] }[] = [
   {
     title: "Who can see it",
     body: [
-      "Other members cannot see your email address, phone number or the gatherings you attend; there is no member directory.",
+      "Other members cannot see your email address, phone number, attendee identity or the gatherings you attend; there is no member directory or member-to-member messaging.",
       "Only our administrators can see member details, to review applications and know who is coming to each gathering. Administrator access requires a confirmed email address and two-factor authentication.",
       "Partners listed on the site receive no member information.",
     ],
@@ -67,7 +67,7 @@ const sections: { title: string; body: string[]; list?: string[] }[] = [
     title: "Cookies and browser storage",
     body: [
       "We use one strictly necessary cookie, hive_session, to keep you signed in. It is not readable by page scripts and expires after 14 days or when you sign out.",
-      "Your browser remembers whether you chose English or Arabic. We use no analytics, advertising or tracking cookies.",
+      "Your browser remembers whether you chose English or Arabic. [Signup conversion and campaign attribution tracking must be reviewed and disclosed before advertising campaigns begin.]",
     ],
   },
   {
