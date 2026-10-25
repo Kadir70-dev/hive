@@ -93,8 +93,12 @@ func (s *Server) verifyEmail(w http.ResponseWriter, r *http.Request) {
 		res, err = tx.ExecContext(r.Context(), `UPDATE users SET email_verified_at=now() WHERE id=$1 AND email_verified_at IS NULL`, uid)
 		if err == nil {
 			if n, _ := res.RowsAffected(); n == 1 {
-				// First confirmation: the member is now ready for review.
-				err = s.notifyAdminsNewMember(r.Context(), tx, uid)
+				// Count a conversion only after the email is actually verified.
+				_, err = tx.ExecContext(r.Context(), "UPDATE signup_attribution SET verified_at=now() WHERE user_id=$1 AND verified_at IS NULL", uid)
+				if err == nil {
+					// First confirmation: the member is now ready for review.
+					err = s.notifyAdminsNewMember(r.Context(), tx, uid)
+				}
 			}
 		}
 	}

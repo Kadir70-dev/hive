@@ -219,6 +219,7 @@ func (s *Server) routes() http.Handler {
 			})
 			r.Route("/admin", func(r chi.Router) {
 				r.Use(s.requireAdmin)
+				r.Get("/campaigns", s.adminCampaigns)
 				r.Get("/members", s.members)
 				r.Patch("/members/{id}", s.memberStatus)
 				r.Get("/members/{id}/photo", s.memberPhoto)

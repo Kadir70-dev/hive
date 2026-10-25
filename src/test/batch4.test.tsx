@@ -82,6 +82,24 @@ describe('gatherings screen', () => {
     expect(alertSpy).not.toHaveBeenCalled();
   });
 
+  it('requires women-only self-attestation before any new booking request', async () => {
+    stub({
+      '/me': () => [200, member],
+      'GET /gatherings': () => [200, [gathering({ type: 'women-only' })]],
+      'POST /gatherings/g1/keep': () => [200, { ok: true, status: 'confirmed' }],
+    });
+    wrap(<GatheringsScreen />);
+    const confirmation = await screen.findByRole('checkbox', { name: /I confirm I meet this women-only gathering/ });
+    const keep = screen.getByRole('button', { name: 'Keep my place' });
+    expect(keep).toBeDisabled();
+    expect(calls.some((c) => c.url.endsWith('/gatherings/g1/keep'))).toBe(false);
+    fireEvent.click(confirmation);
+    expect(keep).not.toBeDisabled();
+    fireEvent.click(keep);
+    await waitFor(() => expect(calls.find((c) => c.url.endsWith('/gatherings/g1/keep'))?.body)
+      .toEqual({ womenOnlyAcknowledged: true }));
+  });
+
   it('shows an error state with retry when loading fails', async () => {
     stub({ '/me': () => [200, member], 'GET /gatherings': () => [500, { error: 'boom' }] });
     wrap(<GatheringsScreen />);
@@ -93,7 +111,7 @@ describe('gatherings screen', () => {
     localStorage.setItem('hive.site.lang', 'ar');
     stub({ '/me': () => [200, member], 'GET /gatherings': () => [200, [gathering({})]] });
     wrap(<GatheringsScreen />);
-    expect(await screen.findByRole('button', { name: 'احجزي مكاني' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'احجز مكاني' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'الأمان' })).toBeInTheDocument();
   });
 });

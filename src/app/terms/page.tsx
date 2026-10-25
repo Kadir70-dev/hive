@@ -1,4 +1,4 @@
-import Link from "next/link";
+import TermsClient from '@/components/screens/TermsClient';
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Terms of Membership", description: "The terms for The Hive Society membership (draft for review)." };
@@ -15,7 +15,7 @@ const sections: { title: string; body: string[] }[] = [
   {
     title: "Membership",
     body: [
-      "Membership is for women aged 18 and over. You need a confirmed email address and must be approved by our team before you can book gatherings. Applying does not guarantee approval, and we may decline an application.",
+      "Membership welcomes adults aged 18 and over of all nationalities, women and men, in Abu Dhabi. You need a confirmed email address and approval from our team before booking. Applying does not guarantee approval.",
       "Membership and gatherings are free at launch. If that changes, we will tell members before any charge applies.",
     ],
   },
@@ -29,7 +29,7 @@ const sections: { title: string; body: string[] }[] = [
   {
     title: "Gatherings, places and the waitlist",
     body: [
-      "Each gathering has a limited number of places. When a gathering is full you can join the waitlist; if a place opens it is offered automatically to the earliest person in line, and we email you.",
+      "Gatherings are labelled as mixed-gender or women-only. Check the category before reserving. To reserve a women-only place you must confirm that you meet its eligibility requirements; this is your declaration and is not identity verification. Our hosts may review adherence to gathering rules. Each gathering has limited places; when full, the earliest person on the waitlist is promoted automatically if a place opens.",
       "If you can no longer attend, please cancel so the next person can take your place. Places cannot be booked once a gathering has started.",
       "We may change or cancel a gathering; members with a place or on the waitlist are emailed when the date, time or venue changes, or when it is cancelled.",
     ],
@@ -38,13 +38,13 @@ const sections: { title: string; body: string[] }[] = [
     title: "Community conduct",
     body: [
       "Members agree to follow the Community Guidelines: kindness and respect, no selling or promotion, photos only with consent.",
-      "You can report a member or block a member through the site. Reports are read by our team and handled confidentially.",
+      "You can submit a confidential safety report to our team. Members cannot message one another, and members cannot see other attendees' identities.",
     ],
   },
   {
     title: "Moderation",
     body: [
-      "To keep the community safe we may remove content, cancel bookings, suspend or end a membership where these terms or the guidelines are broken. [Appeals process to be defined.]",
+      "To keep the community safe we may cancel bookings, suspend or end a membership where these terms or the guidelines are broken. [Appeals process to be defined.]",
     ],
   },
   {
@@ -66,23 +66,4 @@ const sections: { title: string; body: string[] }[] = [
   },
 ];
 
-export default function Terms() {
-  return (
-    <main className="hv hv-wrap">
-      <article className="hv-card" style={{ marginTop: 60 }}>
-        <h1>Terms of Membership</h1>
-        <p role="note"><strong>Draft for review — not yet approved by The Hive Society or its legal advisers. Not legal advice.</strong> Last updated: October 2026 (draft).</p>
-        {sections.map((s) => (
-          <section key={s.title}>
-            <h2>{s.title}</h2>
-            {s.body.map((p) => <p key={p}>{p}</p>)}
-          </section>
-        ))}
-        <p>
-          See also the <Link href="/guidelines">Community Guidelines</Link> and <Link href="/privacy">Privacy Policy</Link>.{" "}
-          <Link href="/">Back to home</Link>
-        </p>
-      </article>
-    </main>
-  );
-}
+export default function Terms() { return <TermsClient english={sections} />; }

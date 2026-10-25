@@ -7,8 +7,8 @@ import '../styles.css';
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://thehivesociety.ae'),
   title: { default: 'The Hive Society', template: '%s · The Hive Society' },
-  description: 'The Hive Society — a community gathering in a warm, welcoming space.',
-  openGraph: { title: 'The Hive Society', type: 'website', description: 'A warm community to gather and belong.' },
+  description: 'An Abu Dhabi community for men and women of all nationalities. Thoughtfully curated gatherings inspired by creativity, cultural heritage and sustainability, with dedicated experiences for women.',
+  openGraph: { title: 'The Hive Society — The art of getting together', type: 'website', description: 'Thoughtfully curated gatherings for everyone in Abu Dhabi, with dedicated experiences for women.' },
   twitter: { card: 'summary_large_image' },
   applicationName: 'The Hive Society',
   manifest: '/manifest.webmanifest',

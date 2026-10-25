@@ -64,7 +64,7 @@ export function HiveShell({ children, member = false }: { children: ReactNode; m
               <span className="hv-mono" aria-hidden="true">H</span>
               <span>{t.brand}</span>
             </Link>
-            <nav className="hv-nav" aria-label="Members">
+            <nav className="hv-nav" aria-label={lang === "ar" ? "تنقل الأعضاء" : "Member navigation"}>
               {member && me ? (
                 <>
                   <Link href="/members">{t.members}</Link>
@@ -79,7 +79,7 @@ export function HiveShell({ children, member = false }: { children: ReactNode; m
               ) : (
                 <Link href="/">{t.home}</Link>
               )}
-              <button type="button" className="hv-lang" onClick={() => setLang(lang === "en" ? "ar" : "en")}>
+              <button type="button" className="hv-lang" aria-label={lang === "en" ? "Switch to Arabic" : "Switch to English"} onClick={() => setLang(lang === "en" ? "ar" : "en")}>
                 {t.langToggle}
               </button>
             </nav>
@@ -88,7 +88,7 @@ export function HiveShell({ children, member = false }: { children: ReactNode; m
         <main className="hv-wrap">{children}</main>
         <footer className="hv-footer">
           <p>
-            © 2026 {t.brand} · <Link href="/guidelines">{t.guidelines}</Link> · <Link href="/privacy">{t.privacy}</Link> · <Link href="/terms">Terms of Membership</Link> ·{" "}
+            © 2026 {t.brand} · <Link href="/guidelines">{t.guidelines}</Link> · <Link href="/privacy">{t.privacy}</Link> · <Link href="/terms">{lang === "ar" ? "شروط العضوية" : "Terms of Membership"}</Link> ·{" "}
             <a href="mailto:hello@thehivesociety.ae">hello@thehivesociety.ae</a>
           </p>
         </footer>

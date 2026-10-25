@@ -38,7 +38,7 @@ describe('AuthScreen account flows', () => {
     fireEvent.change(s.getByLabelText(/First name/), { target: { value: 'Noor' } });
     fireEvent.change(s.getByLabelText(/Email/), { target: { value: 'noor@example.test' } });
     fireEvent.change(s.getByLabelText(/Password/), { target: { value: 'a-long-password-123' } });
-    fireEvent.click(s.getByRole('checkbox'));
+    fireEvent.click(s.getByRole('checkbox', { name: /I agree to the/ }));
     fireEvent.click(s.getByRole('button', { name: 'Create account' }));
     expect(await s.findByRole('heading', { name: 'Check your email' })).toBeInTheDocument();
   });

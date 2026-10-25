@@ -16,7 +16,7 @@ import (
 
 // This is a real upgrade of a populated PostgreSQL database, not a fresh
 // schema assertion. It must preserve existing users, reservations and photos.
-func TestUpgradePopulatedV3ToV4(t *testing.T) {
+func TestUpgradePopulatedV3ToLatest(t *testing.T) {
 	dsn := testdb.Empty(t)
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
@@ -51,15 +51,15 @@ VALUES('Existing gathering','2031-08-15','18:00','Abu Dhabi',2) RETURNING id::te
 		t.Fatal(err)
 	}
 	if pending, err := migrate.Pending(ctx, db); err != nil || !pending {
-		t.Fatalf("v4 must still be pending: pending=%v err=%v", pending, err)
+		t.Fatalf("later migrations must still be pending: pending=%v err=%v", pending, err)
 	}
 
 	upgraded, err := migrate.Up(ctx, db)
 	if err != nil {
-		t.Fatalf("upgrade v3 -> v4: %v", err)
+		t.Fatalf("upgrade v3 -> latest: %v", err)
 	}
-	if len(upgraded) != 1 {
-		t.Fatalf("expected one new migration, got %v", upgraded)
+	if len(upgraded) != 2 {
+		t.Fatalf("expected v4 and v5 migrations, got %v", upgraded)
 	}
 	var email, avatar, status string
 	if err := db.QueryRowContext(ctx, `SELECT u.email,u.avatar_path,r.status
@@ -70,15 +70,16 @@ FROM users u JOIN reservations r ON r.user_id=u.id AND r.gathering_id=$2 WHERE u
 	if email != "legacy-member@example.test" || avatar != "avatars/legacy-photo.jpg" || status != "confirmed" {
 		t.Fatalf("upgrade corrupted existing data")
 	}
-	var hasCleanupTable, hasLegacyMap, hasConflictTable bool
+	var hasCleanupTable, hasLegacyMap, hasConflictTable, hasAttributionTable bool
 	if err := db.QueryRowContext(ctx, `SELECT to_regclass('storage_deletions') IS NOT NULL,
 to_regclass('legacy_member_map') IS NOT NULL,
-to_regclass('safety_conflict_decisions') IS NOT NULL`).
-		Scan(&hasCleanupTable, &hasLegacyMap, &hasConflictTable); err != nil {
+to_regclass('safety_conflict_decisions') IS NOT NULL,
+to_regclass('signup_attribution') IS NOT NULL`).
+		Scan(&hasCleanupTable, &hasLegacyMap, &hasConflictTable, &hasAttributionTable); err != nil {
 		t.Fatal(err)
 	}
-	if !hasCleanupTable || !hasLegacyMap || !hasConflictTable {
-		t.Fatal("v4 support tables missing after upgrade")
+	if !hasCleanupTable || !hasLegacyMap || !hasConflictTable || !hasAttributionTable {
+		t.Fatal("v4/v5 support tables missing after upgrade")
 	}
 	again, err := migrate.Up(ctx, db)
 	if err != nil || len(again) != 0 {

@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>The Hive Society</title>
+<title>The Hive Society — The art of getting together</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -478,6 +478,25 @@ footer .small{border-top-color:rgba(244,240,230,.16)}
   .growth-cards{margin-top:28px;gap:16px}
   .growth-card{padding:26px}
 }
+
+/* Inclusive audience and gathering categories */
+.hero-intro{max-width:58ch;margin:0 auto;color:var(--muted);font-size:clamp(1rem,2vw,1.2rem);line-height:1.75;text-wrap:pretty}
+.gathering-access{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(12px,2vw,22px);margin-top:clamp(28px,4vw,44px)}
+.access-card{padding:clamp(22px,3vw,36px);border:1px solid var(--line2);border-radius:var(--r);background:var(--paper);box-shadow:0 20px 50px -40px rgba(31,26,20,.18)}
+.access-card h3{font-size:clamp(1.35rem,2.4vw,1.85rem);line-height:1.3;margin:.45rem 0 .7rem}
+.access-card p{color:var(--muted);margin:0}
+.access-kicker{display:inline-block;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--sage)}
+.access-note{margin:18px auto 0;text-align:center;color:var(--muted);font-size:.9rem}
+@media(max-width:680px){.gathering-access{grid-template-columns:1fr}.hero-intro{padding-inline:12px}.ctas .btn{min-height:48px}}
+
+/* Conceptual scenes: illustrated vision, never presented as past event photography. */
+.vision-section{background:var(--bg2);padding-block:clamp(64px,8vw,112px)}
+.vision-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(14px,2.5vw,28px);margin-top:36px}
+.vision-card{margin:0;min-width:0;border-radius:var(--r);overflow:hidden;background:var(--paper);border:1px solid var(--line);box-shadow:0 20px 55px -45px rgba(31,26,20,.2)}
+.vision-card img{width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;display:block}
+.vision-card figcaption{padding:17px 22px 20px;font-weight:700;color:var(--ink);font-size:1rem}
+.vision-disclaimer{margin:18px 0 0;text-align:center;color:var(--muted);font-size:.8rem}
+@media(max-width:720px){.vision-grid{grid-template-columns:1fr;max-width:560px;margin-inline:auto}.vision-card img{aspect-ratio:16/9}}
 </style>
 
 <header>
@@ -499,6 +518,7 @@ footer .small{border-top-color:rgba(244,240,230,.16)}
       <span class="badge"><span class="bd" data-t="heroBadgeTag">Soon</span><span data-t="heroBadge">The founding community opens soon</span></span>
       <h1 data-t="heroTitle" data-html>The art of <em>getting together</em></h1>
       <p class="line" data-t="heroLine">One hand, for our Abu Dhabi.</p>
+      <p class="hero-intro" data-t="heroIntro">An Abu Dhabi community for men and women of all nationalities. Discover meaningful, free gatherings inspired by creativity, cultural heritage and sustainability.</p>
       <div class="ctas">
         <a class="btn primary" href="/auth?mode=signup" target="_top" data-t="ctaJoin">Join the founding community</a>
         <a class="btn ghost" href="#way" data-t="ctaWay">Discover The Hive Way</a>
@@ -511,8 +531,8 @@ footer .small{border-top-color:rgba(244,240,230,.16)}
     <div class="wrap">
       <div class="sec-head purpose-head">
         <span class="eyebrow" data-t="whyEyebrow">Why we exist</span>
-        <h2 id="whyTitle" data-t="whyTitle">Once, every woman had a majlis.</h2>
-        <p data-t="whyText">A place to sit, share and be known. Today, Abu Dhabi has never had more events, yet many women still find it hard to meet people they truly connect with, whether they moved last month or grew up down the road. Most gatherings are big, rushed and forgettable, and many end with a bin full of plastic.</p>
+        <h2 id="whyTitle" data-t="whyTitle">Abu Dhabi has always known the art of gathering.</h2>
+        <p data-t="whyText">Inspired by the warmth of the majlis, we bring people together through meaningful experiences, creativity, heritage and care for the land.</p>
       </div>
     </div>
   </section>
@@ -522,10 +542,10 @@ footer .small{border-top-color:rgba(244,240,230,.16)}
       <div class="sec-head">
         <span class="eyebrow" data-t="aboutEyebrow">The Hive</span>
         <h2 data-t="aboutTitle" data-html>A community, <em>not just events</em></h2>
-        <p><span class="about-lead" data-t="aboutLead">So we’re bringing the majlis back.</span><span data-t="aboutText">The Hive Society brings women together through small, meaningful gatherings across Abu Dhabi, where real friendships grow, creativity has space, and every gathering cares for the land. Around a table, on a mat, or in a gallery: no name badges, no pitches, just friendships that grow from shared moments.</span></p>
+        <p><span class="about-lead" data-t="aboutLead">So we’re bringing the majlis back.</span><span data-t="aboutText">The Hive Society brings people of all nationalities together in Abu Dhabi. Discover thoughtfully curated gatherings for everyone, with dedicated experiences for women.</span></p>
       </div>
       <div class="pillars">
-        <div class="pillar"><h3 data-t="p1t">Belong</h3><p data-t="p1">Small circles and a warm welcome. No name badges, no sales pitches, just women getting to know each other.</p></div>
+        <div class="pillar"><h3 data-t="p1t">Belong</h3><p data-t="p1">Small gatherings, genuine conversations and a warm welcome for everyone.</p></div>
         <div class="pillar"><h3 data-t="p2t">Create</h3><p data-t="p2">Pottery, palm weaving, writing, photography. A space to try new things and share what we make.</p></div>
         <div class="pillar"><h3 data-t="p3t">Care for the land</h3><p data-t="p3">Every gathering is hosted sustainably, and every season we plant something for Abu Dhabi.</p></div>
       </div>
@@ -537,8 +557,8 @@ footer .small{border-top-color:rgba(244,240,230,.16)}
       <blockquote data-t="quote">"Like the ghaf, we grow slowly, with deep roots, so we last."</blockquote>
       <div class="who">
         <span class="eyebrow" data-t="whoEyebrow">Who it's for</span>
-        <h2 style="font-size:clamp(1.8rem,3.6vw,2.6rem)" data-t="whoTitle">For the women of Abu Dhabi</h2>
-        <p data-t="whoText">Emirati and expat, every age and background: women who want meaningful friendships, creative and cultural experiences, and a simple way to live sustainably and contribute to their city.</p>
+        <h2 style="font-size:clamp(1.8rem,3.6vw,2.6rem)" data-t="whoTitle">For Abu Dhabi, for everyone</h2>
+        <p data-t="whoText">Men and women of all nationalities are welcome. Join for creative experiences, cultural heritage, sustainability and meaningful connections.</p>
         <div class="tags"><span class="tag" data-t="t1">Friendship</span><span class="tag" data-t="t2">Culture &amp; heritage</span><span class="tag" data-t="t3">Wellness</span><span class="tag" data-t="t4">Creativity</span><span class="tag" data-t="t5">For the land</span></div>
       </div>
     </div>
@@ -564,7 +584,28 @@ footer .small{border-top-color:rgba(244,240,230,.16)}
         <p data-t="gText">Every season brings a small number of gatherings, each hosted The Hive Way.</p>
       </div>
       <div class="gcats" id="gcats"></div>
+      <div class="gathering-access" aria-label="Gathering categories">
+        <article class="access-card"><span class="access-kicker" data-t="mixedKicker">Open to everyone</span><h3 data-t="mixedTitle">Mixed-gender gatherings</h3><p data-t="mixedDesc">Thoughtfully curated experiences where men and women gather together.</p></article>
+        <article class="access-card"><span class="access-kicker" data-t="womenKicker">Dedicated space</span><h3 data-t="womenTitle">Women-only gatherings</h3><p data-t="womenDesc">Experiences thoughtfully created for women.</p></article>
+      </div>
+      <p class="access-note" data-t="gatheringFreeNote">Gatherings are free. Members can keep a place or join the waitlist when full.</p>
       <p class="gnote" data-t="gNote">The first season's gatherings will be shared with the founding community first.</p>
+    </div>
+  </section>
+
+  <section class="vision-section" aria-labelledby="visionTitle">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow" data-t="visionEyebrow">A glimpse of what we imagine</span>
+        <h2 id="visionTitle" data-t="visionTitle">Gathering with <em>intention</em></h2>
+        <p data-t="visionLead">From a welcoming majlis to creative workshops and time outdoors — experiences rooted in Abu Dhabi.</p>
+      </div>
+      <div class="vision-grid">
+        <figure class="vision-card"><img src="/visuals/majlis-vision.svg" width="800" height="540" loading="lazy" decoding="async" alt="Illustrated vision of a welcoming Abu Dhabi majlis" data-alt="visionAlt1"><figcaption data-t="visionCard1">Culture &amp; connection</figcaption></figure>
+        <figure class="vision-card"><img src="/visuals/creative-vision.svg" width="800" height="540" loading="lazy" decoding="async" alt="Illustrated vision of a pottery and craft workshop" data-alt="visionAlt2"><figcaption data-t="visionCard2">Creativity &amp; heritage</figcaption></figure>
+        <figure class="vision-card"><img src="/visuals/nature-vision.svg" width="800" height="540" loading="lazy" decoding="async" alt="Illustrated vision of an Abu Dhabi nature gathering" data-alt="visionAlt3"><figcaption data-t="visionCard3">Nature &amp; sustainability</figcaption></figure>
+      </div>
+      <p class="vision-disclaimer" data-t="visionNote">Concept illustrations of possible future experiences, not photographs of past gatherings.</p>
     </div>
   </section>
 
@@ -600,48 +641,6 @@ footer .small{border-top-color:rgba(244,240,230,.16)}
     </div>
   </section>
 
-  <!-- Ask The Hive / Find my Hive is disabled: its AI backend was removed during the
-       infrastructure migration. Re-enable only with a working, privacy-reviewed backend. -->
-  <section id="ask" class="paper" hidden style="display:none">
-    <div class="wrap askgrid">
-      <div class="sec-head">
-        <span class="eyebrow" data-t="askEyebrow">A conversation with The Hive</span>
-        <h2 data-t="askTitle" data-html>Ask <em>The Hive</em></h2>
-        <p data-t="askText">The things you love can be the beginning of something shared.</p>
-      </div>
-      <div class="chat" id="chat">
-        <div class="ask-modes" role="group" aria-label="Ask The Hive">
-          <button class="btn ghost" id="chatMode" type="button" aria-pressed="true" data-t="chatMode">Ask The Hive</button>
-          <button class="btn ghost" id="interestMode" type="button" aria-pressed="false" data-t="interestMode">Find my Hive</button>
-          <button class="btn ghost chat-reset" id="chatReset" type="button" aria-label="Start a fresh conversation" title="Start a fresh conversation"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.8 7M3 4v7h7"/></svg></button>
-        </div>
-        <form class="askform interest-form" id="askForm" autocomplete="off">
-          <label class="interest-label" for="askIn" data-t="askLabel">Your interests</label>
-          <textarea id="askIn" maxlength="600" data-ph="askPh" required aria-describedby="interestPrivacy"></textarea>
-          <div class="chips" id="chips"></div>
-          <div class="interest-toolbar">
-            <span class="interest-count" id="interestCount">0 / 600</span>
-            <div class="interest-actions">
-              <button class="btn primary ask-submit" type="submit" id="askBtn" aria-label="Send question" title="Send question"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
-              <button class="btn ghost interest-stop" type="button" id="askStop" hidden aria-label="Stop" title="Stop"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="1"/></svg></button>
-            </div>
-          </div>
-        </form>
-        <p class="interest-privacy" id="interestPrivacy"><span data-t="askPrivacy">This feature is currently unavailable.</span> <a href="/privacy" target="_top" data-t="fPrivacy">Privacy</a></p>
-        <p class="interest-status" id="askStatus" role="status" aria-live="polite" hidden></p>
-        <p class="interest-error" id="askError" role="alert" hidden></p>
-        <div class="interest-result" id="msgs" hidden>
-          <h3 data-t="askResult">Your way into The Hive</h3>
-          <details class="interest-reasoning" id="askReasoning" hidden><summary data-t="askThinking">Considering your interests</summary><p id="reasoningText"></p></details>
-          <div class="chat-transcript" id="chatTranscript" role="log" aria-label="Ask The Hive conversation" hidden></div>
-          <div class="interest-answer chat-answer" id="recommendationText" dir="auto"></div>
-          <button class="btn ghost" type="button" id="recommendJoin" data-t="askJoin" hidden>Join The Hive</button>
-        </div>
-        <p class="note small2" data-t="askNote">Suggestions are not bookings. Our first season is coming soon; applications are read personally.</p>
-      </div>
-    </div>
-  </section>
-
   <section class="paper" id="impact" aria-labelledby="growthTitle">
     <div class="wrap">
       <div class="sec-head growth-head">
@@ -653,7 +652,7 @@ footer .small{border-top-color:rgba(244,240,230,.16)}
         <article class="growth-card">
           <span class="growth-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="8" r="3"/><circle cx="15.5" cy="8" r="3"/><path d="M3 20c0-3 2.5-5.5 5.5-5.5S14 17 14 20M10 20c0-3 2.5-5.5 5.5-5.5S21 17 21 20"/></svg></span>
           <h3 data-t="growthFriendshipsTitle">Friendships</h3>
-          <p data-t="growthFriendshipsText">Every woman leaves a gathering knowing at least three new names, and many leave with a friend.</p>
+          <p data-t="growthFriendshipsText">Our hope is that every guest leaves feeling more connected to Abu Dhabi and its people.</p>
         </article>
         <article class="growth-card">
           <span class="growth-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V10M12 12C12 7 8 5 4 5c0 5 3 7 8 7ZM12 16c0-5 4-7 8-7 0 5-3 7-8 7ZM5 21h14"/></svg></span>
@@ -687,7 +686,7 @@ footer .small{border-top-color:rgba(244,240,230,.16)}
       <div class="sec-head">
         <span class="eyebrow" data-t="partEyebrow">Collaborate</span>
         <h2 data-t="partTitle" data-html>Create something <em>worth gathering for</em></h2>
-        <p data-t="partText">We work with a small number of brands, venues and cultural institutions each season to host meaningful, sustainable gatherings for the women of Abu Dhabi.</p>
+        <p data-t="partText">We collaborate with approved partners to bring meaningful cultural, creative and sustainable experiences to Abu Dhabi.</p>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
         <span class="note" data-t="partContact">Partnership enquiries</span>
@@ -714,14 +713,12 @@ footer .small{border-top-color:rgba(244,240,230,.16)}
   </div>
 </footer>
 
-<script src="/vendor/marked.umd.js"></script>
-<script src="/vendor/purify.min.js"></script>
 <script>
 const L={
-en:{navMembers:"Members",navLogin:"Log in",navProfile:"My profile",fGuideLink:"Read the guidelines",heroBadgeTag:"Soon",heroBadge:"The founding community opens soon",fdEyebrow:"A note from our founder",fdQuote:"A community that isn't sustainable won't last — and a city cannot flourish without a strong, creative community behind it.",fdBody:"I started The Hive because I believe the best of Abu Dhabi is built by people who truly know one another. Nothing worth keeping grows in a day. Like the ghaf, we plant slowly and deeply — one gathering, one friendship, one tree at a time.",fdName:"Meera Al Ahbabi",fdRole:"Founder, The Hive Society",flEyebrow:"A Hive gathering",flTitle:"How an evening <em>unfolds</em>",flText:"Small enough to know everyone's name by the end. Every gathering follows the same gentle rhythm.",flow:[["Arrive","A warm welcome, qahwa and dates, and a host who introduces you."],["Connect","Small circles and real conversation. No name badges, no pitches."],["Create","Make, taste or discover something together, by hand."],["Give back","Every season ends with something for the land: a tree, a clean-up, a seed."]],fqEyebrow:"Questions",fqTitle:"Good to <em>know</em>",fqText:"Anything else? Write to us at hello@thehivesociety.ae",faq:[["Who can join The Hive?","Women living in Abu Dhabi, Emirati and expat, of every age and background, who want meaningful friendships and to give something back to their city."],["How does membership work?","Membership is by application. Join the founding community on this page, a host will reach out for a relaxed chat, and founding members are invited first when the season opens."],["When is the first gathering?","Our first season is coming soon. Dates are shared with the founding community before anyone else."],["What makes a gathering sustainable?","Every gathering follows The Hive Way: reusable tableware, local food and makers, gifts that grow or last, nothing wasted and digital invitations. We only claim what we actually do."],["I don't know anyone. Is that okay?","That's exactly who The Hive is for. Circles are small and hosts make sure every woman is welcomed and introduced."],["Can my brand or venue collaborate?","Yes. We work with a small number of brands, venues and cultural institutions each season. Email hello@thehivesociety.ae."]],navGather:"Gatherings",gEyebrow:"Our gatherings",gTitle:"Five ways to <em>gather</em>",gText:"Every season brings a small number of gatherings, each hosted The Hive Way.",gNote:"The first season's gatherings will be shared with the founding community first.",gcats:[["Wellness","Movement, breath and slow mornings that leave you lighter."],["Majlis","Cushions, qahwa and dates, Emirati hospitality and conversations that run late."],["Culture","Galleries, heritage and crafts, from calligraphy to palm weaving."],["Wander","Unhurried walks through the city, the coast and the desert."],["Social","Warm evenings where strangers become friends."]],footMotto:"A shared appreciation for the finer moments.",fExplore:"Explore",fPrivacy:"Privacy",fGuide:"Community guidelines",g1:"Kind and generous, always",g2:"No selling or promotion",g3:"Photos only with permission",fContact:"Contact",navAbout:"About",navWay:"The Hive Way",navJoin:"Join",heroEyebrow:"Abu Dhabi",heroTitle:"The art of <em>getting together</em>",heroLead:"Sustainable gatherings for the women of Abu Dhabi.",heroLine:"One hand, for our Abu Dhabi.",ctaJoin:"Join the founding community",ctaWay:"Discover The Hive Way",
-aboutEyebrow:"The Hive",aboutTitle:"A community, <em>not just events</em>",aboutText:"The Hive Society brings women together through small, meaningful gatherings across Abu Dhabi, where real friendships grow, creativity has space, and every gathering cares for the land. Around a table, on a mat, or in a gallery: no name badges, no pitches, just friendships that grow from shared moments.",
-p1t:"Belong",p1:"Small circles and a warm welcome. No name badges, no sales pitches, just women getting to know each other.",p2t:"Create",p2:"Pottery, palm weaving, writing, photography. A space to try new things and share what we make.",p3t:"Care for the land",p3:"Every gathering is hosted sustainably, and every season we plant something for Abu Dhabi.",
-quote:"“Like the ghaf, we grow slowly, with deep roots, so we last.”",whoEyebrow:"Who it's for",whoTitle:"For the women of Abu Dhabi",whoText:"Emirati and expat, every age and background: women who want meaningful friendships, creative and cultural experiences, and a simple way to live sustainably and contribute to their city.",
+en:{navMembers:"Members",navLogin:"Log in",navProfile:"My profile",fGuideLink:"Read the guidelines",heroBadgeTag:"Soon",heroBadge:"The founding community opens soon",fdEyebrow:"A note from our founder",fdQuote:"A community that isn't sustainable won't last — and a city cannot flourish without a strong, creative community behind it.",fdBody:"I started The Hive because I believe the best of Abu Dhabi is built by people who truly know one another. Nothing worth keeping grows in a day. Like the ghaf, we plant slowly and deeply — one gathering, one friendship, one tree at a time.",fdName:"Meera Al Ahbabi",fdRole:"Founder, The Hive Society",flEyebrow:"A Hive gathering",flTitle:"How an evening <em>unfolds</em>",flText:"Small enough to know everyone's name by the end. Every gathering follows the same gentle rhythm.",flow:[["Arrive","A warm welcome, qahwa and dates, and a host who introduces you."],["Connect","Small circles and real conversation. No name badges, no pitches."],["Create","Make, taste or discover something together, by hand."],["Give back","Every season ends with something for the land: a tree, a clean-up, a seed."]],fqEyebrow:"Questions",fqTitle:"Good to <em>know</em>",fqText:"Anything else? Write to us at hello@thehivesociety.ae",faq:[["Who can join The Hive?","Men and women of all nationalities in Abu Dhabi. Some gatherings are mixed-gender, while others are dedicated to women."],["How does membership work?","Create an account with your email and password. Applications are reviewed before approval. Approved members can reserve free gathering places and receive announcements."],["When is the first gathering?","Our first season is coming soon. Dates are shared with the founding community before anyone else."],["What makes a gathering sustainable?","Every gathering follows The Hive Way: reusable tableware, local food and makers, gifts that grow or last, nothing wasted and digital invitations. We only claim what we actually do."],["I don't know anyone. Is that okay?","Absolutely. Our gatherings are thoughtfully hosted so guests feel welcome, even when attending for the first time."],["Can my brand or venue collaborate?","Yes. We work with a small number of brands, venues and cultural institutions each season. Email hello@thehivesociety.ae."]],navGather:"Gatherings",gEyebrow:"Our gatherings",gTitle:"Five ways to <em>gather</em>",gText:"Every season brings a small number of gatherings, each hosted The Hive Way.",gNote:"The first season's gatherings will be shared with the founding community first.",gcats:[["Wellness","Movement, breath and slow mornings that leave you lighter."],["Majlis","Cushions, qahwa and dates, Emirati hospitality and conversations that run late."],["Culture","Galleries, heritage and crafts, from calligraphy to palm weaving."],["Wander","Unhurried walks through the city, the coast and the desert."],["Social","Warm evenings where people connect through shared experiences."]],footMotto:"A shared appreciation for the finer moments.",fExplore:"Explore",fPrivacy:"Privacy",fGuide:"Community guidelines",g1:"Kind and generous, always",g2:"No selling or promotion",g3:"Photos only with permission",fContact:"Contact",navAbout:"About",navWay:"The Hive Way",navJoin:"Join",heroEyebrow:"Abu Dhabi",heroTitle:"The art of <em>getting together</em>",heroLead:"Curated gatherings for all nationalities and genders in Abu Dhabi.",heroLine:"One hand, for our Abu Dhabi.",ctaJoin:"Join the founding community",ctaWay:"Discover The Hive Way",
+aboutEyebrow:"The Hive",aboutTitle:"A community, <em>not just events</em>",aboutText:"The Hive Society brings people of all nationalities together in Abu Dhabi. Discover thoughtfully curated gatherings for everyone, with dedicated experiences for women.",
+p1t:"Belong",p1:"Small gatherings, genuine conversations and a warm welcome for everyone.",p2t:"Create",p2:"Pottery, palm weaving, writing, photography. A space to try new things and share what we make.",p3t:"Care for the land",p3:"Every gathering is hosted sustainably, and every season we plant something for Abu Dhabi.",
+quote:"“Like the ghaf, we grow slowly, with deep roots, so we last.”",whoEyebrow:"Who it's for",whoTitle:"For Abu Dhabi, for everyone",whoText:"Men and women of all nationalities are welcome. Join for creative experiences, cultural heritage, sustainability and meaningful connections.",
 t1:"Friendship",t2:"Culture & heritage",t3:"Wellness",t4:"Creativity",t5:"For the land",
 wayEyebrow:"Our promise",wayTitle:"The Hive Way",wayText:"Every gathering is hosted the way our grandmothers lived: generously, and in harmony with the land.",wayTitle2:"The Hive <em>Way</em>",honest:"We only claim what we actually do.",zayedBy:"Inspired by Sheikh Zayed's love for the land",
 practices:[["A table set to last","Glass, clay and fine pieces we use again and again, never single-use plastic."],["Made close to home","Local flavours, Emirati hospitality, and pieces crafted by women of the UAE."],["Gifts that grow or last","Seeds, saplings and handmade pieces, or nothing at all."],["Nothing wasted","Leftovers shared, décor reused or borrowed."],["Digital invitations","No printing. Everything lives in our app."],["Close to nature","Gardens, the desert and the coast, when it fits."]],
@@ -731,39 +728,35 @@ s1t:"Tell us about you",s1:"Share who you are and what draws you to The Hive.",s
 formTitle:"Join the founding community",fName:"Your name",fEmail:"Email",fPhone:"Phone",optional:"(optional)",fWhy:"What draws you to The Hive?",fOk:"I'm happy for The Hive Society to contact me about the founding community.",fSend:"Send",orEmail:"Prefer email? Write to us at",copy:"Copy",copied:"Copied",
 errReq:"Please add your name, a valid email, and tick the box so we can contact you.",errSend:"That didn't send. Please try again, or email us at hello@thehivesociety.ae.",errNoDb:"Sending from this page isn't available in this view. Please email us at hello@thehivesociety.ae and we'll reply personally.",
 doneT:"Thank you",doneP:"You're on the founding community list. We'll be in touch personally.",
-partEyebrow:"Collaborate",partTitle:"Create something <em>worth gathering for</em>",partText:"We work with a small number of brands, venues and cultural institutions each season to host meaningful, sustainable gatherings for the women of Abu Dhabi.",partContact:"Partnership enquiries",
+partEyebrow:"Collaborate",partTitle:"Create something <em>worth gathering for</em>",partText:"We collaborate with approved partners to bring meaningful cultural, creative and sustainable experiences to Abu Dhabi.",partContact:"Partnership enquiries",
 footLine:"One hand, for our Abu Dhabi.",footPlace:"Abu Dhabi, United Arab Emirates",langBtn:'<span lang="ar">العربية</span>',
-adminT:"Founding community enquiries",adminNone:"No enquiries yet. They'll appear here as women join.",adminOnly:"Only you and editors can see this list.",
-askEyebrow:"A place for you",askTitle:"Find your <em>Hive</em>",askText:"The things you love can be the beginning of something shared.",askPh:"I love pottery, quiet mornings and meeting women who care for the land…",askNote:"Suggestions are not bookings. Our first season is coming soon; applications are read personally.",askLabel:"Your interests",askSend:"Find my Hive",askPrivacy:"This feature is currently unavailable.",askResult:"Your way into The Hive",askThinking:"Considering your interests",askJoin:"Join The Hive",askStopped:"Stopped. Your interests are still here.",askEmpty:"Tell us a little about what you enjoy.",askStop:"Stop",askComplete:"Your suggestions are ready.",
-askHi:"Marhaba! I'm The Hive's host. Ask me anything about who we are, The Hive Way, or how to join the founding community.",askWait:"Thinking…",askErr:"I couldn't answer just now. Please try again in a moment, or email hello@thehivesociety.ae.",
-askChips:["Arts & heritage","Wellness & nature","Friendship & belonging"],askExamples:["I enjoy pottery, calligraphy and Emirati heritage.","I enjoy gentle movement, slow mornings and walks in nature.","I want meaningful friendships and warm conversations in a small circle."]},
-ar:{navMembers:"العضوات",navLogin:"تسجيل الدخول",navProfile:"ملفي",fGuideLink:"اقرئي الإرشادات",heroBadgeTag:"قريباً",heroBadge:"مجتمع التأسيس يفتح أبوابه قريباً",fdEyebrow:"كلمة من المؤسِّسة",fdQuote:"المجتمع الذي لا يكون مستداماً لن يدوم، ولا تزدهر مدينة دون مجتمع قوي ومبدع يقف خلفها.",fdBody:"أسّست The Hive لأنني أؤمن بأن أجمل ما في أبوظبي يصنعه أناس يعرفون بعضهم حقاً. لا شيء يثمر في يوم واحد. مثل الغافة، نزرع بهدوء وبعمق: جلسة بعد جلسة، وصداقة بعد صداقة، وشجرة بعد شجرة.",fdName:"ميرة الأحبابي",fdRole:"مؤسِّسة The Hive Society",flEyebrow:"جلسة من The Hive",flTitle:"كيف تمضي <em>الأمسية</em>",flText:"صغيرة بما يكفي لتعرفي أسماء الجميع في نهايتها. كل جلسة تتبع الإيقاع الهادئ نفسه.",flow:[["الوصول","ترحيب دافئ، وقهوة وتمر، ومضيفة تعرّفك على الحاضرات."],["التواصل","دوائر صغيرة وأحاديث حقيقية. بلا بطاقات أسماء ولا عروض."],["الإبداع","نصنع أو نتذوق أو نكتشف شيئاً معاً، بأيدينا."],["العطاء","ينتهي كل موسم بشيء للأرض: شجرة، أو حملة تنظيف، أو بذرة."]],fqEyebrow:"أسئلة",fqTitle:"من <em>المفيد معرفته</em>",fqText:"سؤال آخر؟ راسلينا على hello@thehivesociety.ae",faq:[["من يمكنها الانضمام إلى The Hive؟","النساء المقيمات في أبوظبي، مواطنات ومقيمات، من كل الأعمار والخلفيات، ممن يبحثن عن صداقات حقيقية ويرغبن في العطاء لمدينتهن."],["كيف تعمل العضوية؟","العضوية بالتقديم. انضمي إلى مجتمع التأسيس من هذه الصفحة، وستتواصل معك إحدى المضيفات لدردشة هادئة، وعضوات التأسيس أول من يُدعى عند افتتاح الموسم."],["متى أول جلسة؟","موسمنا الأول قريباً. نشارك المواعيد مع مجتمع التأسيس قبل الجميع."],["ما الذي يجعل الجلسة مستدامة؟","كل جلسة تتبع أسلوب The Hive: أدوات مائدة قابلة لإعادة الاستخدام، وضيافة ومنتجات محلية، وهدايا تنمو أو تدوم، وبلا هدر، ودعوات رقمية. ولا ندّعي إلا ما نفعله فعلاً."],["لا أعرف أحداً، هل هذا مناسب؟","هذا تماماً من أجله وُجدت The Hive. الدوائر صغيرة، والمضيفات يحرصن على الترحيب بكل امرأة وتعريفها بالحاضرات."],["هل يمكن لعلامتي التجارية أو مكاني التعاون معكم؟","نعم. نعمل كل موسم مع عدد محدود من العلامات التجارية والأماكن والمؤسسات الثقافية. راسلينا على hello@thehivesociety.ae."]],navGather:"الجلسات",gEyebrow:"جلساتنا",gTitle:"خمس طرق <em>للقاء</em>",gText:"في كل موسم عدد محدود من الجلسات، نستضيف كلاً منها بأسلوب The Hive.",gNote:"سنشارك جلسات الموسم الأول مع مجتمع التأسيس أولاً.",gcats:[["عافية","حركة وتنفّس وصباحات هادئة تتركك أخف."],["مجلس","وسائد وقهوة وتمر، وضيافة إماراتية، وأحاديث تمتد."],["ثقافة","معارض وتراث وحِرف، من الخط العربي إلى سفّ الخوص."],["تجوال","نزهات هادئة في المدينة والساحل والصحراء."],["لقاءات","أمسيات دافئة يصبح فيها الغرباء صديقات."]],footMotto:"تقدير مشترك للحظات الجميلة.",fExplore:"استكشفي",fPrivacy:"الخصوصية",fGuide:"إرشادات المجتمع",g1:"اللطف والكرم دائماً",g2:"بلا بيع أو ترويج",g3:"الصور بإذن فقط",fContact:"تواصل",navAbout:"عن The Hive",navWay:"أسلوب The Hive",navJoin:"انضمي",heroEyebrow:"أبوظبي",heroTitle:"فنّ <em>اللقاء</em>",heroLead:"جلسات مستدامة لنساء أبوظبي.",heroLine:"يدٌ واحدة، لأبوظبي.",ctaJoin:"انضمي إلى مجتمع التأسيس",ctaWay:"اكتشفي أسلوب The Hive",
-aboutEyebrow:"The Hive",aboutTitle:"مجتمع، <em>لا مجرد فعاليات</em>",aboutText:"تجمع The Hive Society النساء في جلسات صغيرة وهادفة في أنحاء أبوظبي، تنمو فيها صداقات حقيقية، ويجد فيها الإبداع مساحته، وتحافظ كل جلسة على الأرض. حول مائدة، أو على بساط، أو في معرض: بلا بطاقات أسماء ولا عروض، فقط صداقات تنمو من لحظات نتشاركها.",
-p1t:"ننتمي",p1:"دوائر صغيرة وترحيب دافئ. بلا بطاقات أسماء ولا عروض بيع، فقط نساء يتعرّفن على بعضهن.",p2t:"نبدع",p2:"الفخار، وسفّ الخوص، والكتابة، والتصوير. مساحة لنجرّب أشياء جديدة ونشارك ما نصنع.",p3t:"نحافظ على الأرض",p3:"نستضيف كل جلسة بأسلوب مستدام، وفي كل موسم نزرع شيئاً لأبوظبي.",
-quote:"«مثل الغافة، ننمو بهدوء، وجذورنا عميقة، لكي ندوم.»",whoEyebrow:"لمن هي",whoTitle:"لنساء أبوظبي",whoText:"مواطنات ومقيمات، من كل الأعمار والخلفيات: نساء يبحثن عن صداقات حقيقية، وتجارب إبداعية وثقافية، وطريقة بسيطة للعيش بأسلوب مستدام والمساهمة في مدينتهن.",
+adminT:"Founding community enquiries",adminNone:"No enquiries yet. They'll appear here as people join.",adminOnly:"Only you and editors can see this list."},
+ar:{navMembers:"الأعضاء",navLogin:"تسجيل الدخول",navProfile:"ملفي",fGuideLink:"اقرأ الإرشادات",heroBadgeTag:"قريباً",heroBadge:"مجتمع التأسيس يفتح أبوابه قريباً",fdEyebrow:"كلمة من المؤسِّسة",fdQuote:"المجتمع الذي لا يكون مستداماً لن يدوم، ولا تزدهر مدينة دون مجتمع قوي ومبدع يقف خلفها.",fdBody:"أسّست The Hive لأنني أؤمن بأن أجمل ما في أبوظبي يصنعه أناس يعرفون بعضهم حقاً. لا شيء يثمر في يوم واحد. مثل الغافة، نزرع بهدوء وبعمق: جلسة بعد جلسة، وصداقة بعد صداقة، وشجرة بعد شجرة.",fdName:"ميرة الأحبابي",fdRole:"مؤسِّسة The Hive Society",flEyebrow:"جلسة من The Hive",flTitle:"كيف تمضي <em>الأمسية</em>",flText:"لقاءات صغيرة تتيح التعرّف على الآخرين. كل جلسة تتبع الإيقاع الهادئ نفسه.",flow:[["الوصول","ترحيب دافئ وقهوة وتمر ومضيف يعرّف الضيوف ببعضهم."],["التواصل","دوائر صغيرة وأحاديث حقيقية. بلا بطاقات أسماء ولا عروض."],["الإبداع","نصنع أو نتذوق أو نكتشف شيئاً معاً، بأيدينا."],["العطاء","ينتهي كل موسم بشيء للأرض: شجرة، أو حملة تنظيف، أو بذرة."]],fqEyebrow:"أسئلة",fqTitle:"من <em>المفيد معرفته</em>",fqText:"سؤال آخر؟ راسلينا على hello@thehivesociety.ae",faq:[["من يمكنه الانضمام إلى The Hive؟","النساء والرجال من جميع الجنسيات في أبوظبي. بعض اللقاءات مختلطة، وأخرى مخصّصة للنساء."],["كيف تعمل العضوية؟","أنشئ حساباً بالبريد الإلكتروني وكلمة المرور. تُراجع الطلبات قبل الموافقة، ويمكن للأعضاء المعتمدين حجز أماكن مجانية وتلقّي الإعلانات."],["متى أول جلسة؟","موسمنا الأول قريباً. نشارك المواعيد مع مجتمع التأسيس قبل الجميع."],["ما الذي يجعل الجلسة مستدامة؟","كل جلسة تتبع أسلوب The Hive: أدوات مائدة قابلة لإعادة الاستخدام، وضيافة ومنتجات محلية، وهدايا تنمو أو تدوم، وبلا هدر، ودعوات رقمية. ولا ندّعي إلا ما نفعله فعلاً."],["لا أعرف أحداً، هل هذا مناسب؟","هذا تماماً من أجله وُجد The Hive. لقاءاتنا صغيرة، ويحرص المضيفون على الترحيب بالجميع."],["هل يمكن لعلامتي التجارية أو مكاني التعاون معكم؟","نعم. نعمل كل موسم مع عدد محدود من العلامات التجارية والأماكن والمؤسسات الثقافية. راسلينا على hello@thehivesociety.ae."]],navGather:"الجلسات",gEyebrow:"جلساتنا",gTitle:"خمس طرق <em>للقاء</em>",gText:"في كل موسم عدد محدود من الجلسات، نستضيف كلاً منها بأسلوب The Hive.",gNote:"سنشارك جلسات الموسم الأول مع مجتمع التأسيس أولاً.",gcats:[["عافية","حركة وتنفّس وصباحات هادئة تتركك أخف."],["مجلس","وسائد وقهوة وتمر، وضيافة إماراتية، وأحاديث تمتد."],["ثقافة","معارض وتراث وحِرف، من الخط العربي إلى سفّ الخوص."],["تجوال","نزهات هادئة في المدينة والساحل والصحراء."],["لقاءات","أمسيات دافئة تجمع الناس عبر تجارب مشتركة."]],footMotto:"تقدير مشترك للحظات الجميلة.",fExplore:"استكشفي",fPrivacy:"الخصوصية",fGuide:"إرشادات المجتمع",g1:"اللطف والكرم دائماً",g2:"بلا بيع أو ترويج",g3:"الصور بإذن فقط",fContact:"تواصل",navAbout:"عن The Hive",navWay:"أسلوب The Hive",navJoin:"انضم",heroEyebrow:"أبوظبي",heroTitle:"فنّ <em>اللقاء</em>",heroLead:"لقاءات منسّقة للنساء والرجال من جميع الجنسيات في أبوظبي.",heroLine:"يدٌ واحدة، لأبوظبي.",ctaJoin:"انضم إلى مجتمع التأسيس",ctaWay:"اكتشف أسلوب The Hive",
+aboutEyebrow:"The Hive",aboutTitle:"مجتمع، <em>لا مجرد فعاليات</em>",aboutText:"يجمع The Hive Society أشخاصاً من جميع الجنسيات في أبوظبي من خلال لقاءات مختارة للجميع، مع تجارب مخصّصة للنساء.",
+p1t:"ننتمي",p1:"لقاءات صغيرة وأحاديث صادقة وترحيب دافئ بالجميع.",p2t:"نبدع",p2:"الفخار، وسفّ الخوص، والكتابة، والتصوير. مساحة لنجرّب أشياء جديدة ونشارك ما نصنع.",p3t:"نحافظ على الأرض",p3:"نستضيف كل جلسة بأسلوب مستدام، وفي كل موسم نزرع شيئاً لأبوظبي.",
+quote:"«مثل الغافة، ننمو بهدوء، وجذورنا عميقة، لكي ندوم.»",whoEyebrow:"لمن هي",whoTitle:"لأهل أبوظبي من الجميع",whoText:"نرحّب بالنساء والرجال من جميع الجنسيات في أبوظبي لتجارب إبداعية وثقافية هادفة تراعي الاستدامة.",
 t1:"صداقة",t2:"ثقافة وتراث",t3:"عافية",t4:"إبداع",t5:"من أجل الأرض",
 wayEyebrow:"وعدنا",wayTitle:"أسلوب The Hive",wayText:"نستضيف كل جلسة كما عاشت جداتنا: بكرم، وبانسجام مع الأرض.",wayTitle2:"أسلوب <em>The Hive</em>",honest:"لا ندّعي إلا ما نفعله فعلاً.",zayedBy:"مستلهمين حب الشيخ زايد للأرض",
 practices:[["مائدة تدوم","زجاج وفخار وقطع جميلة نستخدمها مرة بعد مرة، بلا بلاستيك أحادي الاستخدام."],["صُنع قريباً منّا","نكهات محلية، وضيافة إماراتية، وقطع من صنع نساء الإمارات."],["هدايا تنمو أو تدوم","بذور وشتلات وقطع يدوية، أو لا شيء."],["بلا هدر","نشارك الفائض، ونعيد استخدام الزينة أو نستعيرها."],["دعوات رقمية","بلا طباعة. كل شيء في تطبيقنا."],["قريباً من الطبيعة","الحدائق والصحراء والساحل، متى ناسب."]],
 zayed:"«قبل المباني، كانت الغافة أول مجلس لنا.»",
-seasonPill:"هذا الموسم",soonTitle:"موسمنا الأول <em>قريباً</em>",soonText:"نحضّر لموسم من الجلسات الصغيرة والهادفة والمستدامة في أنحاء أبوظبي. انضمي إلى مجتمع التأسيس لتكوني من أوائل من يعرف. العضوية بالتقديم، ونقرأ كل طلب شخصياً.",
-s1t:"عرّفينا بنفسك",s1:"أخبرينا من أنتِ وما الذي يجذبك إلى The Hive.",s2t:"تحية شخصية",s2:"ستتواصل معك إحدى المضيفات لدردشة هادئة على القهوة.",s3t:"دعوتك الأولى",s3:"عضوات التأسيس أول من يُدعى عند افتتاح الموسم.",
-formTitle:"انضمي إلى مجتمع التأسيس",fName:"اسمك",fEmail:"البريد الإلكتروني",fPhone:"الهاتف",optional:"(اختياري)",fWhy:"ما الذي يجذبك إلى The Hive؟",fOk:"أوافق على أن تتواصل معي The Hive Society بخصوص مجتمع التأسيس.",fSend:"إرسال",orEmail:"تفضّلين البريد؟ راسلينا على",copy:"نسخ",copied:"تم النسخ",
-errReq:"أضيفي اسمك وبريداً إلكترونياً صحيحاً، وضعي علامة الموافقة لنتمكن من التواصل معك.",errSend:"لم يتم الإرسال. حاولي مرة أخرى، أو راسلينا على hello@thehivesociety.ae.",errNoDb:"الإرسال من هذه الصفحة غير متاح في هذا العرض. راسلينا على hello@thehivesociety.ae وسنرد عليك شخصياً.",
-doneT:"شكراً لكِ",doneP:"أصبحتِ في قائمة مجتمع التأسيس. سنتواصل معك شخصياً.",
-partEyebrow:"تعاون",partTitle:"لنصنع شيئاً <em>يستحق اللقاء</em>",partText:"نعمل كل موسم مع عدد محدود من العلامات التجارية والأماكن والمؤسسات الثقافية لاستضافة جلسات هادفة ومستدامة لنساء أبوظبي.",partContact:"استفسارات الشراكة",
+seasonPill:"هذا الموسم",soonTitle:"موسمنا الأول <em>قريباً</em>",soonText:"نحضّر لموسم من الجلسات الصغيرة والهادفة والمستدامة في أنحاء أبوظبي. انضم إلى مجتمع التأسيس لتكون من أوائل من يعرف. العضوية بالتقديم، ونقرأ كل طلب شخصياً.",
+s1t:"عرّفنا بنفسك",s1:"أخبرنا عن نفسك وما الذي يجذبك إلى The Hive.",s2t:"تحية شخصية",s2:"سنرسل إليك تحديثات العضوية واللقاءات عبر البريد الإلكتروني.",s3t:"دعوتك الأولى",s3:"أعضاء التأسيس أول من يتلقّى دعوات الموسم.",
+formTitle:"انضم إلى مجتمع التأسيس",fName:"اسمك",fEmail:"البريد الإلكتروني",fPhone:"الهاتف",optional:"(اختياري)",fWhy:"ما الذي يجذبك إلى The Hive؟",fOk:"أوافق على أن تتواصل معي The Hive Society بخصوص مجتمع التأسيس.",fSend:"إرسال",orEmail:"تفضّل البريد؟ راسلينا على",copy:"نسخ",copied:"تم النسخ",
+errReq:"أدخل الاسم والبريد الإلكتروني الصحيح ووافق على التواصل معنا.",errSend:"لم يتم الإرسال. حاول مرة أخرى، أو راسلينا على hello@thehivesociety.ae.",errNoDb:"الإرسال من هذه الصفحة غير متاح في هذا العرض. راسلينا على hello@thehivesociety.ae وسنرد عليك شخصياً.",
+doneT:"شكراً لك",doneP:"أُضيف طلبك إلى قائمة مجتمع التأسيس. سنتواصل معك شخصياً.",
+partEyebrow:"تعاون",partTitle:"لنصنع شيئاً <em>يستحق اللقاء</em>",partText:"نعمل كل موسم مع عدد محدود من العلامات التجارية والأماكن والمؤسسات الثقافية لاستضافة جلسات هادفة ومستدامة لأهل أبوظبي من الجميع.",partContact:"استفسارات الشراكة",
 footLine:"يدٌ واحدة، لأبوظبي.",footPlace:"أبوظبي، الإمارات العربية المتحدة",langBtn:"English",
-adminT:"طلبات مجتمع التأسيس",adminNone:"لا توجد طلبات بعد. ستظهر هنا عند انضمام النساء.",adminOnly:"هذه القائمة تظهر لكِ وللمحررين فقط.",
-askEyebrow:"مساحة لكِ",askTitle:"اكتشفي ما يناسبكِ في <em>The Hive</em>",askText:"ما تحبّينه قد يكون بداية لتجربة نتشاركها.",askPh:"أحب الفخار والصباحات الهادئة والتعرّف إلى نساء يهتممن بالأرض…",askNote:"الاقتراحات ليست حجوزات. موسمنا الأول قريباً، وتُقرأ طلبات العضوية شخصياً.",askLabel:"اهتماماتكِ",askSend:"اكتشفي ما يناسبكِ",askPrivacy:"هذه الميزة غير متاحة حالياً.",askResult:"طريقكِ إلى The Hive",askThinking:"نتأمل اهتماماتكِ",askJoin:"المتابعة إلى مجتمع التأسيس",askStopped:"تم الإيقاف. لا تزال اهتماماتكِ هنا.",askEmpty:"أخبرينا قليلاً عمّا تحبّينه.",askStop:"إيقاف",askComplete:"اقتراحاتكِ جاهزة.",
-askHi:"مرحباً! أنا مضيفة The Hive. اسأليني عن هويتنا، أو أسلوب The Hive، أو كيف تنضمين إلى مجتمع التأسيس.",askWait:"لحظة…",askErr:"لم أتمكن من الإجابة الآن. حاولي بعد قليل، أو راسلينا على hello@thehivesociety.ae.",
-askChips:["فنون وتراث","عافية وطبيعة","صداقة وانتماء"],askExamples:["أحب الفخار والخط العربي والتراث الإماراتي.","أحب الحركة الهادئة والصباحات البطيئة والمشي في الطبيعة.","أبحث عن صداقات حقيقية وأحاديث دافئة في دائرة صغيرة."]}
+adminT:"طلبات مجتمع التأسيس",adminNone:"لا توجد طلبات بعد. ستظهر هنا عند انضمام أشخاص جدد.",adminOnly:"هذه القائمة تظهر للمشرفين المصرّح لهم فقط."}
 };
 Object.assign(L.en,{
-navWhy:"Why we exist",whyEyebrow:"Why we exist",whyTitle:"Once, every woman had a majlis.",whyText:"A place to sit, share and be known. Today, Abu Dhabi has never had more events, yet many women still find it hard to meet people they truly connect with, whether they moved last month or grew up down the road. Most gatherings are big, rushed and forgettable, and many end with a bin full of plastic.",aboutLead:"So we’re bringing the majlis back.",navImpact:"Our impact",impactEyebrow:"Our impact",growthTitle:"What we grow together",growthIntro:"We measure success in friendships made, land cared for and local women supported.",growthFriendshipsTitle:"Friendships",growthFriendshipsText:"Every woman leaves a gathering knowing at least three new names, and many leave with a friend.",growthLandTitle:"The land",growthLandText:"Zero single-use plastic at every gathering, and something planted for Abu Dhabi every season.",growthWomenTitle:"Local women",growthWomenText:"Every gathering supports women makers, from the food on the table to the gifts we take home.",growthNote:"We’ll share our real numbers here after our first season.",
-chatMode:"Ask The Hive",interestMode:"Find my Hive",chatReset:"Start a fresh conversation",chatEyebrow:"A conversation with The Hive",chatTitle:"Ask <em>The Hive</em>",chatText:"A warm welcome starts with a conversation.",chatLabel:"Your question",chatPh:"How do I join? Can I come on my own?",chatSend:"Send question",chatPrivacy:"This feature is currently unavailable.",chatResult:"Our conversation",chatThinking:"Thinking",chatIdentity:"The Hive · AI guide",chatStopped:"Stopped. You can ask another question.",chatEmpty:"What would you like to know about The Hive?",chatComplete:"Answered",chatFull:"This conversation is full. Start a fresh conversation to ask more questions.",chatChips:["How do I join?","Can I come alone?","The Hive Way"],chatExamples:["How do I join the founding community?","I don't know anyone. Can I come on my own?","What makes a Hive gathering sustainable?"]
+ visionEyebrow:"A glimpse of what we imagine",visionTitle:"Gathering with <em>intention</em>",visionLead:"From a welcoming majlis to creative workshops and time outdoors — experiences rooted in Abu Dhabi.",visionCard1:"Culture & connection",visionCard2:"Creativity & heritage",visionCard3:"Nature & sustainability",visionNote:"Concept illustrations of possible future experiences, not photographs of past gatherings.",visionAlt1:"Illustrated vision of a welcoming Abu Dhabi majlis",visionAlt2:"Illustrated vision of a pottery and craft workshop",visionAlt3:"Illustrated vision of an Abu Dhabi nature gathering",
+ heroIntro:"An Abu Dhabi community for men and women of all nationalities. Discover meaningful, free gatherings inspired by creativity, cultural heritage and sustainability.",mixedKicker:"Open to everyone",mixedTitle:"Mixed-gender gatherings",mixedDesc:"Thoughtfully curated experiences where men and women gather together.",womenKicker:"Dedicated space",womenTitle:"Women-only gatherings",womenDesc:"Experiences thoughtfully created for women.",gatheringFreeNote:"Gatherings are free. Members can keep a place or join the waitlist when full.",
+navWhy:"Why we exist",whyEyebrow:"Why we exist",whyTitle:"Abu Dhabi has always known the art of gathering.",whyText:"Inspired by the warmth of the majlis, we bring people together through meaningful experiences, creativity, heritage and care for the land.",aboutLead:"So we’re bringing the majlis back.",navImpact:"Our impact",impactEyebrow:"Our impact",growthTitle:"What we grow together",growthIntro:"We measure success in friendships made, land cared for and local women supported.",growthFriendshipsTitle:"Friendships",growthFriendshipsText:"Our hope is that every guest leaves feeling more connected to Abu Dhabi and its people.",growthLandTitle:"The land",growthLandText:"Zero single-use plastic at every gathering, and something planted for Abu Dhabi every season.",growthWomenTitle:"Local women",growthWomenText:"Every gathering supports women makers, from the food on the table to the gifts we take home.",growthNote:"We’ll share our real numbers here after our first season.",
 });
 Object.assign(L.ar,{
-navWhy:"لماذا وُجدنا",whyEyebrow:"لماذا وُجدنا",whyTitle:"في الماضي، كان لكل امرأة مجلس.",whyText:"مكان تجلس فيه، وتشارك، ويعرفها الجميع. واليوم، لم تشهد أبوظبي هذا العدد من الفعاليات من قبل، ومع ذلك تجد كثير من النساء صعوبة في لقاء من يشعرن معهن بانسجام حقيقي، سواء وصلن الشهر الماضي أو نشأن في الحي نفسه. معظم اللقاءات كبيرة ومستعجلة وسريعة النسيان، وكثير منها ينتهي بسلة مليئة بالبلاستيك.",aboutLead:"لذلك نعيد المجلس من جديد.",navImpact:"أثرنا",impactEyebrow:"أثرنا",growthTitle:"ما نزرعه معاً",growthIntro:"نقيس نجاحنا بالصداقات التي تتكوّن، والأرض التي نعتني بها، والنساء المحليات اللواتي ندعمهن.",growthFriendshipsTitle:"صداقات",growthFriendshipsText:"تغادر كل امرأة الجلسة وهي تعرف ثلاثة أسماء جديدة على الأقل، وكثيرات يغادرن بصديقة.",growthLandTitle:"الأرض",growthLandText:"بلا بلاستيك أحادي الاستخدام في كل جلسة، ونزرع شيئاً لأبوظبي في كل موسم.",growthWomenTitle:"نساء محليات",growthWomenText:"كل جلسة تدعم نساء صانعات، من الضيافة على المائدة إلى الهدايا التي نأخذها معنا.",growthNote:"سنشارك أرقامنا الحقيقية هنا بعد موسمنا الأول.",
-chatMode:"اسألي The Hive",interestMode:"اكتشفي ما يناسبكِ",chatReset:"بدء محادثة جديدة",chatEyebrow:"حديث مع The Hive",chatTitle:"اسألي <em>The Hive</em>",chatText:"يبدأ الترحيب الدافئ بمحادثة.",chatLabel:"سؤالكِ",chatPh:"كيف أنضم؟ هل يمكنني الحضور وحدي؟",chatSend:"إرسال السؤال",chatPrivacy:"هذه الميزة غير متاحة حالياً.",chatResult:"محادثتنا",chatThinking:"نفكّر",chatIdentity:"The Hive · دليل بالذكاء الاصطناعي",chatStopped:"تم الإيقاف. يمكنكِ طرح سؤال آخر.",chatEmpty:"ما الذي تودّين معرفته عن The Hive؟",chatComplete:"تمت الإجابة",chatFull:"وصلت هذه المحادثة إلى حدّها. ابدئي محادثة جديدة لطرح المزيد من الأسئلة.",chatChips:["كيف أنضم؟","هل أحضر وحدي؟","أسلوب The Hive"],chatExamples:["كيف أنضم إلى مجتمع التأسيس؟","لا أعرف أحداً. هل يمكنني الحضور وحدي؟","ما الذي يجعل جلسات The Hive مستدامة؟"]
+ visionEyebrow:"لمحة عمّا نتخيّله",visionTitle:"لقاءات <em>بمعنى</em>",visionLead:"من مجلس دافئ إلى ورش إبداعية ولقاءات في الطبيعة — تجارب متجذّرة في أبوظبي.",visionCard1:"ثقافة وتواصل",visionCard2:"إبداع وتراث",visionCard3:"طبيعة واستدامة",visionNote:"رسوم تصوّر تجارب مستقبلية محتملة وليست صوراً للقاءات سابقة.",visionAlt1:"رسم تصوّري لمجلس ترحيبي في أبوظبي",visionAlt2:"رسم تصوّري لورشة فخار وحرف يدوية",visionAlt3:"رسم تصوّري للقاء في طبيعة أبوظبي",
+ heroIntro:"مجتمع في أبوظبي يجمع النساء والرجال من جميع الجنسيات من خلال لقاءات مجانية هادفة مستلهمة من الإبداع والتراث الثقافي والاستدامة.",mixedKicker:"للجميع",mixedTitle:"لقاءات مختلطة",mixedDesc:"تجارب منسّقة يجتمع فيها الرجال والنساء معاً.",womenKicker:"مساحة مخصّصة",womenTitle:"لقاءات للنساء فقط",womenDesc:"تجارب أُعدّت بعناية للنساء.",gatheringFreeNote:"جميع اللقاءات مجانية. يمكن للأعضاء حجز مكان أو الانضمام لقائمة الانتظار عند اكتمال العدد.",
+navWhy:"لماذا وُجدنا",whyEyebrow:"لماذا وُجدنا",whyTitle:"فنّ اللقاء متجذّر في أبوظبي.",whyText:"نستلهم دفء المجلس لنجمع الناس عبر تجارب هادفة وإبداع وتراث ثقافي واهتمام بالاستدامة.",aboutLead:"لذلك نعيد المجلس من جديد.",navImpact:"أثرنا",impactEyebrow:"أثرنا",growthTitle:"ما نزرعه معاً",growthIntro:"نقيس نجاحنا بالروابط التي تنشأ، والأرض التي نعتني بها، ودعم المبادرات المحلية.",growthFriendshipsTitle:"صداقات",growthFriendshipsText:"نأمل أن يغادر كل ضيف وهو يشعر بروابط أعمق مع أبوظبي وأهلها.",growthLandTitle:"الأرض",growthLandText:"بلا بلاستيك أحادي الاستخدام في كل جلسة، ونزرع شيئاً لأبوظبي في كل موسم.",growthWomenTitle:"نساء محليات",growthWomenText:"كل جلسة تدعم نساء صانعات، من الضيافة على المائدة إلى الهدايا التي نأخذها معنا.",growthNote:"سنشارك أرقامنا الحقيقية هنا بعد موسمنا الأول.",
 });
 let lang="en";try{lang=localStorage.getItem("hive.site.lang")||"en"}catch(e){}
 const t=k=>L[lang][k]??L.en[k];
@@ -777,101 +770,12 @@ function paint(){
   document.getElementById("langBtn").innerHTML=t("langBtn");
   document.getElementById("practices").innerHTML=t("practices").map(([b,s],i)=>`<li class="practice"><span class="pn">0${i+1}</span><span class="hexi"><svg class="frame" viewBox="0 0 64 64" aria-hidden="true"><polygon points="32,3 57,17.5 57,46.5 32,61 7,46.5 7,17.5" stroke="currentColor" stroke-width="1.3"/></svg><svg class="ic" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${ICONS[i]}"/></svg></span><span class="ptx"><b>${esc(b)}</b><span>${esc(s)}</span></span></li>`).join("");
   document.querySelectorAll("[data-ph]").forEach(el=>el.placeholder=t(el.dataset.ph));
+  document.querySelectorAll("[data-alt]").forEach(el=>el.alt=t(el.dataset.alt));
   document.getElementById("gcats").innerHTML=t("gcats").map(([h,d],i)=>`<div class="gcat"><span class="gi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${GICONS[i]}"/></svg></span><h3>${esc(h)}</h3><p>${esc(d)}</p></div>`).join("");
   document.getElementById("flowList").innerHTML=t("flow").map(([h,d],i)=>`<li><span class="ft"><span class="fn">${i+1}</span><span class="ln"></span></span><b>${esc(h)}</b><span class="d">${esc(d)}</span></li>`).join("");
   document.getElementById("faqList").innerHTML=t("faq").map(([q,a],i)=>`<details${i===0?" open":""}><summary>${esc(q)}<i aria-hidden="true">+</i></summary><p>${esc(a)}</p></details>`).join("");
-  drawChat();
-  document.getElementById("askStop").title=t("askStop");document.getElementById("askStop").setAttribute("aria-label",t("askStop"));
 }
-/* One page-session conversation; keep the separate interest recommendation mode. */
-let chat=[],busy=false,ctl=null,lastInterests="",askMode="chat",chatError="";
-const msgsEl=document.getElementById("msgs"),interestIn=document.getElementById("askIn");
-const modeText=(chatKey,interestKey)=>t(askMode==="chat"?chatKey:interestKey);
-function formatAnswer(text){
-  if(!window.marked||!window.DOMPurify)return esc(text).replace(/\n/g,"<br>");
-  return DOMPurify.sanitize(marked.parse(text,{breaks:true}),{ALLOWED_TAGS:["p","br","strong","em","ul","ol","li","blockquote","pre","code","h3","h4"],ALLOWED_ATTR:[]});
-}
-function drawChat(){
-  const bot=chat.at(-1),isChat=askMode==="chat",transcript=document.getElementById("chatTranscript");
-  document.getElementById("chatMode").setAttribute("aria-pressed",String(isChat));document.getElementById("interestMode").setAttribute("aria-pressed",String(!isChat));
-  document.getElementById("chatReset").title=t("chatReset");document.getElementById("chatReset").setAttribute("aria-label",t("chatReset"));
-  document.querySelector('[data-t="askEyebrow"]').textContent=modeText("chatEyebrow","askEyebrow");
-  document.querySelector('[data-t="askTitle"]').innerHTML=modeText("chatTitle","askTitle");
-  document.querySelector('[data-t="askText"]').textContent=modeText("chatText","askText");
-  document.querySelector('[data-t="askLabel"]').textContent=modeText("chatLabel","askLabel");
-  document.querySelector('[data-t="askPrivacy"]').textContent=modeText("chatPrivacy","askPrivacy");
-  document.querySelector('[data-t="askResult"]').textContent=modeText("chatResult","askResult");
-  interestIn.placeholder=modeText("chatPh","askPh");
-  const chips=modeText("chatChips","askChips");
-  document.getElementById("chips").innerHTML=chips.map((c,i)=>`<button type="button" class="btn ghost chip" data-interest="${i}"${busy?" disabled":""}>${esc(c)}</button>`).join("");
-  const submit=document.getElementById("askBtn");submit.disabled=busy;submit.title=modeText("chatSend","askSend");submit.setAttribute("aria-label",submit.title);
-  document.getElementById("askStop").hidden=!busy;
-  document.getElementById("askStatus").hidden=!(busy||bot?.stopped||bot?.done);
-  document.getElementById("askStatus").textContent=busy?t("askWait"):bot?.stopped?modeText("chatStopped","askStopped"):bot?.done?modeText("chatComplete","askComplete"):"";
-  document.getElementById("askError").hidden=!(chatError||bot?.error);document.getElementById("askError").textContent=chatError||bot?.error||"";
-  document.getElementById("chat").setAttribute("aria-busy",String(busy));
-  msgsEl.hidden=!chat.length;
-  transcript.hidden=!isChat;
-  if(isChat){
-    const atBottom=transcript.scrollHeight-transcript.scrollTop-transcript.clientHeight<70;
-    transcript.innerHTML=chat.map(message=>message.role==="user"?`<div class="chat-question" dir="auto">${esc(message.content)}</div>`:`<div class="chat-answer" dir="auto"><p class="chat-identity">${esc(t("chatIdentity"))}</p>${message.reasoning?`<details class="interest-reasoning"><summary>${esc(t("chatThinking"))}</summary><p>${esc(message.reasoning)}</p></details>`:""}<div>${message.content?formatAnswer(message.content):message.error||message.stopped?"":`<p class="chat-pending">${esc(t("askWait"))}</p>`}</div></div>`).join("");
-    if(atBottom)transcript.scrollTop=transcript.scrollHeight;
-  }
-  document.getElementById("recommendationText").hidden=isChat;
-  if(!isChat)document.getElementById("recommendationText").innerHTML=formatAnswer(bot?.content||"");
-  document.getElementById("askReasoning").hidden=isChat||!bot?.reasoning;
-  document.getElementById("reasoningText").textContent=bot?.reasoning||"";
-  document.getElementById("recommendJoin").hidden=!bot?.done;
-  document.getElementById("interestCount").textContent=interestIn.value.length+" / 600";
-}
-function resetConversation(focus=true){ctl?.abort();ctl=null;busy=false;chat=[];chatError="";lastInterests="";drawChat();if(focus)interestIn.focus({preventScroll:true})}
-for(const [id,mode] of [["chatMode","chat"],["interestMode","interests"]])document.getElementById(id).addEventListener("click",()=>{if(askMode===mode)return;askMode=mode;interestIn.value="";resetConversation()});
-document.getElementById("chatReset").addEventListener("click",()=>{interestIn.value="";resetConversation()});
-interestIn.addEventListener("input",()=>{document.getElementById("interestCount").textContent=interestIn.value.length+" / 600"});
-document.getElementById("chips").addEventListener("click",e=>{const b=e.target.closest("[data-interest]");if(b&&!busy){interestIn.value=modeText("chatExamples","askExamples")[Number(b.dataset.interest)];drawChat();interestIn.focus()}});
-const ASK_ENABLED=false; /* AI widgets disabled: no backend */
-document.getElementById("askForm").addEventListener("submit",e=>{e.preventDefault();if(ASK_ENABLED)ask(interestIn.value)});
-document.getElementById("askStop").addEventListener("click",()=>ctl?.abort());
-document.getElementById("recommendJoin").addEventListener("click",()=>{window.top.location.href="/auth?mode=signup"});
-async function ask(q){
-  if(busy)return;
-  q=q.trim();chatError="";
-  if(!q||q.length>600){chatError=modeText("chatEmpty","askEmpty");drawChat();interestIn.focus();return}
-  const isChat=askMode==="chat",history=[];
-  if(isChat){for(let i=0;i<chat.length;i+=2){const answer=chat[i+1];if(answer){history.push({role:"user",content:chat[i].content},{role:"assistant",content:answer.content||answer.error||(answer.stopped?t("chatStopped"):t("askErr"))})}}}
-  if(history.length>=40||history.reduce((n,m)=>n+m.content.length,0)+q.length>60000){chatError=t("chatFull");drawChat();return}
-  const bot={role:"assistant",content:"",reasoning:"",done:false,stopped:false,error:""};
-  if(isChat){chat.push({role:"user",content:q},bot);interestIn.value=""}else{lastInterests=q;chat=[bot];interestIn.value=q}
-  const payload=isChat?{messages:[...history,{role:"user",content:q}],lang}:{interests:lastInterests,lang};
-  busy=true;const controller=new AbortController();ctl=controller;drawChat();interestIn.focus({preventScroll:true});
-  const transcript=document.getElementById("chatTranscript");transcript.scrollTop=transcript.scrollHeight;
-  let terminal=false,reader;
-  const accept=line=>{
-    if(!line.trim()||ctl!==controller||terminal)return;
-    const event=JSON.parse(line);
-    if(event.type==="text")bot.content+=event.text;
-    else if(event.type==="reasoning")bot.reasoning+=event.text;
-    else if(event.type==="done"){bot.done=true;terminal=true}
-    else if(event.type==="stopped"){bot.stopped=true;terminal=true}
-    else if(event.type==="error"){bot.error=event.message;terminal=true}
-    drawChat();
-  };
-  try{
-    const response=await fetch(isChat?"/api/public/chat":"/api/public/recommendations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),signal:controller.signal});
-    if(!response.ok){const failure=await response.json();bot.error=failure.message||t("askErr");terminal=true;return}
-    if(!response.body)throw new Error("missing_stream");
-    reader=response.body.getReader();const decoder=new TextDecoder();let buffer="";
-    while(true){
-      const {value,done}=await reader.read();buffer+=decoder.decode(value,{stream:!done});
-      let split;while((split=buffer.indexOf("\n"))>=0){accept(buffer.slice(0,split));buffer=buffer.slice(split+1)}
-      if(terminal)break;
-      if(done){if(buffer.trim())accept(buffer);break}
-    }
-    if(!terminal)bot.error=t("askErr");
-  }catch(error){if(controller.signal.aborted)bot.stopped=true;else bot.error=t("askErr")}
-  finally{reader?.releaseLock();if(ctl===controller){busy=false;ctl=null;drawChat();if(document.activeElement===document.body||document.activeElement===interestIn||document.activeElement===document.getElementById("askStop"))interestIn.focus({preventScroll:true})}}
-}
-document.getElementById("langBtn").addEventListener("click",()=>{resetConversation(false);lang=lang==="en"?"ar":"en";try{localStorage.setItem("hive.site.lang",lang)}catch(e){}paint()});
+document.getElementById("langBtn").addEventListener("click",()=>{lang=lang==="en"?"ar":"en";try{localStorage.setItem("hive.site.lang",lang)}catch(e){}paint()});
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-copy]");if(!b)return;const txt=document.getElementById(b.dataset.copy).textContent;
   try{await navigator.clipboard.writeText(txt);b.textContent=t("copied");setTimeout(()=>{b.textContent=t("copy")},1600)}catch(err){const r=document.createRange();r.selectNodeContents(document.getElementById(b.dataset.copy));const s=getSelection();s.removeAllRanges();s.addRange(r)}});
 paint();

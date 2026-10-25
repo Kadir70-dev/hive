@@ -15,10 +15,19 @@ describe('public homepage', () => {
     expect(html).toContain('fetch("/api/backend/me",{credentials:"same-origin"');
   });
 
-  it('keeps the AI chat and recommendation widgets disabled', () => {
-    expect(html).toMatch(/<section id="ask"[^>]*\bhidden\b[^>]*display:none/);
-    expect(html).toContain('const ASK_ENABLED=false;');
-    expect(html).toContain('if(ASK_ENABLED)ask(interestIn.value)');
+  it('removes the member chat and AI conversation interface entirely', () => {
+    expect(html).not.toContain('id="ask"');
+    expect(html).not.toContain('id="chat"');
+    expect(html).not.toContain('/api/public/chat');
+    expect(html).not.toContain('drawChat()');
+  });
+
+  it('welcomes all nationalities and genders and distinguishes gathering access', () => {
+    expect(html).toContain('An Abu Dhabi community for men and women of all nationalities.');
+    expect(html).toContain('Mixed-gender gatherings');
+    expect(html).toContain('Women-only gatherings');
+    expect(html).not.toContain('For the women of Abu Dhabi');
+    expect(html).toContain('gatheringFreeNote');
   });
 
   it('sends Join to the sign-up form', () => {

@@ -267,3 +267,87 @@
 .hv-photo-layout .hv-avatar{width:112px;height:112px;border-radius:50%;object-fit:cover}
 .hv-avatar-sm{display:inline-block;width:44px!important;height:44px!important;margin-inline-end:10px;vertical-align:middle}
 @media (max-width:500px){.hv-photo-layout{flex-direction:column}}
+
+
+/* Meera's inclusive gathering categories — accessible filters and mobile layout. */
+.hv-filter-row{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:0}
+.hv-filter-chip{appearance:none;border:1px solid var(--hv-line2);border-radius:999px;padding:10px 18px;min-height:44px;background:var(--hv-paper);color:var(--hv-ink);font:600 .9rem var(--hv-sans);cursor:pointer;transition:background .2s,border-color .2s,color .2s}
+.hv-filter-chip:hover{background:var(--hv-sage-soft)}
+.hv-filter-chip[aria-pressed="true"]{background:var(--hv-sage);border-color:var(--hv-sage);color:var(--hv-paper)}
+.hv-filter-chip:focus-visible,.hv a:focus-visible,.hv button:focus-visible{outline:3px solid var(--hv-honey);outline-offset:3px}
+.hv-category-help{margin:0 0 8px}
+.hv-gathering-card{transition:box-shadow .2s,transform .2s}
+.hv-gathering-card:hover{box-shadow:0 22px 45px -35px rgba(31,26,20,.22)}
+.hv-gathering-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:14px}
+.hv-gathering-card .hv-actions{margin-top:20px}
+.hv-gathering-card .hv-actions .hv-btn{min-height:44px}
+@media(max-width:700px){
+  .hv-header{padding-inline:8px}
+  .hv-bar{border-radius:20px;gap:8px;padding:10px 12px}
+  .hv-nav{width:100%;justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;padding-bottom:3px;scrollbar-width:thin}
+  .hv-nav a,.hv-nav button{white-space:nowrap;flex-shrink:0;min-height:40px;display:inline-flex;align-items:center}
+  .hv-brand span:last-child{display:inline}
+  .hv-filter-row{gap:8px}
+  .hv-filter-chip{flex:1 1 auto;padding-inline:12px}
+  .hv-gathering-card .hv-actions .hv-btn{width:100%}
+}
+@media(prefers-reduced-motion:reduce){.hv-gathering-card,.hv-filter-chip{transition:none}}
+
+/* Bilingual registration: clear mobile-first form and keyboard-friendly tabs. */
+.hv-auth-layout{max-width:680px;margin:0 auto}
+.hv-auth-layout .hv-hero{padding-bottom:22px}
+.hv-auth-card{max-width:560px;margin-inline:auto;padding:clamp(22px,4vw,40px)}
+.hv-auth-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:5px;background:var(--hv-bg);border:1px solid var(--hv-line);border-radius:999px;margin-bottom:20px}
+.hv-auth-tab{border:0;border-radius:999px;background:transparent;color:var(--hv-muted);padding:12px;min-height:44px;font:600 .9rem var(--hv-sans);cursor:pointer}
+.hv-auth-tab[aria-pressed="true"]{background:var(--hv-sage);color:var(--hv-paper);box-shadow:0 5px 14px rgba(47,84,70,.12)}
+.hv-auth-privacy{margin:0 0 22px}
+.hv-auth-submit{width:100%;min-height:48px}
+.hv-auth-forgot{text-align:center;margin:0}
+@media(max-width:520px){.hv-auth-layout .hv-hero{padding-top:44px}.hv-auth-card{padding:22px 18px}}
+
+/* Informational partner directory — no external logo requests or sales CTAs. */
+.hv-partner-card{display:flex;align-items:flex-start;gap:clamp(14px,2.5vw,24px)}
+.hv-partner-mono{display:grid;place-items:center;flex:0 0 72px;width:72px;height:72px;border:1px solid var(--hv-line2);border-radius:20px;background:var(--hv-sage-soft);font:600 1.5rem var(--hv-sans);letter-spacing:.02em;color:var(--hv-sage-d)}
+.hv-partner-info{flex:1;min-width:0}
+.hv-partner-info h3{margin:0 0 10px}
+.hv-partner-link{display:inline-flex;align-items:center;gap:8px;font-weight:700;text-underline-offset:4px;min-height:44px}
+.hv-partner-card .hv-field-hint{margin:12px 0 0}
+@media(max-width:460px){.hv-partner-mono{flex-basis:54px;width:54px;height:54px;border-radius:15px;font-size:1.1rem}.hv-partner-card{gap:12px}}
+/* Admin tabs are horizontally scrollable on narrow screens and remain keyboard operable. */
+.hv-tabs{max-width:100%;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:thin}
+.hv-tabs button{white-space:nowrap;flex:0 0 auto;min-height:44px}
+.hv:lang(ar) input[type="email"],.hv:lang(ar) input[type="url"],.hv:lang(ar) input[type="tel"]{direction:ltr;text-align:left}
+.hv input,.hv textarea,.hv select{min-width:0;max-width:100%}
+.hv-pre{unicode-bidi:plaintext}
+@media(prefers-reduced-motion:reduce){.hv *{scroll-behavior:auto}}
+
+/* Accessible optional interests in the registration flow. */
+.hv-interest-fieldset{border:0;padding:0;margin:0;min-width:0}
+.hv-interest-fieldset legend{font-size:.92rem;font-weight:700;color:var(--hv-ink);margin-bottom:12px}
+.hv-interest-options{display:flex;flex-wrap:wrap;gap:9px}
+.hv-interest-chip{position:relative;display:inline-flex;align-items:center;font-size:.86rem;cursor:pointer;font-weight:600}
+.hv-interest-chip input{position:absolute;opacity:0;width:1px;height:1px}
+.hv-interest-chip span{display:inline-flex;align-items:center;min-height:44px;padding:9px 15px;border-radius:999px;background:var(--hv-paper);border:1px solid var(--hv-line2);color:var(--hv-ink);transition:background .2s,border-color .2s}
+.hv-interest-chip input:checked+span{background:var(--hv-sage-soft);border-color:var(--hv-sage);color:var(--hv-sage-d)}
+.hv-interest-chip input:focus-visible+span{outline:3px solid var(--hv-honey);outline-offset:3px}
+@media(max-width:520px){.hv-interest-options{gap:7px}.hv-interest-chip span{padding:9px 12px}}
+
+/* Accessible read-only signup attribution dashboard. */
+.hv-campaign-totals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:20px 0}
+.hv-campaign-totals>div{border:1px solid var(--hv-line);background:var(--hv-sage-soft);border-radius:16px;padding:18px}
+.hv-campaign-totals strong{font-size:clamp(1.5rem,4vw,2.4rem);display:block;line-height:1.25;font-variant-numeric:tabular-nums}
+.hv-table-scroll{max-width:100%;overflow-x:auto;scrollbar-width:thin}
+.hv-campaign-table{border-collapse:collapse;width:100%;min-width:560px;text-align:start}
+.hv-campaign-table th,.hv-campaign-table td{padding:12px;border-bottom:1px solid var(--hv-line);text-align:start;overflow-wrap:anywhere}
+.hv-campaign-table th{font-size:.82rem;color:var(--hv-muted);font-weight:700}
+.hv-campaign-table td{font-size:.92rem}
+@media(max-width:500px){.hv-campaign-totals{grid-template-columns:1fr}}
+
+/* Clear, accessible self-attestation for women-only gathering reservations. */
+.hv-reservation-action{display:flex;flex-direction:column;align-items:flex-start;gap:12px;max-width:100%}
+.hv-eligibility-check{padding:14px 16px;border:1px solid var(--hv-line2);border-radius:16px;background:var(--hv-sage-soft);line-height:1.5;max-width:100%;font-size:.9rem}
+.hv-eligibility-check input{flex:0 0 auto;width:20px;height:20px;accent-color:var(--hv-sage);cursor:pointer}
+.hv-eligibility-check span{font-weight:500;min-width:0}
+.hv-eligibility-check:focus-within{outline:3px solid var(--hv-honey);outline-offset:2px}
+.hv-reservation-action .hv-btn:disabled{cursor:not-allowed;opacity:.5}
+@media(max-width:640px){.hv-reservation-action{width:100%}.hv-reservation-action .hv-btn{width:100%}}

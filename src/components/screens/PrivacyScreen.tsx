@@ -1,5 +1,7 @@
 'use client';
 import Link from "next/link";
+import { useLang } from "@/lib/hive-i18n";
+import { arabicPrivacy } from "@/lib/hive-policy-ar";
 
 // DRAFT for owner and legal review. Every statement below describes how the
 // code in this repository actually behaves; items in [brackets] need an owner
@@ -8,7 +10,7 @@ const sections: { title: string; body: string[]; list?: string[] }[] = [
   {
     title: "Who we are",
     body: [
-      "The Hive Society is a members' community for women in Abu Dhabi, United Arab Emirates. [Legal entity name and registered address to be confirmed.] For anything about your information, email hello@thehivesociety.ae.",
+      "The Hive Society is a community for women and men of all nationalities in Abu Dhabi, United Arab Emirates. [Legal entity name and registered address to be confirmed.] For anything about your information, email hello@thehivesociety.ae.",
     ],
   },
   {
@@ -18,6 +20,7 @@ const sections: { title: string; body: string[]; list?: string[] }[] = [
       "Your first name and email address, and optionally a display name, phone number, area of Abu Dhabi and interests",
       "Your password, stored only as a one-way Argon2id hash that nobody, including us, can read",
       "Your membership status, when you confirmed your email address, and whether you want optional email updates",
+      "If you sign up through a campaign link: the optional UTM source, medium, campaign, content and term tags, linked to your account only for first-party aggregate reporting",
       "The gatherings you keep a place for or join the waitlist for, and attendance recorded by organisers",
       "Safety reports you send: the concern, an optional gathering, your description of the person involved and whether you asked not to be booked with them",
       "If you joined the earlier founding community list: your name, email, optional phone number, note and language",
@@ -34,12 +37,13 @@ const sections: { title: string; body: string[]; list?: string[] }[] = [
       "To send service emails: confirming your email, password resets, password-change notices, membership approval, booking confirmations, cancellations, waitlist promotions, and changes to or cancellation of gatherings you reserved",
       "To keep the community safe: our administrators review reports, may identify the member concerned from the gathering list, and can keep two members from being booked into the same gathering. The member concerned is never told who reported",
       "Announcements by email only if you switch on email updates in your profile; you can switch them off at any time",
+      "To count attributed signups only once the account email is verified and to show aggregate, admin-only campaign counts with no member identities",
     ],
   },
   {
     title: "Who can see it",
     body: [
-      "Other members cannot see your email address, phone number or the gatherings you attend; there is no member directory.",
+      "Other members cannot see your email address, phone number, attendee identity or the gatherings you attend; there is no member directory or member-to-member messaging.",
       "Only our administrators can see member details, to review applications and know who is coming to each gathering. Administrator access requires a confirmed email address and two-factor authentication.",
       "Partners listed on the site receive no member information.",
     ],
@@ -67,7 +71,7 @@ const sections: { title: string; body: string[]; list?: string[] }[] = [
     title: "Cookies and browser storage",
     body: [
       "We use one strictly necessary cookie, hive_session, to keep you signed in. It is not readable by page scripts and expires after 14 days or when you sign out.",
-      "Your browser remembers whether you chose English or Arabic. We use no analytics, advertising or tracking cookies.",
+      "Your browser remembers whether you chose English or Arabic. If you arrive through a link with UTM campaign tags, the browser stores only those allowlisted tags in per-tab session storage so they can be attached when you sign up. No third-party analytics script or advertising cookie is used by this feature. [Owner and counsel must approve this campaign-data disclosure before paid advertising.]",
     ],
   },
   {
@@ -75,6 +79,7 @@ const sections: { title: string; body: string[]; list?: string[] }[] = [
     body: ["We keep information only as long as it is needed:"],
     list: [
       "Your account and profile: until you delete your account",
+      "First-party campaign attribution tied to your account: until account deletion (it is removed with the account)",
       "Sign-in sessions: up to 14 days",
       "Email confirmation and password-reset links: valid for 24 hours and 30 minutes respectively, and deleted 7 days after they expire",
       "Email contents: erased once delivered; delivery records are deleted after 30 days",
@@ -107,7 +112,7 @@ const sections: { title: string; body: string[]; list?: string[] }[] = [
   },
   {
     title: "Age",
-    body: ["Membership and gatherings are for women aged 18 and over."],
+    body: ["Membership welcomes adults aged 18 and over of all nationalities and genders in Abu Dhabi. Women-only gatherings are specifically marked."],
   },
   {
     title: "Changes and contact",
@@ -119,8 +124,11 @@ const sections: { title: string; body: string[]; list?: string[] }[] = [
 ];
 
 function PrivacyPage() {
+  const { lang, setLang } = useLang();
+  const ar = lang === "ar";
+  const currentSections = ar ? arabicPrivacy : sections;
   return (
-    <div className="pv-page">
+    <div className="pv-page" lang={lang} dir={ar ? "rtl" : "ltr"}>
       <style>{`
         .pv-page{
           --pv-bg:#FBF8F1; --pv-paper:#FFFDF8; --pv-ink:#22201A; --pv-muted:#6B6558;
@@ -179,6 +187,12 @@ function PrivacyPage() {
         .pv-card ul{margin:0 0 10px; padding-left:1.2em; color:var(--pv-muted)}
         .pv-card li{margin-bottom:6px}
         .pv-card li::marker{color:var(--pv-sage)}
+        .pv-header-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+        .pv-header-actions button{cursor:pointer;font:inherit;border:0;background:transparent}
+        .pv-page[dir="rtl"]{font-family:"IBM Plex Sans Arabic","Manrope",sans-serif}
+        .pv-page[dir="rtl"] h1,.pv-page[dir="rtl"] h2{font-family:"Noto Naskh Arabic","IBM Plex Sans Arabic",serif;line-height:1.45}
+        .pv-page[dir="rtl"] .pv-card ul{padding-inline-start:1.2em;padding-left:0}
+        @media(max-width:520px){.pv-bar{flex-wrap:wrap;border-radius:24px}.pv-header-actions{width:100%;justify-content:space-between}.pv-hero{padding-top:40px}}
         .pv-footer{
           border-top:1px solid var(--pv-line); padding:32px 0 40px;
           text-align:center; color:var(--pv-muted); font-size:.85rem;
@@ -192,30 +206,22 @@ function PrivacyPage() {
           <Link href="/" className="pv-brand" aria-label="The Hive Society, home">
             The Hive Society
           </Link>
-          <Link href="/" className="pv-back">
-            Back to home
-          </Link>
+          <div className="pv-header-actions"><button type="button" className="pv-back" aria-label={ar ? "التبديل إلى الإنجليزية" : "Switch to Arabic"} onClick={() => setLang(ar ? "en" : "ar")}>{ar ? "English" : "العربية"}</button><Link href="/" className="pv-back">{ar ? "العودة للرئيسية" : "Back to home"}</Link></div>
         </div>
       </header>
 
       <main className="pv-wrap">
         <div className="pv-hero">
-          <span className="pv-eyebrow">Your privacy</span>
-          <h1>
-            Held with <em>care</em>, like everything we do
-          </h1>
-          <p>
-            This page explains, in plain words, what happens to the information you share with The
-            Hive Society when you join and take part.
-          </p>
+          <span className="pv-eyebrow">{ar ? "خصوصيتك" : "Your privacy"}</span>
+          <h1>{ar ? <>نحافظ على معلوماتك <em>بعناية</em></> : <>Held with <em>care</em>, like everything we do</>}</h1>
+          <p>{ar ? "توضح هذه الصفحة بلغة واضحة كيف نتعامل مع المعلومات التي تشاركها مع The Hive Society عند الانضمام والمشاركة." : "This page explains, in plain words, what happens to the information you share with The Hive Society when you join and take part."}</p>
           <p role="note" style={{ marginTop: 18, fontWeight: 600 }}>
-            Draft for review — not yet approved by The Hive Society or its legal advisers.
-            Last updated: October 2026 (draft).
+            {ar ? "مسودة للمراجعة — لم تعتمدها The Hive Society أو مستشاروها القانونيون بعد. آخر تحديث: أكتوبر ٢٠٢٦ (مسودة)." : "Draft for review — not yet approved by The Hive Society or its legal advisers. Last updated: October 2026 (draft)."}
           </p>
         </div>
 
         <div className="pv-body">
-          {sections.map((section) => (
+          {currentSections.map((section) => (
             <section className="pv-card" key={section.title}>
               <h2>{section.title}</h2>
               {section.body.map((paragraph) => (
@@ -238,7 +244,7 @@ function PrivacyPage() {
           <p>
             © 2026 The Hive Society ·{" "}
             <a href="mailto:hello@thehivesociety.ae">hello@thehivesociety.ae</a> ·{" "}
-            <Link href="/">Back to home</Link>
+            <Link href="/">{ar ? "العودة للرئيسية" : "Back to home"}</Link>
           </p>
         </div>
       </footer>

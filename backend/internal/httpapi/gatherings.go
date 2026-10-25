@@ -50,13 +50,20 @@ func (s *Server) keep(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	var input struct {
+		WomenOnlyAcknowledged bool `json:"womenOnlyAcknowledged"`
+	}
+	// Legacy clients with an empty body may still reserve mixed gatherings.
+	if r.ContentLength != 0 && !s.parse(w, r, &input) {
+		return
+	}
 	tx, err := s.db.BeginTx(r.Context(), nil)
 	if err != nil {
 		s.internal(w, r, "reservation failed", err)
 		return
 	}
 	defer tx.Rollback()
-	b, err := seats.Reserve(r.Context(), tx, id, own(r).ID)
+	b, err := seats.ReserveWithAttestation(r.Context(), tx, id, own(r).ID, input.WomenOnlyAcknowledged)
 	if err == nil && b.New {
 		err = s.notifyBooking(r.Context(), tx, id, own(r).ID, b.Status)
 	}
@@ -71,6 +78,8 @@ func (s *Server) keep(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, 404, "not_found", "gathering not found")
 	case errors.Is(err, seats.ErrNotEligible):
 		s.fail(w, r, 403, "approval_required", "approval required")
+	case errors.Is(err, seats.ErrWomenOnlyConfirmationRequired):
+		s.fail(w, r, 403, "women_only_confirmation_required", "confirm you meet this women-only gathering's eligibility before reserving")
 	case errors.Is(err, seats.ErrGatheringStarted):
 		s.fail(w, r, 409, "gathering_started", "this gathering has already started")
 	case errors.Is(err, seats.ErrRestricted):
@@ -191,6 +200,18 @@ func (s *Server) updateGathering(w http.ResponseWriter, r *http.Request) {
 		return
 	case err != nil:
 		s.internal(w, r, "update failed", err)
+		return
+	}
+	// A category switch could retroactively make existing bookings ineligible.
+	// Require the organiser to resolve existing seats before changing category.
+	var existingType string
+	var existingBookings int
+	if err = tx.QueryRowContext(r.Context(), `SELECT type, (SELECT count(*) FROM reservations WHERE gathering_id=$1) FROM gatherings WHERE id=$1`, id).Scan(&existingType, &existingBookings); err != nil {
+		s.internal(w, r, "update failed", err)
+		return
+	}
+	if existingType != v.Type && existingBookings > 0 {
+		s.fail(w, r, 409, "category_change_with_bookings", "cancel existing reservations before changing the gathering category")
 		return
 	}
 	var scheduleChanged bool
