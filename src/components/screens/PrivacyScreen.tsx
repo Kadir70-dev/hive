@@ -1,5 +1,7 @@
 'use client';
 import Link from "next/link";
+import { useLang } from "@/lib/hive-i18n";
+import { arabicPrivacy } from "@/lib/hive-policy-ar";
 
 // DRAFT for owner and legal review. Every statement below describes how the
 // code in this repository actually behaves; items in [brackets] need an owner
@@ -119,8 +121,11 @@ const sections: { title: string; body: string[]; list?: string[] }[] = [
 ];
 
 function PrivacyPage() {
+  const { lang, setLang } = useLang();
+  const ar = lang === "ar";
+  const currentSections = ar ? arabicPrivacy : sections;
   return (
-    <div className="pv-page">
+    <div className="pv-page" lang={lang} dir={ar ? "rtl" : "ltr"}>
       <style>{`
         .pv-page{
           --pv-bg:#FBF8F1; --pv-paper:#FFFDF8; --pv-ink:#22201A; --pv-muted:#6B6558;
@@ -179,6 +184,12 @@ function PrivacyPage() {
         .pv-card ul{margin:0 0 10px; padding-left:1.2em; color:var(--pv-muted)}
         .pv-card li{margin-bottom:6px}
         .pv-card li::marker{color:var(--pv-sage)}
+        .pv-header-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+        .pv-header-actions button{cursor:pointer;font:inherit;border:0;background:transparent}
+        .pv-page[dir="rtl"]{font-family:"IBM Plex Sans Arabic","Manrope",sans-serif}
+        .pv-page[dir="rtl"] h1,.pv-page[dir="rtl"] h2{font-family:"Noto Naskh Arabic","IBM Plex Sans Arabic",serif;line-height:1.45}
+        .pv-page[dir="rtl"] .pv-card ul{padding-inline-start:1.2em;padding-left:0}
+        @media(max-width:520px){.pv-bar{flex-wrap:wrap;border-radius:24px}.pv-header-actions{width:100%;justify-content:space-between}.pv-hero{padding-top:40px}}
         .pv-footer{
           border-top:1px solid var(--pv-line); padding:32px 0 40px;
           text-align:center; color:var(--pv-muted); font-size:.85rem;
@@ -192,30 +203,22 @@ function PrivacyPage() {
           <Link href="/" className="pv-brand" aria-label="The Hive Society, home">
             The Hive Society
           </Link>
-          <Link href="/" className="pv-back">
-            Back to home
-          </Link>
+          <div className="pv-header-actions"><button type="button" className="pv-back" aria-label={ar ? "التبديل إلى الإنجليزية" : "Switch to Arabic"} onClick={() => setLang(ar ? "en" : "ar")}>{ar ? "English" : "العربية"}</button><Link href="/" className="pv-back">{ar ? "العودة للرئيسية" : "Back to home"}</Link></div>
         </div>
       </header>
 
       <main className="pv-wrap">
         <div className="pv-hero">
-          <span className="pv-eyebrow">Your privacy</span>
-          <h1>
-            Held with <em>care</em>, like everything we do
-          </h1>
-          <p>
-            This page explains, in plain words, what happens to the information you share with The
-            Hive Society when you join and take part.
-          </p>
+          <span className="pv-eyebrow">{ar ? "خصوصيتك" : "Your privacy"}</span>
+          <h1>{ar ? <>نحافظ على معلوماتك <em>بعناية</em></> : <>Held with <em>care</em>, like everything we do</>}</h1>
+          <p>{ar ? "توضح هذه الصفحة بلغة واضحة كيف نتعامل مع المعلومات التي تشاركها مع The Hive Society عند الانضمام والمشاركة." : "This page explains, in plain words, what happens to the information you share with The Hive Society when you join and take part."}</p>
           <p role="note" style={{ marginTop: 18, fontWeight: 600 }}>
-            Draft for review — not yet approved by The Hive Society or its legal advisers.
-            Last updated: October 2026 (draft).
+            {ar ? "مسودة للمراجعة — لم تعتمدها The Hive Society أو مستشاروها القانونيون بعد. آخر تحديث: أكتوبر ٢٠٢٦ (مسودة)." : "Draft for review — not yet approved by The Hive Society or its legal advisers. Last updated: October 2026 (draft)."}
           </p>
         </div>
 
         <div className="pv-body">
-          {sections.map((section) => (
+          {currentSections.map((section) => (
             <section className="pv-card" key={section.title}>
               <h2>{section.title}</h2>
               {section.body.map((paragraph) => (
@@ -238,7 +241,7 @@ function PrivacyPage() {
           <p>
             © 2026 The Hive Society ·{" "}
             <a href="mailto:hello@thehivesociety.ae">hello@thehivesociety.ae</a> ·{" "}
-            <Link href="/">Back to home</Link>
+            <Link href="/">{ar ? "العودة للرئيسية" : "Back to home"}</Link>
           </p>
         </div>
       </footer>
