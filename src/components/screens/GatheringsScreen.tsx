@@ -23,15 +23,16 @@ export function gatheringCategory(type: string): Category {
 }
 
 function GatheringCard({ g, onChanged }: { g: Gathering; onChanged: (message: string, tone?: 'ok' | 'err') => void }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const [busy, setBusy] = useState(false);
+  const [eligible, setEligible] = useState(false);
   const [confirm, dialog] = useConfirm();
   const category = gatheringCategory(g.type);
   const categoryLabel = category === 'mixed' ? t.categoryMixed : category === 'women-only' ? t.categoryWomen : t.categoryOther;
   async function keep() {
     setBusy(true);
     try {
-      const r = await api<{ status: string }>(`/gatherings/${g.id}/keep`, { method: 'POST' });
+      const r = await api<{ status: string }>(`/gatherings/${g.id}/keep`, { method: 'POST', body: JSON.stringify({ womenOnlyAcknowledged: category === 'women-only' && eligible }) });
       onChanged(r.status === 'waitlist' ? t.waitlistedOk : t.bookedOk);
     } catch (e) { onChanged(e instanceof Error ? e.message : t.loadError, 'err'); } finally { setBusy(false); }
   }
@@ -58,7 +59,10 @@ function GatheringCard({ g, onChanged }: { g: Gathering; onChanged: (message: st
         <div className="hv-actions">
           {g.my_status
             ? <button type="button" className="hv-btn ghost" disabled={busy} onClick={() => void cancel()}>{g.my_status === 'waitlist' ? t.leaveWaitlist : t.cancelPlace}</button>
-            : <button type="button" className="hv-btn" disabled={busy} onClick={() => void keep()}>{g.places_left > 0 ? t.keepPlace : t.joinWaitlist}</button>}
+            : <div className="hv-reservation-action">
+                {category === 'women-only' && <label className="hv-check hv-eligibility-check"><input type="checkbox" checked={eligible} onChange={(event) => setEligible(event.target.checked)} /><span>{lang === 'ar' ? 'أؤكد أنني مؤهلة لحضور هذا اللقاء المخصّص للنساء فقط، وأفهم أن المضيف قد يتحقق من الالتزام بشروط اللقاء.' : 'I confirm I meet this women-only gathering’s eligibility and understand the host may check the gathering rules.'}</span></label>}
+                <button type="button" className="hv-btn" disabled={busy || (category === 'women-only' && !eligible)} onClick={() => void keep()}>{g.places_left > 0 ? t.keepPlace : t.joinWaitlist}</button>
+              </div>}
         </div>
       )}
       {dialog}
