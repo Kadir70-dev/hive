@@ -342,3 +342,12 @@
 .hv-campaign-table th{font-size:.82rem;color:var(--hv-muted);font-weight:700}
 .hv-campaign-table td{font-size:.92rem}
 @media(max-width:500px){.hv-campaign-totals{grid-template-columns:1fr}}
+
+/* Clear, accessible self-attestation for women-only gathering reservations. */
+.hv-reservation-action{display:flex;flex-direction:column;align-items:flex-start;gap:12px;max-width:100%}
+.hv-eligibility-check{padding:14px 16px;border:1px solid var(--hv-line2);border-radius:16px;background:var(--hv-sage-soft);line-height:1.5;max-width:100%;font-size:.9rem}
+.hv-eligibility-check input{flex:0 0 auto;width:20px;height:20px;accent-color:var(--hv-sage);cursor:pointer}
+.hv-eligibility-check span{font-weight:500;min-width:0}
+.hv-eligibility-check:focus-within{outline:3px solid var(--hv-honey);outline-offset:2px}
+.hv-reservation-action .hv-btn:disabled{cursor:not-allowed;opacity:.5}
+@media(max-width:640px){.hv-reservation-action{width:100%}.hv-reservation-action .hv-btn{width:100%}}
