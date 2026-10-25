@@ -59,7 +59,7 @@ export function AdminGatherings() {
         <summary>Add a gathering</summary>
         <form className="hv-stack" onSubmit={(e) => void create(e)}>
           <label>Title<input name="title" required maxLength={200} /></label>
-          <label>Category<input name="type" defaultValue="community" maxLength={60} /></label>
+          <label>Gathering category<select name="type" defaultValue="mixed" required><option value="mixed">Mixed-gender</option><option value="women-only">Women-only</option></select></label>
           <label>Description<textarea name="description" maxLength={5000} /></label>
           <label>Date<input type="date" name="startsOn" required /></label>
           <label>Time (Abu Dhabi)<input type="time" name="startsAt" required /></label>
@@ -79,7 +79,7 @@ export function AdminGatherings() {
             <h3>{g.title}</h3>
             <span className="hv-muted">{g.starts_on} · {g.starts_at.slice(0, 5)} · {g.place}{g.started ? ' · past' : ''}</span>
           </div>
-          <span className="hv-muted">{g.confirmed}/{g.capacity} confirmed · {g.waitlisted} waiting · {g.attended} attended</span>
+          <span className="hv-muted">{g.type === "mixed" ? "Mixed-gender" : g.type === "women-only" ? "Women-only" : `Unclassified: ${g.type}`} · Free · {g.confirmed}/{g.capacity} confirmed · {g.waitlisted} waiting · {g.attended} attended</span>
           <div className="hv-actions">
             <button className="hv-btn ghost sm" aria-expanded={roster === g.id} onClick={() => setRoster(roster === g.id ? '' : g.id)}>Roster & check-in</button>
             <button className="hv-btn ghost sm" aria-expanded={editing === g.id} onClick={() => setEditing(editing === g.id ? '' : g.id)}>Edit</button>
