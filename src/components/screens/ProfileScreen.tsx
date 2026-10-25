@@ -36,7 +36,7 @@ function MyGatherings() {
 
 /** Form state is seeded from `me` once; remounting (key) re-seeds after a reload of `me`. */
 function ProfileForm({ me }: { me: Me }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const qc = useQueryClient(), router = useRouter();
   const [notice, setNotice] = useState<{ message: string; tone: 'ok' | 'err' }>({ message: '', tone: 'ok' });
   const [busy, setBusy] = useState(false);
@@ -64,17 +64,17 @@ function ProfileForm({ me }: { me: Me }) {
   }
   return (
     <div className="hv-card">
-      <p>Membership status: <strong>{me.status}</strong></p>
-      <p>Email (private): {me.email}</p>
+      <p>{lang === "ar" ? "حالة العضوية" : "Membership status"}: <strong>{me.status === "approved" ? t.approved : me.status === "pending" ? t.pending : t.declined}</strong></p>
+      <p>{lang === "ar" ? "البريد الإلكتروني (خاص)" : "Email (private)"}: <span dir="ltr">{me.email}</span></p>
       <p className="hv-field-hint">{t.privateNote}</p>
       <form className="hv-stack" onSubmit={(e) => void save(e)}>
         <label>{t.firstName}<input required maxLength={60} value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" /></label>
-        <label>Display name<input maxLength={60} value={display} onChange={(e) => setDisplay(e.target.value)} /></label>
+        <label>{lang === "ar" ? "اسم العرض" : "Display name"}<input maxLength={60} value={display} onChange={(e) => setDisplay(e.target.value)} /></label>
         <label>{t.phone}
           <input type="tel" inputMode="tel" maxLength={20} pattern="\+?[0-9 ()\-]{7,20}" title="7 to 20 digits, e.g. +971 50 123 4567" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" />
         </label>
         <label>{t.area}<input maxLength={80} value={area} onChange={(e) => setArea(e.target.value)} /></label>
-        <label>Interests (comma separated, up to 10)<input value={interests} onChange={(e) => setInterests(e.target.value)} /></label>
+        <label>{lang === "ar" ? "الاهتمامات (مفصولة بفواصل، حتى ١٠)" : "Interests (comma separated, up to 10)"}<input value={interests} onChange={(e) => setInterests(e.target.value)} /></label>
         <label className="hv-check">
           <input type="checkbox" checked={updates} onChange={(e) => setUpdates(e.target.checked)} aria-describedby="updates-hint" />
           <span>{t.emailUpdatesLabel}<br /><span id="updates-hint" className="hv-field-hint">{t.emailUpdatesHint}</span></span>
@@ -85,10 +85,10 @@ function ProfileForm({ me }: { me: Me }) {
       <hr />
       {!deleting ? <button className="hv-btn ghost" onClick={() => setDeleting(true)}>{t.deleteTitle}</button> : (
         <form className="hv-stack" onSubmit={(e) => void del(e)} aria-label={t.deleteTitle}>
-          <p>{t.deleteText} Enter your password to confirm.</p>
-          <label>Password<input name="password" type="password" required autoComplete="current-password" /></label>
+          <p>{t.deleteText} {lang === "ar" ? "أدخل كلمة المرور للتأكيد." : "Enter your password to confirm."}</p>
+          <label>{lang === "ar" ? "كلمة المرور" : "Password"}<input name="password" type="password" required autoComplete="current-password" /></label>
           <div className="hv-actions">
-            <button className="hv-btn danger" disabled={busy}>Delete permanently</button>
+            <button className="hv-btn danger" disabled={busy}>{lang === "ar" ? "حذف نهائي" : "Delete permanently"}</button>
             <button type="button" className="hv-btn ghost" onClick={() => setDeleting(false)}>{t.keep}</button>
           </div>
         </form>
@@ -98,11 +98,11 @@ function ProfileForm({ me }: { me: Me }) {
 }
 
 function ProfileBody() {
-  const { t } = useT();
+  const { t, lang } = useT();
   const { data: me, isLoading } = useMe();
   return (
     <>
-      <div className="hv-hero"><h1>{t.profile}</h1><p>Your personal details are visible to admins only.</p></div>
+      <div className="hv-hero"><h1>{t.profile}</h1><p>{lang === "ar" ? "بياناتك الشخصية لا تظهر إلا للمشرفين المصرّح لهم." : "Your personal details are visible to authorised admins only."}</p></div>
       {isLoading && <Loading label={t.loading} />}
       {me && <div className="hv-stack"><ProfilePhoto me={me} /><MyGatherings /><ProfileForm key={me.id} me={me} /></div>}
     </>
