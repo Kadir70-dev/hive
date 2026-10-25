@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
 import { ApiError, send } from '@/lib/hive-api';
 import { HiveShell, useT } from '@/components/hive/HiveShell';
+import { INTERESTS } from '@/lib/hive-i18n';
 
 const COPY = {
   en: {
@@ -20,6 +21,8 @@ const COPY = {
     resendOk: 'If that address needs confirming, a new link is on its way.',
     unable: 'Unable to continue', unableSend: 'Unable to send',
     private: 'Your contact details are private. Applications are reviewed before membership approval.',
+    interests: 'Interests (optional)', photoLater: 'You can add a private profile photo after joining.',
+    interestNames: ['Wellness', 'Majlis', 'Culture & heritage', 'Nature & walks', 'Social gatherings'],
   },
   ar: {
     joinTitle: 'انضم إلى The Hive Society', welcomeTitle: 'أهلاً بعودتك',
@@ -34,6 +37,8 @@ const COPY = {
     resendOk: 'إذا كان البريد يحتاج إلى تأكيد فسيصل إليه رابط جديد.',
     unable: 'تعذّر المتابعة', unableSend: 'تعذّر الإرسال',
     private: 'بيانات الاتصال خاصة. تتم مراجعة الطلبات قبل الموافقة على العضوية.',
+    interests: 'الاهتمامات (اختياري)', photoLater: 'يمكنك إضافة صورة خاصة لملفك بعد الانضمام.',
+    interestNames: ['العافية', 'المجلس', 'الثقافة والتراث', 'الطبيعة والتجوال', 'اللقاءات الاجتماعية'],
   },
 } as const;
 
@@ -56,7 +61,7 @@ function AuthBody() {
         await send('/signup', {
           email, password, firstName: String(f.get('first_name') || '').trim(),
           displayName: String(f.get('display_name') || '').trim(), phone: String(f.get('phone') || '').trim(),
-          interests: [], area: '',
+          interests: f.getAll('interest').map(String), area: '',
         });
         setSentTo(email);
         return;
@@ -100,6 +105,8 @@ function AuthBody() {
             <label>{t.firstName} *<input name="first_name" required maxLength={60} autoComplete="given-name" /></label>
             <label>{t.displayName}<input name="display_name" maxLength={60} autoComplete="nickname" /></label>
             <label>{t.phone}<input name="phone" type="tel" inputMode="tel" maxLength={30} autoComplete="tel" /></label>
+            <fieldset className="hv-interest-fieldset"><legend>{t.interests}</legend><div className="hv-interest-options">{INTERESTS.map((item, index) => <label className="hv-interest-chip" key={item}><input type="checkbox" name="interest" value={item} /><span>{t.interestNames[index]}</span></label>)}</div></fieldset>
+            <p className="hv-field-hint">{t.photoLater}</p>
           </>}
           <label>{t.email} *<input name="email" required type="email" inputMode="email" autoComplete="email" defaultValue={unverified} /></label>
           <label>{t.password} *<input name="password" required type="password" minLength={signup ? 12 : 1} autoComplete={signup ? 'new-password' : 'current-password'} /></label>
