@@ -15,7 +15,7 @@ const sections: { title: string; body: string[] }[] = [
   {
     title: "Membership",
     body: [
-      "Membership welcomes adults of all nationalities, women and men, in Abu Dhabi. You need a confirmed email address and approval from our team before booking. Applying does not guarantee approval.",
+      "Membership welcomes adults aged 18 and over of all nationalities, women and men, in Abu Dhabi. You need a confirmed email address and approval from our team before booking. Applying does not guarantee approval.",
       "Membership and gatherings are free at launch. If that changes, we will tell members before any charge applies.",
     ],
   },
