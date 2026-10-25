@@ -107,7 +107,7 @@ const sections: { title: string; body: string[]; list?: string[] }[] = [
   },
   {
     title: "Age",
-    body: ["Membership and gatherings are for women aged 18 and over."],
+    body: ["Membership welcomes adults aged 18 and over of all nationalities and genders in Abu Dhabi. Women-only gatherings are specifically marked."],
   },
   {
     title: "Changes and contact",
