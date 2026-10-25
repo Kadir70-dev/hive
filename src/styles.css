@@ -331,3 +331,14 @@
 .hv-interest-chip input:checked+span{background:var(--hv-sage-soft);border-color:var(--hv-sage);color:var(--hv-sage-d)}
 .hv-interest-chip input:focus-visible+span{outline:3px solid var(--hv-honey);outline-offset:3px}
 @media(max-width:520px){.hv-interest-options{gap:7px}.hv-interest-chip span{padding:9px 12px}}
+
+/* Accessible read-only signup attribution dashboard. */
+.hv-campaign-totals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:20px 0}
+.hv-campaign-totals>div{border:1px solid var(--hv-line);background:var(--hv-sage-soft);border-radius:16px;padding:18px}
+.hv-campaign-totals strong{font-size:clamp(1.5rem,4vw,2.4rem);display:block;line-height:1.25;font-variant-numeric:tabular-nums}
+.hv-table-scroll{max-width:100%;overflow-x:auto;scrollbar-width:thin}
+.hv-campaign-table{border-collapse:collapse;width:100%;min-width:560px;text-align:start}
+.hv-campaign-table th,.hv-campaign-table td{padding:12px;border-bottom:1px solid var(--hv-line);text-align:start;overflow-wrap:anywhere}
+.hv-campaign-table th{font-size:.82rem;color:var(--hv-muted);font-weight:700}
+.hv-campaign-table td{font-size:.92rem}
+@media(max-width:500px){.hv-campaign-totals{grid-template-columns:1fr}}
