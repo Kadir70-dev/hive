@@ -1,4 +1,4 @@
-import Link from "next/link";
+import TermsClient from '@/components/screens/TermsClient';
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Terms of Membership", description: "The terms for The Hive Society membership (draft for review)." };
@@ -66,23 +66,4 @@ const sections: { title: string; body: string[] }[] = [
   },
 ];
 
-export default function Terms() {
-  return (
-    <main className="hv hv-wrap">
-      <article className="hv-card" style={{ marginTop: 60 }}>
-        <h1>Terms of Membership</h1>
-        <p role="note"><strong>Draft for review — not yet approved by The Hive Society or its legal advisers. Not legal advice.</strong> Last updated: October 2026 (draft).</p>
-        {sections.map((s) => (
-          <section key={s.title}>
-            <h2>{s.title}</h2>
-            {s.body.map((p) => <p key={p}>{p}</p>)}
-          </section>
-        ))}
-        <p>
-          See also the <Link href="/guidelines">Community Guidelines</Link> and <Link href="/privacy">Privacy Policy</Link>.{" "}
-          <Link href="/">Back to home</Link>
-        </p>
-      </article>
-    </main>
-  );
-}
+export default function Terms() { return <TermsClient english={sections} />; }
