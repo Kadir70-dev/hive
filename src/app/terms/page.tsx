@@ -29,7 +29,7 @@ const sections: { title: string; body: string[] }[] = [
   {
     title: "Gatherings, places and the waitlist",
     body: [
-      "Gatherings are labelled as mixed-gender or women-only. Check the category before reserving. Each gathering has limited places; when full, the earliest person on the waitlist is promoted automatically if a place opens.",
+      "Gatherings are labelled as mixed-gender or women-only. Check the category before reserving. To reserve a women-only place you must confirm that you meet its eligibility requirements; this is your declaration and is not identity verification. Our hosts may review adherence to gathering rules. Each gathering has limited places; when full, the earliest person on the waitlist is promoted automatically if a place opens.",
       "If you can no longer attend, please cancel so the next person can take your place. Places cannot be booked once a gathering has started.",
       "We may change or cancel a gathering; members with a place or on the waitlist are emailed when the date, time or venue changes, or when it is cancelled.",
     ],
