@@ -16,6 +16,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 // Reservation statuses.
@@ -35,6 +36,9 @@ var (
 	// ErrRestricted: a block exists between this member and someone already
 	// booked. Callers must not reveal who; the message stays generic.
 	ErrRestricted = errors.New("gathering not available to this member")
+	// ErrWomenOnlyConfirmationRequired prevents booking women-only places without
+	// an explicit, per-reservation eligibility self-attestation.
+	ErrWomenOnlyConfirmationRequired = errors.New("women-only eligibility confirmation required")
 )
 
 // CapacityError is returned when a new capacity is below the confirmed seats.
@@ -61,12 +65,13 @@ type Querier interface {
 type gathering struct {
 	capacity int
 	started  bool
+	typ      string
 }
 
 func lockGathering(ctx context.Context, q Querier, gatheringID string) (gathering, error) {
 	var g gathering
-	err := q.QueryRowContext(ctx, `SELECT capacity, ((starts_on + starts_at) AT TIME ZONE '`+timeZone+`') <= now()
-FROM gatherings WHERE id=$1 FOR UPDATE`, gatheringID).Scan(&g.capacity, &g.started)
+	err := q.QueryRowContext(ctx, `SELECT capacity, ((starts_on + starts_at) AT TIME ZONE '`+timeZone+`') <= now(), type
+FROM gatherings WHERE id=$1 FOR UPDATE`, gatheringID).Scan(&g.capacity, &g.started, &g.typ)
 	if errors.Is(err, sql.ErrNoRows) {
 		return g, ErrGatheringNotFound
 	}
@@ -138,6 +143,13 @@ func SetCapacity(ctx context.Context, q Querier, gatheringID string, capacity in
 	return fill(ctx, q, gatheringID, g)
 }
 
+// isWomenOnly recognises historical spellings as well as the current category.
+func isWomenOnly(typ string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(typ))
+	normalized = strings.NewReplacer(" ", "-", "_", "-").Replace(normalized)
+	return normalized == "women-only" || normalized == "women" || normalized == "womenonly"
+}
+
 // Booking is the outcome of Reserve.
 type Booking struct {
 	Status   string      // Confirmed or Waitlist
@@ -149,6 +161,13 @@ type Booking struct {
 // waitlisted members are always served first, so a new request can never
 // bypass the queue. If a reservation already exists its status is returned.
 func Reserve(ctx context.Context, q Querier, gatheringID, userID string) (Booking, error) {
+	return ReserveWithAttestation(ctx, q, gatheringID, userID, false)
+}
+
+// ReserveWithAttestation requires explicit self-attestation for women-only
+// gatherings. It does not assert that a member\'s identity or gender was verified.
+// The member lock is taken before the gathering lock, preserving FIFO lock order.
+func ReserveWithAttestation(ctx context.Context, q Querier, gatheringID, userID string, womenOnlyAcknowledged bool) (Booking, error) {
 	var memberStatus string
 	var isAdmin bool
 	err := q.QueryRowContext(ctx, `SELECT status, is_admin FROM users WHERE id=$1 FOR SHARE`, userID).Scan(&memberStatus, &isAdmin)
@@ -175,6 +194,9 @@ func Reserve(ctx context.Context, q Querier, gatheringID, userID string) (Bookin
 	}
 	if g.started {
 		return Booking{}, ErrGatheringStarted
+	}
+	if isWomenOnly(g.typ) && !womenOnlyAcknowledged {
+		return Booking{}, ErrWomenOnlyConfirmationRequired
 	}
 	// Blocks apply in both directions. Checked under the gathering lock, so two
 	// blocked members booking at the same moment cannot both get in.
