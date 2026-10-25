@@ -111,14 +111,19 @@ func (s *Server) signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var v struct {
-		Email, Password, FirstName, Phone, Area, DisplayName string
-		Interests                                            []string
+		Email        string
+		Password     string
+		FirstName    string
+		Phone        string
+		Area         string
+		DisplayName  string
+		Interests    []string
 		EmailUpdates bool
-		UTMSource string `json:"utmSource"`
-		UTMMedium string `json:"utmMedium"`
-		UTMCampaign string `json:"utmCampaign"`
-		UTMContent string `json:"utmContent"`
-		UTMTerm string `json:"utmTerm"`
+		UTMSource    string `json:"utmSource"`
+		UTMMedium    string `json:"utmMedium"`
+		UTMCampaign  string `json:"utmCampaign"`
+		UTMContent   string `json:"utmContent"`
+		UTMTerm      string `json:"utmTerm"`
 	}
 	if !s.parse(w, r, &v) {
 		return
