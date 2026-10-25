@@ -304,3 +304,19 @@
 .hv-auth-submit{width:100%;min-height:48px}
 .hv-auth-forgot{text-align:center;margin:0}
 @media(max-width:520px){.hv-auth-layout .hv-hero{padding-top:44px}.hv-auth-card{padding:22px 18px}}
+
+/* Informational partner directory — no external logo requests or sales CTAs. */
+.hv-partner-card{display:flex;align-items:flex-start;gap:clamp(14px,2.5vw,24px)}
+.hv-partner-mono{display:grid;place-items:center;flex:0 0 72px;width:72px;height:72px;border:1px solid var(--hv-line2);border-radius:20px;background:var(--hv-sage-soft);font:600 1.5rem var(--hv-sans);letter-spacing:.02em;color:var(--hv-sage-d)}
+.hv-partner-info{flex:1;min-width:0}
+.hv-partner-info h3{margin:0 0 10px}
+.hv-partner-link{display:inline-flex;align-items:center;gap:8px;font-weight:700;text-underline-offset:4px;min-height:44px}
+.hv-partner-card .hv-field-hint{margin:12px 0 0}
+@media(max-width:460px){.hv-partner-mono{flex-basis:54px;width:54px;height:54px;border-radius:15px;font-size:1.1rem}.hv-partner-card{gap:12px}}
+/* Admin tabs are horizontally scrollable on narrow screens and remain keyboard operable. */
+.hv-tabs{max-width:100%;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:thin}
+.hv-tabs button{white-space:nowrap;flex:0 0 auto;min-height:44px}
+.hv:lang(ar) input[type="email"],.hv:lang(ar) input[type="url"],.hv:lang(ar) input[type="tel"]{direction:ltr;text-align:left}
+.hv input,.hv textarea,.hv select{min-width:0;max-width:100%}
+.hv-pre{unicode-bidi:plaintext}
+@media(prefers-reduced-motion:reduce){.hv *{scroll-behavior:auto}}
