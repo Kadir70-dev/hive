@@ -11,10 +11,23 @@ export type Gathering = {
   places_left: number; my_status: '' | 'confirmed' | 'waitlist'; waitlist_position: number; started: boolean;
 };
 
+type Category = 'mixed' | 'women-only' | 'other';
+type Filter = 'all' | Exclude<Category, 'other'>;
+
+/** Legacy catalogue labels remain visible as "Other" until admins classify them. */
+export function gatheringCategory(type: string): Category {
+  const value = type.toLowerCase().trim().replace(/[ _]/g, '-');
+  if (value === 'mixed' || value === 'mixed-gender' || value === 'mixed-gathering') return 'mixed';
+  if (value === 'women-only' || value === 'women' || value === 'womenonly') return 'women-only';
+  return 'other';
+}
+
 function GatheringCard({ g, onChanged }: { g: Gathering; onChanged: (message: string, tone?: 'ok' | 'err') => void }) {
   const { t } = useT();
   const [busy, setBusy] = useState(false);
   const [confirm, dialog] = useConfirm();
+  const category = gatheringCategory(g.type);
+  const categoryLabel = category === 'mixed' ? t.categoryMixed : category === 'women-only' ? t.categoryWomen : t.categoryOther;
   async function keep() {
     setBusy(true);
     try {
@@ -31,18 +44,21 @@ function GatheringCard({ g, onChanged }: { g: Gathering; onChanged: (message: st
   }
   const status = g.my_status === 'confirmed' ? t.statusConfirmed : g.my_status === 'waitlist' ? fill(t.statusWaitlist, { n: g.waitlist_position }) : '';
   return (
-    <article className="hv-card" aria-busy={busy}>
-      <span className="hv-pill">{g.type}</span>
+    <article className="hv-card hv-gathering-card" aria-busy={busy}>
+      <div className="hv-gathering-meta">
+        <span className="hv-pill">{categoryLabel}</span>
+        <span className="hv-pill grey">{t.categoryFree}</span>
+      </div>
       <h3>{g.title}</h3>
-      <p>{g.starts_on} · {g.starts_at.slice(0, 5)} · {g.place}</p>
+      <p className="hv-muted">{g.starts_on} · {g.starts_at.slice(0, 5)} · {g.place}</p>
       {g.description && <p className="hv-pre">{g.description}</p>}
       {status ? <p><span className={`hv-pill${g.my_status === 'waitlist' ? ' honey' : ''}`}>{status}</span></p>
         : <p className="hv-muted">{g.places_left > 0 ? fill(t.placesLeftN, { n: g.places_left }) : t.fullWaitlist}</p>}
       {g.started ? <p className="hv-muted">{t.started}</p> : (
         <div className="hv-actions">
           {g.my_status
-            ? <button className="hv-btn ghost" disabled={busy} onClick={() => void cancel()}>{g.my_status === 'waitlist' ? t.leaveWaitlist : t.cancelPlace}</button>
-            : <button className="hv-btn" disabled={busy} onClick={() => void keep()}>{g.places_left > 0 ? t.keepPlace : t.joinWaitlist}</button>}
+            ? <button type="button" className="hv-btn ghost" disabled={busy} onClick={() => void cancel()}>{g.my_status === 'waitlist' ? t.leaveWaitlist : t.cancelPlace}</button>
+            : <button type="button" className="hv-btn" disabled={busy} onClick={() => void keep()}>{g.places_left > 0 ? t.keepPlace : t.joinWaitlist}</button>}
         </div>
       )}
       {dialog}
@@ -56,10 +72,12 @@ export default function GatheringsScreen() {
 }
 
 function GatheringsBody({ approved, known }: { approved: boolean; known: boolean }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const qc = useQueryClient();
+  const [filter, setFilter] = useState<Filter>('all');
   const [notice, setNotice] = useState<{ message: string; tone: 'ok' | 'err' }>({ message: '', tone: 'ok' });
   const { data: items = [], isLoading, error, refetch } = useQuery({ queryKey: ['gatherings'], queryFn: () => api<Gathering[]>('/gatherings'), enabled: approved });
+  const shown = items.filter((g) => filter === 'all' || gatheringCategory(g.type) === filter);
   function changed(message: string, tone: 'ok' | 'err' = 'ok') {
     setNotice({ message, tone });
     void qc.invalidateQueries({ queryKey: ['gatherings'] });
@@ -70,11 +88,21 @@ function GatheringsBody({ approved, known }: { approved: boolean; known: boolean
       <div className="hv-hero"><RichTitle text={t.gTitle} /><p>{t.gLead}</p></div>
       {!known ? <Loading label={t.loading} /> : !approved ? <div className="hv-card">{t.gAwaiting}</div> : (
         <div className="hv-stack">
+          <div className="hv-filter-row" role="group" aria-label={lang === 'ar' ? 'تصفية اللقاءات' : 'Filter gatherings'}>
+            {([
+              ['all', t.categoryAll],
+              ['mixed', t.categoryMixed],
+              ['women-only', t.categoryWomen],
+            ] as const).map(([value, label]) => (
+              <button key={value} type="button" className="hv-filter-chip" aria-pressed={filter === value} onClick={() => setFilter(value)}>{label}</button>
+            ))}
+          </div>
+          <p className="hv-field-hint hv-category-help">{t.categoryHelp}</p>
           <Notice message={notice.message} tone={notice.tone} />
           {isLoading && <Loading label={t.loading} />}
           {error && <ErrorNote message={t.loadError} onRetry={() => void refetch()} retryLabel={t.retry} />}
-          {!isLoading && !error && items.length === 0 && <Empty>{t.gNone}</Empty>}
-          {items.map((g) => <GatheringCard key={g.id} g={g} onChanged={changed} />)}
+          {!isLoading && !error && shown.length === 0 && <Empty>{t.gNone}</Empty>}
+          {shown.map((g) => <GatheringCard key={g.id} g={g} onChanged={changed} />)}
         </div>
       )}
     </>
