@@ -9,12 +9,14 @@ import { AdminAnnouncements } from '@/components/admin/AdminAnnouncements';
 import { AdminPartners } from '@/components/admin/AdminPartners';
 import { AdminReports } from '@/components/admin/AdminReports';
 import { AdminSafetyConflicts } from '@/components/admin/AdminSafetyConflicts';
+import { AdminCampaigns } from '@/components/admin/AdminCampaigns';
 
 const TABS = [
   ['members', 'Members', AdminMembers],
   ['gatherings', 'Gatherings', AdminGatherings],
   ['announcements', 'Announcements', AdminAnnouncements],
   ['partners', 'Partners', AdminPartners],
+  ['campaigns', 'Signups', AdminCampaigns],
   ['reports', 'Reports', AdminReports],
   ['safety-conflicts', 'Safety conflicts', AdminSafetyConflicts],
 ] as const;
@@ -40,7 +42,7 @@ export function AdminTools() {
     tabRefs.current[next]?.focus();
   }
   const Panel = TABS.find(([id]) => id === tab)![2];
-  const arLabels: Record<(typeof TABS)[number][0], string> = { members: 'الأعضاء', gatherings: 'اللقاءات', announcements: 'الإعلانات', partners: 'الشركاء', reports: 'البلاغات', 'safety-conflicts': 'تعارضات السلامة' };
+  const arLabels: Record<(typeof TABS)[number][0], string> = { members: 'الأعضاء', gatherings: 'اللقاءات', announcements: 'الإعلانات', partners: 'الشركاء', campaigns: 'مصادر التسجيل', reports: 'البلاغات', 'safety-conflicts': 'تعارضات السلامة' };
   return (
     <div className="hv-card">
       <div className="hv-tabs" role="tablist" aria-label={lang === "ar" ? "أقسام الإدارة" : "Admin sections"}>
