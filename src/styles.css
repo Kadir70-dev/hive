@@ -320,3 +320,14 @@
 .hv input,.hv textarea,.hv select{min-width:0;max-width:100%}
 .hv-pre{unicode-bidi:plaintext}
 @media(prefers-reduced-motion:reduce){.hv *{scroll-behavior:auto}}
+
+/* Accessible optional interests in the registration flow. */
+.hv-interest-fieldset{border:0;padding:0;margin:0;min-width:0}
+.hv-interest-fieldset legend{font-size:.92rem;font-weight:700;color:var(--hv-ink);margin-bottom:12px}
+.hv-interest-options{display:flex;flex-wrap:wrap;gap:9px}
+.hv-interest-chip{position:relative;display:inline-flex;align-items:center;font-size:.86rem;cursor:pointer;font-weight:600}
+.hv-interest-chip input{position:absolute;opacity:0;width:1px;height:1px}
+.hv-interest-chip span{display:inline-flex;align-items:center;min-height:44px;padding:9px 15px;border-radius:999px;background:var(--hv-paper);border:1px solid var(--hv-line2);color:var(--hv-ink);transition:background .2s,border-color .2s}
+.hv-interest-chip input:checked+span{background:var(--hv-sage-soft);border-color:var(--hv-sage);color:var(--hv-sage-d)}
+.hv-interest-chip input:focus-visible+span{outline:3px solid var(--hv-honey);outline-offset:3px}
+@media(max-width:520px){.hv-interest-options{gap:7px}.hv-interest-chip span{padding:9px 12px}}
