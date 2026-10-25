@@ -15,7 +15,7 @@ func TestCampaignAttributionEndToEnd(t *testing.T) {
 		"email": "campaign-new@example.test", "password": goodPass, "firstName": "Noor",
 		"utmSource": "instagram", "utmMedium": "paid_social",
 		"utmCampaign": "abu_dhabi_gatherings",
-		"utmContent": "creative_b", "utmTerm": "culture",
+		"utmContent":  "creative_b", "utmTerm": "culture",
 	}
 	expect(t, e.do("POST", "/v1/signup", input), 202, "campaign signup")
 	var verified bool
