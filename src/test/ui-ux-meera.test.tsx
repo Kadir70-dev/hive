@@ -29,7 +29,7 @@ describe('Meera frontend requirements', () => {
     const terms = renderToStaticMarkup(<Terms />);
     expect(privacy).toContain('Membership welcomes adults aged 18 and over');
     expect(terms).toContain('all nationalities');
-    expect(arabicTerms[1]!.body.join(' ')).toContain('النساء');
+    expect(arabicTerms[1]!.body.join(' ')).toContain('نساءً');
     expect(arabicPrivacy.at(-2)!.body.join(' ')).toContain('الرجال');
     expect(privacy).not.toContain('for women aged 18 and over');
   });
