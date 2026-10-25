@@ -21,7 +21,7 @@ export function GatheringEditor({ g, onSave, onClose }: { g: EditableGathering; 
   return (
     <form className="hv-stack hv-card" onSubmit={submit} aria-label={`Edit ${g.title}`}>
       <label>Title<input name="title" defaultValue={g.title} required maxLength={200} /></label>
-      <label>Category<input name="type" defaultValue={g.type} maxLength={60} /></label>
+      <label>Gathering category<select name="type" defaultValue={g.type} required>{g.type !== "mixed" && g.type !== "women-only" && <option value={g.type}>Existing category: {g.type} (please review)</option>}<option value="mixed">Mixed-gender</option><option value="women-only">Women-only</option></select></label>
       <label>Description<textarea name="description" defaultValue={g.description} maxLength={5000} /></label>
       <label>Date<input type="date" name="startsOn" defaultValue={g.starts_on} required /></label>
       <label>Time<input type="time" name="startsAt" defaultValue={g.starts_at.slice(0, 5)} required /></label>
