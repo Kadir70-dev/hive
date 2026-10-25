@@ -51,6 +51,43 @@ Netlify (branch-deploy context, server-only):
 | `HIVE_PROXY_SHARED_SECRET` | same as API |
 | `NEXT_PUBLIC_SITE_URL` | staging site origin |
 
+## Offline configuration preflight (no network or secret disclosure)
+
+When the owner provisions an isolated staging VPS and Netlify branch context,
+prepare untracked API and frontend env files on the operator machine. Check that
+API and Netlify share the same proxy secret and expected HTTPS origins:
+
+```bash
+node scripts/staging/config-preflight.mjs --mode staging \
+  --api-env backend/.env.staging --site-env .env.staging
+```
+
+For an eventual production configuration, use `--mode production`. The checker
+fails on unset/placeholder secrets, mismatched proxy configuration, unsafe HTTP
+origins, staging settings pointed at the live domain, partial private R2 settings
+and production mail configured as `log`. It does **not** source/evaluate the
+env files, display secret values, connect to services or mutate settings.
+
+**This is an offline format check, not a deployment or proof of deliverability.**
+On Netlify, environment variables are normally stored in the UI, not an env file:
+a matching operator-created temporary file is only for cross-checking and should
+be destroyed immediately after validation; never commit it or paste credentials
+into the chat. CI runs the preflight unit tests using deliberately fake secrets.
+
+## Tracked signup campaign staging test
+
+Using disposable test accounts and the approved staging domain:
+
+1. Visit `/?utm_source=staging_test&utm_medium=qa&utm_campaign=prelaunch`.
+2. Submit a *new* signup; confirm `POST /v1/signup` returns a generic `202` and sends a confirmation email through the approved sender.
+3. Before confirming the email, the MFA-gated Admin → Signups page should show one attributed signup and **zero** verified conversions.
+4. Confirm using the one-time email link, log in and verify it now shows exactly one verified conversion. Replaying the token must not increase the count.
+5. Delete the disposable member account; its campaign attribution must disappear.
+6. Confirm a normal member cannot access `/v1/admin/campaigns` and no member email/name/ID appears in admin aggregate reporting.
+
+GitHub CI exercises this sequence against a disposable PostgreSQL database;
+real sender delivery and the real Netlify→Go environment remain separate checks.
+
 ## Bring-up (on the staging VPS, after approval)
 
 ```bash
