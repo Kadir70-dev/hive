@@ -59,13 +59,14 @@ export function AdminTools() {
 }
 
 /** Admin tools render only after the MFA gate passes (the API enforces the same rule). */
-export default function AdminScreen() {
+function AdminBody() {
   const { data: me, isLoading } = useMe();
   const { lang } = useT();
   return (
-    <HiveShell member>
+    <>
       <div className="hv-hero"><h1>{lang === "ar" ? "الإدارة" : "Administration"}</h1><p>{lang === "ar" ? "إدارة العضويات واللقاءات وتسجيل الحضور والمحتوى المجتمعي بخصوصية." : "Private member approvals, gatherings, check-ins and community content."}</p></div>
       {isLoading ? <Loading /> : !me?.isAdmin ? <div className="hv-card">{lang === "ar" ? "يتطلب هذا القسم صلاحية المشرف." : "Admin access required."}</div> : <MfaGate me={me}><AdminTools /></MfaGate>}
-    </HiveShell>
+    </>
   );
 }
+export default function AdminScreen() { return <HiveShell member><AdminBody /></HiveShell>; }
