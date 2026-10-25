@@ -20,6 +20,7 @@ const sections: { title: string; body: string[]; list?: string[] }[] = [
       "Your first name and email address, and optionally a display name, phone number, area of Abu Dhabi and interests",
       "Your password, stored only as a one-way Argon2id hash that nobody, including us, can read",
       "Your membership status, when you confirmed your email address, and whether you want optional email updates",
+      "If you sign up through a campaign link: the optional UTM source, medium, campaign, content and term tags, linked to your account only for first-party aggregate reporting",
       "The gatherings you keep a place for or join the waitlist for, and attendance recorded by organisers",
       "Safety reports you send: the concern, an optional gathering, your description of the person involved and whether you asked not to be booked with them",
       "If you joined the earlier founding community list: your name, email, optional phone number, note and language",
@@ -36,6 +37,7 @@ const sections: { title: string; body: string[]; list?: string[] }[] = [
       "To send service emails: confirming your email, password resets, password-change notices, membership approval, booking confirmations, cancellations, waitlist promotions, and changes to or cancellation of gatherings you reserved",
       "To keep the community safe: our administrators review reports, may identify the member concerned from the gathering list, and can keep two members from being booked into the same gathering. The member concerned is never told who reported",
       "Announcements by email only if you switch on email updates in your profile; you can switch them off at any time",
+      "To count attributed signups only once the account email is verified and to show aggregate, admin-only campaign counts with no member identities",
     ],
   },
   {
@@ -69,7 +71,7 @@ const sections: { title: string; body: string[]; list?: string[] }[] = [
     title: "Cookies and browser storage",
     body: [
       "We use one strictly necessary cookie, hive_session, to keep you signed in. It is not readable by page scripts and expires after 14 days or when you sign out.",
-      "Your browser remembers whether you chose English or Arabic. [Signup conversion and campaign attribution tracking must be reviewed and disclosed before advertising campaigns begin.]",
+      "Your browser remembers whether you chose English or Arabic. If you arrive through a link with UTM campaign tags, the browser stores only those allowlisted tags in per-tab session storage so they can be attached when you sign up. No third-party analytics script or advertising cookie is used by this feature. [Owner and counsel must approve this campaign-data disclosure before paid advertising.]",
     ],
   },
   {
@@ -77,6 +79,7 @@ const sections: { title: string; body: string[]; list?: string[] }[] = [
     body: ["We keep information only as long as it is needed:"],
     list: [
       "Your account and profile: until you delete your account",
+      "First-party campaign attribution tied to your account: until account deletion (it is removed with the account)",
       "Sign-in sessions: up to 14 days",
       "Email confirmation and password-reset links: valid for 24 hours and 30 minutes respectively, and deleted 7 days after they expire",
       "Email contents: erased once delivered; delivery records are deleted after 30 days",
