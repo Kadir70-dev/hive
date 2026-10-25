@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ApiError, send } from '@/lib/hive-api';
 import { HiveShell, useT } from '@/components/hive/HiveShell';
 import { INTERESTS } from '@/lib/hive-i18n';
+import { captureCampaign, savedCampaign } from '@/lib/campaign-attribution';
 
 const COPY = {
   en: {
@@ -58,10 +59,13 @@ function AuthBody() {
     const password = String(f.get('password') || '');
     try {
       if (signup) {
+        let attribution = null;
+        try { attribution = captureCampaign(window.location.search, window.sessionStorage) || savedCampaign(window.sessionStorage); } catch { /* storage unavailable */ }
         await send('/signup', {
           email, password, firstName: String(f.get('first_name') || '').trim(),
           displayName: String(f.get('display_name') || '').trim(), phone: String(f.get('phone') || '').trim(),
           interests: f.getAll('interest').map(String), area: '',
+          ...(attribution || {}),
         });
         setSentTo(email);
         return;
