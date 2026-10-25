@@ -93,7 +93,7 @@ describe('gatherings screen', () => {
     localStorage.setItem('hive.site.lang', 'ar');
     stub({ '/me': () => [200, member], 'GET /gatherings': () => [200, [gathering({})]] });
     wrap(<GatheringsScreen />);
-    expect(await screen.findByRole('button', { name: 'احجزي مكاني' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'احجز مكاني' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'الأمان' })).toBeInTheDocument();
   });
 });
