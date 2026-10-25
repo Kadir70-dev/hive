@@ -202,6 +202,18 @@ func (s *Server) updateGathering(w http.ResponseWriter, r *http.Request) {
 		s.internal(w, r, "update failed", err)
 		return
 	}
+	// A category switch could retroactively make existing bookings ineligible.
+	// Require the organiser to resolve existing seats before changing category.
+	var existingType string
+	var existingBookings int
+	if err = tx.QueryRowContext(r.Context(), `SELECT type, (SELECT count(*) FROM reservations WHERE gathering_id=$1) FROM gatherings WHERE id=$1`, id).Scan(&existingType, &existingBookings); err != nil {
+		s.internal(w, r, "update failed", err)
+		return
+	}
+	if existingType != v.Type && existingBookings > 0 {
+		s.fail(w, r, 409, "category_change_with_bookings", "cancel existing reservations before changing the gathering category")
+		return
+	}
 	var scheduleChanged bool
 	err = tx.QueryRowContext(r.Context(), `
 WITH old AS (SELECT starts_on, starts_at, place FROM gatherings WHERE id=$1)
