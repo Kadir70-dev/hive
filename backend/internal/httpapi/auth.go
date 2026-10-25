@@ -113,7 +113,12 @@ func (s *Server) signup(w http.ResponseWriter, r *http.Request) {
 	var v struct {
 		Email, Password, FirstName, Phone, Area, DisplayName string
 		Interests                                            []string
-		EmailUpdates                                         bool
+		EmailUpdates bool
+		UTMSource string `json:"utmSource"`
+		UTMMedium string `json:"utmMedium"`
+		UTMCampaign string `json:"utmCampaign"`
+		UTMContent string `json:"utmContent"`
+		UTMTerm string `json:"utmTerm"`
 	}
 	if !s.parse(w, r, &v) {
 		return
@@ -134,6 +139,13 @@ func (s *Server) signup(w http.ResponseWriter, r *http.Request) {
 	}
 	if v.Interests == nil {
 		v.Interests = []string{}
+	}
+	// UTM fields are optional first-party attribution hints, not trusted identifiers.
+	for _, value := range []string{v.UTMSource, v.UTMMedium, v.UTMCampaign, v.UTMContent, v.UTMTerm} {
+		if len(value) > 80 || strings.ContainsAny(value, "\r\n\x00") {
+			s.fail(w, r, 400, "invalid_campaign", "invalid campaign data")
+			return
+		}
 	}
 	// Always hash, so new and existing addresses take the same time.
 	ctx, cancel := s.hashSlot(r)
@@ -166,6 +178,9 @@ func (s *Server) signup(w http.ResponseWriter, r *http.Request) {
 		}
 	case err == nil:
 		err = s.sendVerification(r.Context(), tx, id, v.Email, v.FirstName)
+		if err == nil && (v.UTMSource != "" || v.UTMMedium != "" || v.UTMCampaign != "" || v.UTMContent != "" || v.UTMTerm != "") {
+			_, err = tx.ExecContext(r.Context(), `INSERT INTO signup_attribution(user_id,utm_source,utm_medium,utm_campaign,utm_content,utm_term) VALUES($1,$2,$3,$4,$5,$6)`, id, strings.TrimSpace(v.UTMSource), strings.TrimSpace(v.UTMMedium), strings.TrimSpace(v.UTMCampaign), strings.TrimSpace(v.UTMContent), strings.TrimSpace(v.UTMTerm))
+		}
 	}
 	if err == nil {
 		err = tx.Commit()
