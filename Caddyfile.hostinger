@@ -1,0 +1,76 @@
+{
+    email {$ACME_EMAIL}
+    admin off
+}
+
+# Only the website is public. /api/backend/* is same-origin Next.js,
+# forwarded to api:8080 over Docker's private network.
+{$SITE_DOMAIN} {
+    encode zstd gzip
+
+    # Non-production staging stays out of search results.
+    @staging expression {env.HIVE_ENVIRONMENT} == "staging"
+    header @staging X-Robots-Tag "noindex, nofollow"
+
+    @internal path /internal /internal/*
+    respond @internal 404
+
+    header {
+        Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    log {
+        output stdout
+        format filter {
+            wrap json
+            fields {
+                request>uri query {
+                    delete *
+                }
+                request>headers>Cookie delete
+                request>headers>Authorization delete
+                request>headers>X-Hive-Client-IP delete
+                request>headers>X-Hive-Verified-Client-IP delete
+                request>headers>X-Hive-Proxy-Secret delete
+                resp_headers>Set-Cookie delete
+            }
+        }
+    }
+
+    # Only this authenticated profile-photo route receives a 6 MB limit.
+    # The normal 1 MB cap applies to all other paths, even unauthenticated.
+    @photoUpload {
+        method POST
+        path /api/backend/me/photo
+    }
+    handle @photoUpload {
+        request_body {
+            max_size 6MB
+        }
+        reverse_proxy web:3000 {
+            # Overwrite any client-supplied value. Next.js trusts this header ONLY
+            # with HIVE_SITE_EDGE=caddy; the web container has no host port.
+            header_up X-Hive-Verified-Client-IP {remote_host}
+            header_up -X-Hive-Client-IP
+            header_up -X-Hive-Proxy-Secret
+            header_up -X-Nf-Client-Connection-Ip
+        }
+    }
+
+    handle {
+        request_body {
+            max_size 1MB
+        }
+        reverse_proxy web:3000 {
+            # Overwrite any client-supplied value. Next.js trusts this header ONLY
+            # with HIVE_SITE_EDGE=caddy; the web container has no host port.
+            header_up X-Hive-Verified-Client-IP {remote_host}
+            header_up -X-Hive-Client-IP
+            header_up -X-Hive-Proxy-Secret
+            header_up -X-Nf-Client-Connection-Ip
+        }
+    }
+}

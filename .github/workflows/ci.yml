@@ -84,6 +84,8 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      - name: Hostinger offline configuration tests
+        run: node --test scripts/staging/config-preflight.hostinger.test.mjs
       - name: Production build
         env:
           NEXT_TELEMETRY_DISABLED: "1"
@@ -121,6 +123,9 @@ jobs:
       POSTGRES_PASSWORD: ci-dummy
       REDIS_PASSWORD: ci-dummy
       HIVE_PROXY_SHARED_SECRET: ci-dummy-secret-not-used-anywhere-0123
+      SITE_DOMAIN: staging.example.test
+      PUBLIC_APP_URL: https://staging.example.test
+      HIVE_ENVIRONMENT: staging
       MAIL_PROVIDER: log
       MFA_ENCRYPTION_KEY: Y2ktZHVtbXkta2V5LW5vdC1hLXNlY3JldC0wMTIzNDU=
       BACKUP_AGE_RECIPIENT: age1ci-dummy-not-a-key
@@ -132,12 +137,17 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate Docker Compose configuration
         run: docker compose config -q
+      - name: Validate Hostinger single-server overlay
+        run: docker compose -f docker-compose.yml -f docker-compose.hostinger.yml config -q
       - name: Validate Caddy configuration
-        run: docker run --rm -e API_DOMAIN=api.example.test -e ACME_EMAIL=ops@example.test -v "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+        run: |
+          docker run --rm -e API_DOMAIN=api.example.test -e ACME_EMAIL=ops@example.test -v "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+          docker run --rm -e SITE_DOMAIN=staging.example.test -e ACME_EMAIL=ops@example.test -v "$PWD/Caddyfile.hostinger:/etc/caddy/Caddyfile:ro" caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
       - name: Build backend and backup images
         run: |
           docker build -t hive-api:ci backend
           docker build -t hive-backup:test ops/backup
+          docker build -f Dockerfile.web -t hive-web:ci .
       - name: Migrate a fresh database twice (second run must be a no-op)
         run: |
           psql -c 'CREATE DATABASE hive_fresh'
@@ -217,3 +227,69 @@ jobs:
           "$RUNNER_TEMP/migrate" up
       - name: Proxy preserves cookies, client-IP trust, CSRF checks and security headers
         run: API_BIN="$RUNNER_TEMP/api" scripts/staging/proxy-e2e.sh
+      - name: Hostinger Caddy-edge proxy mode preserves per-client limits
+        run: HIVE_SITE_EDGE=caddy API_BIN="$RUNNER_TEMP/api" scripts/staging/proxy-e2e.sh
+
+  hostinger-compose:
+    name: Hostinger (real Compose + Caddy smoke)
+    runs-on: ubuntu-latest
+    env:
+      # Isolated disposable CI environment. Never production DNS or real secrets.
+      SITE_DOMAIN: ":80"
+      HIVE_ENVIRONMENT: staging
+      HIVE_IMAGE_TAG: ${{ github.sha }}
+      PUBLIC_APP_URL: https://staging.example.test
+      ALLOWED_ORIGINS: https://staging.example.test
+      API_DOMAIN: api-staging.example.test
+      ACME_EMAIL: ci@example.test
+      POSTGRES_PASSWORD: ci-postgres-password-not-for-production-12345
+      REDIS_PASSWORD: ci-redis-password-not-for-production-1234567
+      HIVE_PROXY_SHARED_SECRET: ci-proxy-secret-not-for-production-123456
+      MFA_ENCRYPTION_KEY: Y2ktZHVtbXkta2V5LW5vdC1hLXNlY3JldC0wMTIzNDU=
+      MAIL_PROVIDER: log
+      BACKUP_AGE_RECIPIENT: age1ci-dummy-not-a-key
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start isolated Compose stack (no backup; restore tested separately)
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.hostinger.yml \
+            up -d --build db redis migrate api web caddy
+          docker compose -f docker-compose.yml -f docker-compose.hostinger.yml ps
+      - name: Verify Caddy limits, anonymous API, robots and canonical hostname
+        env:
+          BASE_URL: http://127.0.0.1
+          ALLOW_INSECURE_LOCALHOST: "1"
+          EXPECTED_CANONICAL_URL: https://staging.example.test
+          TEST_BODY_LIMITS: "1"
+        run: |
+          for i in $(seq 1 90); do
+            if curl -fsS -o /dev/null http://127.0.0.1/auth; then break; fi
+            sleep 2
+          done
+          bash scripts/hostinger/smoke.sh
+      - name: Exercise image-tag rollback on compatible database schema
+        env:
+          BASE_URL: http://127.0.0.1
+          ALLOW_INSECURE_LOCALHOST: "1"
+          EXPECTED_CANONICAL_URL: https://staging.example.test
+        run: |
+          previous_tag="${GITHUB_SHA:0:12}"
+          docker image tag "hive-api:$GITHUB_SHA" "hive-api:$previous_tag"
+          docker image tag "hive-web:$GITHUB_SHA" "hive-web:$previous_tag"
+          touch /tmp/hive-ci-compose.env
+          ENV_FILE=/tmp/hive-ci-compose.env PREVIOUS_TAG="$previous_tag" \
+            CONFIRM_SCHEMA_COMPATIBLE=YES bash scripts/hostinger/rollback.sh
+          for i in $(seq 1 45); do
+            if curl -fsS -o /dev/null http://127.0.0.1/auth; then break; fi
+            sleep 2
+          done
+          bash scripts/hostinger/smoke.sh
+      - name: Diagnostics (failure only)
+        if: failure()
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.hostinger.yml ps || true
+          docker compose -f docker-compose.yml -f docker-compose.hostinger.yml logs --tail=60 --no-color || true
+      - name: Tear down disposable CI stack
+        if: always()
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.hostinger.yml down -v --remove-orphans || true

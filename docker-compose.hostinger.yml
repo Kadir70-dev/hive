@@ -1,0 +1,56 @@
+# Overlay for one Hostinger VPS: Caddy (public) -> Next.js (internal)
+# -> Go API (internal) -> PostgreSQL/Redis. No production changes until approved.
+# Usage:
+# docker compose --env-file backend/.env.hostinger \
+#   -f docker-compose.yml -f docker-compose.hostinger.yml config -q
+services:
+  web:
+    image: hive-web:${HIVE_IMAGE_TAG:-dev}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        NEXT_PUBLIC_SITE_URL: ${PUBLIC_APP_URL:?set PUBLIC_APP_URL}
+        HIVE_ENVIRONMENT: ${HIVE_ENVIRONMENT:-staging}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HIVE_API_INTERNAL_URL: http://api:8080
+      HIVE_PROXY_SHARED_SECRET: ${HIVE_PROXY_SHARED_SECRET:?set HIVE_PROXY_SHARED_SECRET}
+      HIVE_SITE_EDGE: caddy
+      HIVE_ENVIRONMENT: ${HIVE_ENVIRONMENT:-staging}
+      NEXT_PUBLIC_SITE_URL: ${PUBLIC_APP_URL:?set PUBLIC_APP_URL}
+    expose: ["3000"]
+    networks: [internal]
+    depends_on:
+      api: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/auth').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 20s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
+  api:
+    image: hive-api:${HIVE_IMAGE_TAG:-dev}
+
+  migrate:
+    image: hive-api:${HIVE_IMAGE_TAG:-dev}
+
+  backup:
+    image: hive-backup:${HIVE_IMAGE_TAG:-dev}
+
+  caddy:
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?set SITE_DOMAIN}
+      HIVE_ENVIRONMENT: ${HIVE_ENVIRONMENT:-staging}
+    # Compose merges volumes by container target; override the API-only Caddyfile.
+    volumes:
+      - ./Caddyfile.hostinger:/etc/caddy/Caddyfile:ro
+    depends_on:
+      web: {condition: service_healthy}

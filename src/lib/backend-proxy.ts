@@ -1,19 +1,23 @@
 import 'server-only';
 
 /**
- * Server-side forwarding from Next.js (Netlify) to the Go API.
+ * Same-origin Next.js -> Go API forwarding.
  *
- * Trust boundary: the Go API trusts X-Hive-Client-IP only when the request also
- * carries HIVE_PROXY_SHARED_SECRET, which exists solely in server-side env on
- * Netlify and the VPS. The browser's address comes from Netlify's edge header
- * `x-nf-client-connection-ip`, which Netlify sets itself; any value a client
- * sends in that header is overwritten. Client-supplied forwarding headers are
- * never passed through.
+ * Netlify: uses Netlify's overwritten x-nf-client-connection-ip.
+ * Hostinger: HIVE_SITE_EDGE=caddy trusts only x-hive-verified-client-ip,
+ * which the Hostinger Caddy config overwrites with the TCP peer address.
+ * In that mode Next.js MUST remain private (no published port 3000).
+ *
+ * Only Next.js adds the authenticated proxy secret to Go requests.
+ * Never forward browser-provided proxy secret or client IP headers directly.
  */
 const passThroughResponseHeaders = ['content-type', 'retry-after'];
 
 export function clientIP(req: Request): string | null {
-  const ip = req.headers.get('x-nf-client-connection-ip')?.trim();
+  const header = process.env.HIVE_SITE_EDGE === 'caddy'
+    ? 'x-hive-verified-client-ip'
+    : 'x-nf-client-connection-ip';
+  const ip = req.headers.get(header)?.trim();
   return ip && /^[0-9a-fA-F:.]{2,45}$/.test(ip) ? ip : null;
 }
 

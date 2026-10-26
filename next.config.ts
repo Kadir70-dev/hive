@@ -10,6 +10,9 @@ const homepage = readFileSync(path.join(process.cwd(), 'public/hive.html'), 'utf
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Only the Hostinger Docker build emits a self-contained server.
+  // The existing Netlify/static build stays unchanged.
+  output: process.env.HIVE_STANDALONE === '1' ? 'standalone' : undefined,
   poweredByHeader: false,
   async headers() {
     return [
