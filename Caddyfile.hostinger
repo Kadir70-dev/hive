@@ -8,6 +8,10 @@
 {$SITE_DOMAIN} {
     encode zstd gzip
 
+    # Non-production staging stays out of search results.
+    @staging expression {env.HIVE_ENVIRONMENT} == "staging"
+    header @staging X-Robots-Tag "noindex, nofollow"
+
     @internal path /internal /internal/*
     respond @internal 404
 
@@ -36,12 +40,41 @@
         }
     }
 
-    reverse_proxy web:3000 {
-        # Overwrite any client-supplied value. Next.js trusts this header ONLY
-        # with HIVE_SITE_EDGE=caddy; the web container has no host port.
-        header_up X-Hive-Verified-Client-IP {remote_host}
-        header_up -X-Hive-Client-IP
-        header_up -X-Hive-Proxy-Secret
-        header_up -X-Nf-Client-Connection-Ip
+    # Only this authenticated profile-photo route receives a 6 MB limit.
+    # The normal 1 MB cap applies to all other paths, even unauthenticated.
+    @photoUpload {
+        method POST
+        path /api/backend/me/photo
+    }
+    handle @photoUpload {
+        request_body {
+            max_size 6MB
+        }
+        reverse_proxy web:3000 {
+            # Overwrite any client-supplied value. Next.js trusts this header ONLY
+            # with HIVE_SITE_EDGE=caddy; the web container has no host port.
+            header_up X-Hive-Verified-Client-IP {remote_host}
+            header_up -X-Hive-Client-IP
+            header_up -X-Hive-Proxy-Secret
+            header_up -X-Nf-Client-Connection-Ip
+        }
+    }
+
+    }
+
+    handle {
+        request_body {
+            max_size 1MB
+        }
+        reverse_proxy web:3000 {
+            # Overwrite any client-supplied value. Next.js trusts this header ONLY
+            # with HIVE_SITE_EDGE=caddy; the web container has no host port.
+            header_up X-Hive-Verified-Client-IP {remote_host}
+            header_up -X-Hive-Client-IP
+            header_up -X-Hive-Proxy-Secret
+            header_up -X-Nf-Client-Connection-Ip
+        }
+    }
+
     }
 }
