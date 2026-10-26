@@ -32,7 +32,8 @@ grep -qi '^x-frame-options: *SAMEORIGIN' <<< "$hive_headers" || { echo "FAIL: ho
 if [[ "${EXPECT_STAGING_NOINDEX:-1}" == 1 ]]; then
   grep -qi '^x-robots-tag:.*noindex' <<< "$headers" || { echo "FAIL: staging noindex header missing"; exit 1; }
   curl --silent --show-error --max-time 15 "$base/robots.txt" | grep -q '^Disallow: /' || { echo "FAIL: staging robots.txt must disallow all"; exit 1; }
-  curl --silent --show-error --max-time 15 "$base/sitemap.xml" | grep -q 'https://staging.example.test' || { echo "FAIL: sitemap lacks staging hostname"; exit 1; }
+  canonical="${EXPECTED_CANONICAL_URL:-$base}"
+  curl --silent --show-error --max-time 15 "$base/sitemap.xml" | grep -Fq "$canonical" || { echo "FAIL: sitemap lacks expected hostname"; exit 1; }
 fi
 # Production-safe probes: send disposable data only; no member operations.
 if [[ "${TEST_BODY_LIMITS:-0}" == 1 ]]; then
