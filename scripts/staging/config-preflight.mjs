@@ -52,6 +52,16 @@ export function validateEnv(api, site, mode = 'staging') {
     errors.push('API_DOMAIN must be a hostname (not a URL)');
   if (api.PUBLIC_APP_URL && !httpsOrigin(api.PUBLIC_APP_URL))
     errors.push('PUBLIC_APP_URL must be an exact HTTPS origin');
+  // The Hostinger compose overlay has one public site, not a separate API host.
+  if (api.SITE_DOMAIN !== undefined) {
+    required('SITE_DOMAIN');
+    if (api.SITE_DOMAIN && !/^[a-z0-9.-]+$/.test(api.SITE_DOMAIN))
+      errors.push('SITE_DOMAIN must be a hostname (not a URL)');
+    if (api.SITE_DOMAIN && api.PUBLIC_APP_URL !== 'https://' + api.SITE_DOMAIN)
+      errors.push('Hostinger SITE_DOMAIN must match PUBLIC_APP_URL');
+    if (api.SITE_DOMAIN && !(api.ALLOWED_ORIGINS || '').split(',').map(x => x.trim()).includes('https://' + api.SITE_DOMAIN))
+      errors.push('Hostinger SITE_DOMAIN must be present in ALLOWED_ORIGINS');
+  }
   for (const origin of (api.ALLOWED_ORIGINS || '').split(',')) {
     if (!httpsOrigin(origin.trim())) errors.push('ALLOWED_ORIGINS must contain exact HTTPS origins');
   }
@@ -86,7 +96,9 @@ export function validateEnv(api, site, mode = 'staging') {
       errors.push('Frontend NEXT_PUBLIC_SITE_URL does not match API PUBLIC_APP_URL');
     if (site.HIVE_API_INTERNAL_URL !== 'https://' + (api.API_DOMAIN || ''))
       errors.push('Frontend API URL does not match API_DOMAIN');
-  } else notes.push('Netlify environment not inspected; supply --site-env to validate proxy settings.');
+  } else if (api.SITE_DOMAIN !== undefined)
+    notes.push('Hostinger overlay supplies frontend environment inside Compose; no separate site-env file.');
+  else notes.push('Netlify environment not inspected; supply --site-env to validate proxy settings.');
   notes.push('DNS, delivery, staging backup restore, real browsers and legal approvals are outside offline preflight.');
   return { errors, notes };
 }
