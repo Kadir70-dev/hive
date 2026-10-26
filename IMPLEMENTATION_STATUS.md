@@ -8,9 +8,10 @@
 - Caddy overwrites the client-IP forwarding header; the Next.js proxy trusts
   it only in `HIVE_SITE_EDGE=caddy` mode. Existing Netlify behavior remains.
 - Added image/Compose/Caddy checks and both edge modes to GitHub CI, plus a
-  read-only smoke test for future owner-approved staging.
-- Synced approved homepage changes (removed "Coming Soon", three plain green
-  vision panels) into the maintained Next.js source.
+  full-stack disposable Compose smoke with upload limits, staging noindex,
+  canonical site URL and SHA-tag rollback exercises.
+- Separated already-approved homepage changes into independent UI PR #7;
+  infrastructure PR #6 has no unrelated homepage edits.
 - **NOT verified on Hostinger:** real TLS/DNS, email delivery, live R2,
   admin MFA onboarding, end-to-end member booking, backup restore,
   legacy data migration, operator monitoring and legal approvals.
