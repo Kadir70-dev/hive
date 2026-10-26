@@ -124,6 +124,8 @@ jobs:
       REDIS_PASSWORD: ci-dummy
       HIVE_PROXY_SHARED_SECRET: ci-dummy-secret-not-used-anywhere-0123
       SITE_DOMAIN: staging.example.test
+      PUBLIC_APP_URL: https://staging.example.test
+      HIVE_ENVIRONMENT: staging
       MAIL_PROVIDER: log
       MFA_ENCRYPTION_KEY: Y2ktZHVtbXkta2V5LW5vdC1hLXNlY3JldC0wMTIzNDU=
       BACKUP_AGE_RECIPIENT: age1ci-dummy-not-a-key
@@ -277,6 +279,10 @@ jobs:
           touch /tmp/hive-ci-compose.env
           ENV_FILE=/tmp/hive-ci-compose.env PREVIOUS_TAG="$previous_tag" \
             CONFIRM_SCHEMA_COMPATIBLE=YES bash scripts/hostinger/rollback.sh
+          for i in $(seq 1 45); do
+            if curl -fsS -o /dev/null http://127.0.0.1/auth; then break; fi
+            sleep 2
+          done
           bash scripts/hostinger/smoke.sh
       - name: Diagnostics (failure only)
         if: failure()
