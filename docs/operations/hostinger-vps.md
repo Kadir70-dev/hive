@@ -107,6 +107,17 @@ the API readiness check. **Do not point the production domain here yet.**
 8. Accessibility, phone/browser QA, OWASP review, monitoring, TLS, cookies/CSP.
 9. Legal owner approval for Terms, Privacy, retention and existing-member migration.
 
+Before any DNS switch, run the read-only HTTP smoke test on the approved
+staging hostname:
+
+```sh
+BASE_URL=https://staging.thehivesociety.ae bash scripts/hostinger/smoke.sh
+```
+
+It checks the homepage, auth page, public manifest, private API boundary,
+anonymous session rejection and key security headers. It does not submit
+real member data or prove email, admin 2FA, backup or waitlist behavior.
+
 All these remain **unverified in a real Hostinger environment**.
 Do not cut over production DNS until the owner accepts the staging results.
 
