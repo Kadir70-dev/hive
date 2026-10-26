@@ -1,5 +1,13 @@
 # The Hive Society
 
+> **Hostinger VPS readiness (development only):** a single-server Docker/Caddy
+> deployment option is now available via `docker-compose.hostinger.yml`,
+> `Dockerfile.web`, and `Caddyfile.hostinger`. See
+> [Hostinger staging and launch checklist](docs/operations/hostinger-vps.md).
+> This is not deployed or approved for production. The Go backend and
+> authenticated Next.js app must be tested together on staging; the separately
+> hosted static Vercel homepage is NOT a working members application.
+
 Next.js 16 frontend + Go/Chi API + self-hosted PostgreSQL and Redis. Member authentication, sessions and data access are owned by the Go application; no third-party backend or hosted authentication service is required.
 
 - `src/`: Next.js frontend and the server-side same-origin proxy to the Go API (`src/lib/backend-proxy.ts`)
