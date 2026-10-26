@@ -121,6 +121,7 @@ jobs:
       POSTGRES_PASSWORD: ci-dummy
       REDIS_PASSWORD: ci-dummy
       HIVE_PROXY_SHARED_SECRET: ci-dummy-secret-not-used-anywhere-0123
+      SITE_DOMAIN: staging.example.test
       MAIL_PROVIDER: log
       MFA_ENCRYPTION_KEY: Y2ktZHVtbXkta2V5LW5vdC1hLXNlY3JldC0wMTIzNDU=
       BACKUP_AGE_RECIPIENT: age1ci-dummy-not-a-key
@@ -132,12 +133,17 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate Docker Compose configuration
         run: docker compose config -q
+      - name: Validate Hostinger single-server overlay
+        run: docker compose -f docker-compose.yml -f docker-compose.hostinger.yml config -q
       - name: Validate Caddy configuration
-        run: docker run --rm -e API_DOMAIN=api.example.test -e ACME_EMAIL=ops@example.test -v "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+        run: |
+          docker run --rm -e API_DOMAIN=api.example.test -e ACME_EMAIL=ops@example.test -v "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+          docker run --rm -e SITE_DOMAIN=staging.example.test -e ACME_EMAIL=ops@example.test -v "$PWD/Caddyfile.hostinger:/etc/caddy/Caddyfile:ro" caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
       - name: Build backend and backup images
         run: |
           docker build -t hive-api:ci backend
           docker build -t hive-backup:test ops/backup
+          docker build -f Dockerfile.web -t hive-web:ci .
       - name: Migrate a fresh database twice (second run must be a no-op)
         run: |
           psql -c 'CREATE DATABASE hive_fresh'
@@ -217,3 +223,5 @@ jobs:
           "$RUNNER_TEMP/migrate" up
       - name: Proxy preserves cookies, client-IP trust, CSRF checks and security headers
         run: API_BIN="$RUNNER_TEMP/api" scripts/staging/proxy-e2e.sh
+      - name: Hostinger Caddy-edge proxy mode preserves per-client limits
+        run: HIVE_SITE_EDGE=caddy API_BIN="$RUNNER_TEMP/api" scripts/staging/proxy-e2e.sh
