@@ -1,0 +1,22 @@
+# Keep all local secrets and development artefacts OUT of image build context.
+.git
+.github
+node_modules
+.next
+.vercel
+out
+dist
+coverage
+*.log
+*.local
+**/.env
+**/.env.*
+!**/.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.age
+backups/
+qa/output/
+.DS_Store
