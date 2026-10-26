@@ -13,4 +13,16 @@ done
 export HIVE_IMAGE_TAG="$PREVIOUS_TAG"
 docker compose --env-file "$ENV_FILE" -f docker-compose.yml -f docker-compose.hostinger.yml \
   up -d --no-build --no-deps api web
-echo "Images selected: $PREVIOUS_TAG. Verify application health; no schema rollback was attempted."
+# Restarting the web container is asynchronous. Do not declare success before
+# the private Next.js healthcheck responds.
+ready=0
+for attempt in $(seq 1 45); do
+  if docker compose --env-file "$ENV_FILE" -f docker-compose.yml -f docker-compose.hostinger.yml \
+    exec -T web node -e 'fetch("http://127.0.0.1:3000/auth").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))' >/dev/null 2>&1; then
+    ready=1
+    break
+  fi
+  sleep 2
+done
+[[ "$ready" == 1 ]] || { echo "Rollback app did not become healthy. Investigate immediately."; exit 1; }
+echo "Images selected and Next.js ready: $PREVIOUS_TAG. No schema rollback was attempted."
