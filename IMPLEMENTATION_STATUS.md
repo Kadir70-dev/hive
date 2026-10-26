@@ -1,5 +1,22 @@
 # The Hive Society — self-hosted implementation status
 
+## Hostinger VPS development readiness (PR #6; NOT DEPLOYED)
+
+- Prepared a full-stack Hostinger compose overlay (Node/Next.js, Go API,
+  PostgreSQL, Redis, Caddy and encrypted backup service).
+- Added HTTPS-only Caddy site routing with a private frontend and API network.
+- Caddy overwrites the client-IP forwarding header; the Next.js proxy trusts
+  it only in `HIVE_SITE_EDGE=caddy` mode. Existing Netlify behavior remains.
+- Added image/Compose/Caddy checks and both edge modes to GitHub CI, plus a
+  read-only smoke test for future owner-approved staging.
+- Synced approved homepage changes (removed "Coming Soon", three plain green
+  vision panels) into the maintained Next.js source.
+- **NOT verified on Hostinger:** real TLS/DNS, email delivery, live R2,
+  admin MFA onboarding, end-to-end member booking, backup restore,
+  legacy data migration, operator monitoring and legal approvals.
+- This PR is not a production release. Do not deploy or change DNS before
+  staging acceptance.
+
 ## Completed in source
 - The maintained application uses its own Go authentication, PostgreSQL database and HttpOnly session cookies. Obsolete managed-auth SDKs, external database clients and browser-side token checks have been removed.
 - Built a separate Go + Chi backend using PostgreSQL, Argon2id password hashing, server-side hashed session tokens and secure HttpOnly cookies.
