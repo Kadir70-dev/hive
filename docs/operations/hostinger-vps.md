@@ -55,6 +55,8 @@ Set these in the private `backend/.env.hostinger` file:
 | Variable | Rule |
 |---|---|
 | `SITE_DOMAIN` | approved staging hostname, hostname only |
+| `HIVE_ENVIRONMENT` | `staging` until production cutover; gates noindex/robots |
+| `HIVE_IMAGE_TAG` | exact 12-40 character reviewed git SHA, e.g. `$(git rev-parse HEAD)`; retain prior images for rollback |
 | `PUBLIC_APP_URL` | `https://${SITE_DOMAIN}` |
 | `ALLOWED_ORIGINS` | exact matching `https://${SITE_DOMAIN}` |
 | `API_DOMAIN` | unused in Hostinger single-server mode; use a non-production staging name for legacy preflight compatibility |
@@ -66,7 +68,7 @@ Set these in the private `backend/.env.hostinger` file:
 | `R2_*` | private bucket credentials for production photo uploads |
 
 The compose overlay sets `HIVE_API_INTERNAL_URL=http://api:8080`,
-`HIVE_SITE_EDGE=caddy`, and `NEXT_PUBLIC_SITE_URL` internally.
+`HIVE_SITE_EDGE=caddy`, and `NEXT_PUBLIC_SITE_URL` from `PUBLIC_APP_URL` at build time. Staging builds get robots.txt `Disallow: /` plus Caddy's `X-Robots-Tag: noindex, nofollow`. Production must explicitly set `HIVE_ENVIRONMENT=production` in the reviewed release configuration.
 Never configure a public Go API URL or store the proxy secret in NEXT_PUBLIC_*.
 
 Validate locally without showing secrets:
@@ -79,9 +81,10 @@ docker compose --env-file backend/.env.hostinger \
 
 The first command validates API settings but not a live server, DNS or delivery.
 The second checks the *merged* Compose configuration and required variables.
-Only after staging approval, launch with:
+Only after staging approval, launch with the reviewed SHA tag:
 
 ```sh
+export HIVE_IMAGE_TAG="$(git rev-parse HEAD)"
 docker compose --env-file backend/.env.hostinger \
   -f docker-compose.yml -f docker-compose.hostinger.yml up -d --build
 docker compose --env-file backend/.env.hostinger \
@@ -121,8 +124,39 @@ real member data or prove email, admin 2FA, backup or waitlist behavior.
 All these remain **unverified in a real Hostinger environment**.
 Do not cut over production DNS until the owner accepts the staging results.
 
-### Safe rollback
+### Tagged image releases and safe rollback
 
-Keep the previous site and database intact. Revert app image/release
-and restore database only from a pre-deployment encrypted backup after
-review. Never use `docker compose down -v` on a live environment.
+Hostinger images `hive-api`, `hive-web` and `hive-backup` are tagged
+with `HIVE_IMAGE_TAG` (the reviewed git SHA). Keep the previous release's
+images on the VPS; don't prune them during deployment. Record the previous
+SHA **before** updating code and keep the previous .env/release notes.
+
+For a **schema-compatible app-only** rollback, after confirming the prior
+images exist and the *forward-only* migrations are backward compatible:
+
+```sh
+ENV_FILE=backend/.env.hostinger \
+PREVIOUS_TAG=<previous-12-to-40-char-git-sha> \
+CONFIRM_SCHEMA_COMPATIBLE=YES \
+bash scripts/hostinger/rollback.sh
+```
+
+This selects earlier API/Next.js images without rebuilding, dropping
+volumes or attempting migration downgrade. After rollback run
+`scripts/hostinger/smoke.sh` and test member sessions/bookings.
+If schema compatibility is uncertain, **do not run the script**: enter
+maintenance, restore only from a separately verified encrypted backup
+after operator review. No live Hostinger rollback has been performed;
+CI exercises the image tag switching using the same schema.
+
+Staging Caddy request limits: a 1 MB cap for ordinary requests and a 6 MB
+cap only for `POST /api/backend/me/photo`. The 5 MB unauthenticated
+probe verifies the request is **not rejected by Caddy size limits**; it
+does not prove a successful photo upload. Authenticated R2 upload still
+requires staging acceptance.
+
+If a Cloudflare proxy is added later, Caddy will see the proxy address
+rather than the real visitor's IP. Do not enable proxying until a
+trusted-proxy/header policy is reviewed and tested.
+
+Never use `docker compose down -v` on a live environment.
