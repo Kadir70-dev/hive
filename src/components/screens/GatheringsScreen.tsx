@@ -72,10 +72,10 @@ function GatheringCard({ g, onChanged }: { g: Gathering; onChanged: (message: st
 
 export default function GatheringsScreen() {
   const { data: me } = useMe();
-  return <HiveShell member><GatheringsBody approved={!!me && (me.isAdmin || me.status === 'approved')} known={!!me} /></HiveShell>;
+  return <HiveShell member><GatheringsBody approved={!!me && (me.isAdmin || me.status === 'approved')} declined={me?.status === 'declined' && !me.isAdmin} known={!!me} /></HiveShell>;
 }
 
-function GatheringsBody({ approved, known }: { approved: boolean; known: boolean }) {
+function GatheringsBody({ approved, declined, known }: { approved: boolean; declined: boolean; known: boolean }) {
   const { t, lang } = useT();
   const qc = useQueryClient();
   const [filter, setFilter] = useState<Filter>('all');
@@ -90,7 +90,7 @@ function GatheringsBody({ approved, known }: { approved: boolean; known: boolean
   return (
     <>
       <div className="hv-hero"><RichTitle text={t.gTitle} /><p>{t.gLead}</p></div>
-      {!known ? <Loading label={t.loading} /> : !approved ? <div className="hv-card">{t.gAwaiting}</div> : (
+      {!known ? <Loading label={t.loading} /> : !approved ? <div className="hv-card">{declined ? t.declinedText : t.gAwaiting}</div> : (
         <div className="hv-stack">
           <div className="hv-filter-row" role="group" aria-label={lang === 'ar' ? 'تصفية اللقاءات' : 'Filter gatherings'}>
             {([
