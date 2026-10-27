@@ -177,7 +177,11 @@ func (s *Server) signup(w http.ResponseWriter, r *http.Request) {
 	case errors.Is(err, sql.ErrNoRows):
 		// Existing account: notify its owner at most once an hour per address.
 		if res := s.limiter.Hit(r.Context(), s.limits.ExistsNotice, ratelimit.Key(v.Email)); res.Allowed {
-			err = mail.Enqueue(r.Context(), tx, "", mail.TemplateAccountExists, mail.AccountExists(v.Email, s.appURL))
+			// Link the notice to the existing account so deleting it cascades.
+			var existing string
+			if err = tx.QueryRowContext(r.Context(), `SELECT id::text FROM users WHERE email=$1`, v.Email).Scan(&existing); err == nil {
+				err = mail.Enqueue(r.Context(), tx, existing, mail.TemplateAccountExists, mail.AccountExists(v.Email, s.appURL))
+			}
 		} else {
 			err = nil
 		}

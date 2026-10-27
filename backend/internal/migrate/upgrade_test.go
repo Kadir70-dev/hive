@@ -50,6 +50,12 @@ VALUES('Existing gathering','2031-08-15','18:00','Abu Dhabi',2) RETURNING id::te
 	if _, err := db.ExecContext(ctx, `INSERT INTO reservations(user_id,gathering_id,status) VALUES($1,$2,'confirmed')`, uid, gid); err != nil {
 		t.Fatal(err)
 	}
+	// Pre-v6 outbox rows queued without a user id (account-exists notice and
+	// an unrelated address) — v6 must link only the one with a real recipient.
+	if _, err := db.ExecContext(ctx, `INSERT INTO email_outbox(template,to_addr,subject) VALUES
+('account_exists','Legacy-Member@example.test','exists'),('account_exists','nobody@example.test','exists')`); err != nil {
+		t.Fatal(err)
+	}
 	if pending, err := migrate.Pending(ctx, db); err != nil || !pending {
 		t.Fatalf("later migrations must still be pending: pending=%v err=%v", pending, err)
 	}
@@ -58,8 +64,16 @@ VALUES('Existing gathering','2031-08-15','18:00','Abu Dhabi',2) RETURNING id::te
 	if err != nil {
 		t.Fatalf("upgrade v3 -> latest: %v", err)
 	}
-	if len(upgraded) != 2 {
-		t.Fatalf("expected v4 and v5 migrations, got %v", upgraded)
+	if len(upgraded) != 3 {
+		t.Fatalf("expected v4, v5 and v6 migrations, got %v", upgraded)
+	}
+	var linked, untouched int
+	if err := db.QueryRowContext(ctx, `SELECT count(*) FILTER (WHERE user_id=$1), count(*) FILTER (WHERE user_id IS NULL AND to_addr='nobody@example.test')
+FROM email_outbox`, uid).Scan(&linked, &untouched); err != nil {
+		t.Fatal(err)
+	}
+	if linked != 1 || untouched != 1 {
+		t.Fatalf("v6 outbox backfill: linked=%d untouched=%d", linked, untouched)
 	}
 	var email, avatar, status string
 	if err := db.QueryRowContext(ctx, `SELECT u.email,u.avatar_path,r.status

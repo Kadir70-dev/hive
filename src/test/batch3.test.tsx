@@ -42,8 +42,10 @@ describe('legal drafts', () => {
     }
   });
   it('privacy draft describes the real processors, cookie and retention', () => {
-    for (const s of ['Hetzner', 'Netlify', 'Resend', 'Google Fonts', 'hive_session', '14 days', 'Argon2id', 'two-factor']) expect(privacy).toContain(s);
+    for (const s of ['Hostinger', 'Netlify', 'Resend', 'Google Fonts', 'hive_session', '14 days', 'Argon2id', 'two-factor']) expect(privacy).toContain(s);
     expect(privacy).not.toMatch(/fully compliant|complies with/i);
+    // The servers run on Hostinger (staging E2E 2026-10-27 found the old Hetzner text).
+    expect(privacy).not.toContain('Hetzner');
   });
 });
 
