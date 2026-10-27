@@ -107,6 +107,20 @@ describe('gatherings screen', () => {
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
   });
 
+  it('tells declined members the decision instead of "awaiting approval" and never loads gatherings', async () => {
+    stub({ '/me': () => [200, { ...member, status: 'declined' }], 'GET /gatherings': () => [200, [gathering({})]] });
+    wrap(<GatheringsScreen />);
+    expect(await screen.findByText(/aren't able to welcome you as a member/)).toBeInTheDocument();
+    expect(screen.queryByText('Your membership is awaiting approval.')).not.toBeInTheDocument();
+    expect(calls.some((c) => c.url.includes('/gatherings'))).toBe(false);
+  });
+
+  it('keeps the awaiting-approval message for pending members', async () => {
+    stub({ '/me': () => [200, { ...member, status: 'pending' }] });
+    wrap(<GatheringsScreen />);
+    expect(await screen.findByText('Your membership is awaiting approval.')).toBeInTheDocument();
+  });
+
   it('renders member labels in Arabic when chosen', async () => {
     localStorage.setItem('hive.site.lang', 'ar');
     stub({ '/me': () => [200, member], 'GET /gatherings': () => [200, [gathering({})]] });
