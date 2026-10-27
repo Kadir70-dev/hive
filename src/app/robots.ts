@@ -5,5 +5,5 @@ export default function robots():MetadataRoute.Robots{
  if(process.env.HIVE_ENVIRONMENT === 'staging'){
    return {rules:[{userAgent:'*',disallow:'/'}]};
  }
- return {rules:[{userAgent:'*',allow:'/',disallow:['/admin','/members','/profile','/gatherings','/auth','/reset-password','/api']}],sitemap:`${base}/sitemap.xml`};
+ return {rules:[{userAgent:'*',allow:'/',disallow:['/admin','/studio','/members','/profile','/gatherings','/auth','/reset-password','/api']}],sitemap:`${base}/sitemap.xml`};
 }

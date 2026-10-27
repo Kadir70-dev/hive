@@ -64,8 +64,8 @@ VALUES('Existing gathering','2031-08-15','18:00','Abu Dhabi',2) RETURNING id::te
 	if err != nil {
 		t.Fatalf("upgrade v3 -> latest: %v", err)
 	}
-	if len(upgraded) != 3 {
-		t.Fatalf("expected v4, v5 and v6 migrations, got %v", upgraded)
+	if len(upgraded) != 4 {
+		t.Fatalf("expected v4, v5, v6 and v7 migrations, got %v", upgraded)
 	}
 	var linked, untouched int
 	if err := db.QueryRowContext(ctx, `SELECT count(*) FILTER (WHERE user_id=$1), count(*) FILTER (WHERE user_id IS NULL AND to_addr='nobody@example.test')

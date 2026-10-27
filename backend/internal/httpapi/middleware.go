@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -126,14 +127,20 @@ func (s *Server) securityHeaders(next http.Handler) http.Handler {
 	})
 }
 
-// photoBodyLimit allows a 5 MiB image plus multipart framing on the upload route only.
+// photoBodyLimit allows a 5 MiB image plus multipart framing on the image upload routes only.
 const photoBodyLimit = 6 << 20
+
+// cmsDraftBodyLimit fits a full bilingual page document.
+const cmsDraftBodyLimit = 256 << 10
 
 func (s *Server) limitBody(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		limit := s.maxBody
-		if r.Method == http.MethodPost && r.URL.Path == photoPath {
+		if r.Method == http.MethodPost && (r.URL.Path == photoPath || r.URL.Path == cmsMediaPath) {
 			limit = photoBodyLimit
+		}
+		if r.Method == http.MethodPut && strings.HasPrefix(r.URL.Path, "/v1/admin/cms/pages/") && limit < cmsDraftBodyLimit {
+			limit = cmsDraftBodyLimit
 		}
 		if r.ContentLength > limit {
 			s.fail(w, r, 413, "body_too_large", "request body too large")

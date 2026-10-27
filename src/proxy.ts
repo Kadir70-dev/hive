@@ -7,7 +7,8 @@ import { pageCSP } from '@/lib/security-headers';
  */
 export function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
-  const csp = pageCSP(nonce, process.env.NODE_ENV === 'development');
+  // The Studio previews image URLs pasted by admins, so only it allows https: images.
+  const csp = pageCSP(nonce, process.env.NODE_ENV === 'development', { httpsImages: request.nextUrl.pathname.startsWith('/studio') });
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
   requestHeaders.set('Content-Security-Policy', csp);
@@ -21,7 +22,7 @@ export const config = {
   matcher: [
     {
       // Pages only: API routes, Next assets and files in public/ get static headers from next.config.ts.
-      source: '/((?!api|_next/static|_next/image|vendor|hive\\.html|favicon\\.ico|icon-|apple-touch-icon|manifest\\.webmanifest|robots\\.txt|sitemap\\.xml).*)',
+      source: '/((?!api|_next/static|_next/image|vendor|hive\\.html|site/home|favicon\\.ico|icon-|apple-touch-icon|manifest\\.webmanifest|robots\\.txt|sitemap\\.xml).*)',
       missing: [
         { type: 'header', key: 'next-router-prefetch' },
         { type: 'header', key: 'purpose', value: 'prefetch' },

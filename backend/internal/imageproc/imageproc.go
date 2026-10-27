@@ -25,6 +25,7 @@ const (
 	MaxSide    = 8000       // reject absurd dimensions before decoding
 	MaxPixels  = 24_000_000 // ~96 MB decoded; enough for 6000×4000 phone photos
 	OutputSide = 512        // stored photos are at most 512×512
+	SiteSide   = 2400       // website (CMS) images are at most 2400px on the long side
 )
 
 var (
@@ -55,7 +56,12 @@ type Result struct {
 }
 
 // Process validates an upload and returns a metadata-free JPEG.
-func Process(data []byte) (Result, error) {
+func Process(data []byte) (Result, error) { return process(data, OutputSide) }
+
+// ProcessSite is Process for public website images, which keep more detail.
+func ProcessSite(data []byte) (Result, error) { return process(data, SiteSide) }
+
+func process(data []byte, side int) (Result, error) {
 	if len(data) > MaxBytes {
 		return Result{}, ErrTooLarge
 	}
@@ -93,7 +99,7 @@ func Process(data []byte) (Result, error) {
 	if format == "jpeg" {
 		img = orient(img, jpegOrientation(data))
 	}
-	img = fit(img, OutputSide)
+	img = fit(img, side)
 	var out bytes.Buffer
 	if err := jpeg.Encode(&out, flatten(img), &jpeg.Options{Quality: 85}); err != nil {
 		return Result{}, err
