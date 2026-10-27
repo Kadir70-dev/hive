@@ -114,25 +114,26 @@ func (s *Server) notifyAdminsNewMember(ctx context.Context, q queryer, userID st
 	if isAdmin {
 		return nil
 	}
-	rows, err := q.QueryContext(ctx, `SELECT email FROM users WHERE is_admin AND email_verified_at IS NOT NULL ORDER BY email`)
+	rows, err := q.QueryContext(ctx, `SELECT id::text, email FROM users WHERE is_admin AND email_verified_at IS NOT NULL ORDER BY email`)
 	if err != nil {
 		return err
 	}
-	var admins []string
+	type admin struct{ id, email string }
+	var admins []admin
 	for rows.Next() {
-		var e string
-		if err := rows.Scan(&e); err != nil {
+		var a admin
+		if err := rows.Scan(&a.id, &a.email); err != nil {
 			rows.Close()
 			return err
 		}
-		admins = append(admins, e)
+		admins = append(admins, a)
 	}
 	rows.Close()
 	if err := rows.Err(); err != nil {
 		return err
 	}
 	for _, a := range admins {
-		if err := mail.Enqueue(ctx, q, "", mail.TemplateNewMemberAlert, mail.NewMemberAlert(a, name, area, s.appURL)); err != nil {
+		if err := mail.Enqueue(ctx, q, a.id, mail.TemplateNewMemberAlert, mail.NewMemberAlert(a.email, name, area, s.appURL)); err != nil {
 			return err
 		}
 	}

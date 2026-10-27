@@ -1,7 +1,8 @@
 /** Error from the Go API; `code` is the machine-readable reason (e.g. "mfa_required"). */
 export class ApiError extends Error {
   constructor(message: string, readonly status: number, readonly code?: string, readonly retryAfter?: number) {
-    super(message);
+    // The Go API writes messages in lower case; show them as sentences.
+    super(message.charAt(0).toLocaleUpperCase() + message.slice(1));
     this.name = 'ApiError';
   }
 }

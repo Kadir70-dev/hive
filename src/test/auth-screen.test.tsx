@@ -52,5 +52,6 @@ describe('AuthScreen account flows', () => {
     fireEvent.submit(s.getByLabelText(/Email/).closest('form')!);
     expect(await s.findByRole('button', { name: 'Send a new confirmation link' })).toBeInTheDocument();
     expect(s.getByRole('link', { name: 'Forgot your password?' })).toHaveAttribute('href', '/reset-password');
+    expect(s.getByText('Please confirm your email address first')).toBeInTheDocument();
   });
 });

@@ -313,9 +313,11 @@
 .hv-partner-link{display:inline-flex;align-items:center;gap:8px;font-weight:700;text-underline-offset:4px;min-height:44px}
 .hv-partner-card .hv-field-hint{margin:12px 0 0}
 @media(max-width:460px){.hv-partner-mono{flex-basis:54px;width:54px;height:54px;border-radius:15px;font-size:1.1rem}.hv-partner-card{gap:12px}}
-/* Admin tabs are horizontally scrollable on narrow screens and remain keyboard operable. */
-.hv-tabs{max-width:100%;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:thin}
+/* Admin tabs wrap on wider screens so none is clipped, and scroll horizontally
+   (still keyboard operable) on narrow screens. */
+.hv-tabs{max-width:100%;border-radius:22px}
 .hv-tabs button{white-space:nowrap;flex:0 0 auto;min-height:44px}
+@media(max-width:720px){.hv-tabs{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:thin;border-radius:999px}}
 .hv:lang(ar) input[type="email"],.hv:lang(ar) input[type="url"],.hv:lang(ar) input[type="tel"]{direction:ltr;text-align:left}
 .hv input,.hv textarea,.hv select{min-width:0;max-width:100%}
 .hv-pre{unicode-bidi:plaintext}

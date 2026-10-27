@@ -141,3 +141,15 @@ describe('admin keyboard accessibility', () => {
     expect(members).toHaveFocus();
   });
 });
+
+describe('admin tab layout', () => {
+  // Staging E2E 2026-10-27: an unscoped nowrap/overflow rule clipped the last
+  // admin tab on a 1366px desktop. Scrolling must be limited to narrow screens.
+  it('only forces a single scrolling row of tabs inside a narrow-screen media query', async () => {
+    const { readFileSync } = await import('node:fs');
+    const css = readFileSync(`${process.cwd()}/src/styles.css`, 'utf8');
+    const topLevel = css.replace(/@media[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '');
+    for (const rule of topLevel.match(/\.hv-tabs\s*\{[^}]*\}/g) ?? []) expect(rule).not.toMatch(/nowrap|overflow-x/);
+    expect(css).toMatch(/@media\(max-width:720px\)\{\.hv-tabs\{[^}]*flex-wrap:nowrap/);
+  });
+});

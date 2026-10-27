@@ -154,6 +154,11 @@ func (s *Server) deleteMe(w http.ResponseWriter, r *http.Request) {
 		_, err = tx.ExecContext(r.Context(), "DELETE FROM users WHERE id=$1", own(r).ID)
 	}
 	if err == nil {
+		// Linked mail cascades with the user row; also drop any legacy unlinked
+		// mail still addressed to this person.
+		_, err = tx.ExecContext(r.Context(), "DELETE FROM email_outbox WHERE user_id IS NULL AND lower(to_addr)=$1", own(r).Email)
+	}
+	if err == nil {
 		// The actor row is gone; keep an anonymous record that a deletion happened.
 		s.audit(r.Context(), tx, "", "account.delete", "", "self-service")
 		err = tx.Commit()

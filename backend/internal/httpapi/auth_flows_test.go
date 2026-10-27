@@ -249,3 +249,38 @@ func TestApprovalRequiresVerifiedEmail(t *testing.T) {
 		t.Fatal("approval not audited")
 	}
 }
+
+// Mail queued without a user id used to outlive account deletion (staging E2E
+// 2026-10-27). It is now linked to its recipient, and deletion purges any
+// legacy unlinked rows addressed to the member, without touching other mail.
+func TestOutboxRecipientLinkedAndPurgedOnDeletion(t *testing.T) {
+	e := newEnvWith(t, nil, 4, true)
+	e.admin("boss@example.test")
+	member := e.signup("leaver@example.test") // verification queues a new-member alert to the admin
+	e.rawSignup("leaver@example.test")        // duplicate signup queues an account-exists notice
+	var noticeUser, alertUser string
+	if err := e.db.QueryRow(`SELECT COALESCE(user_id::text,'') FROM email_outbox WHERE template='account_exists' AND to_addr='leaver@example.test'`).Scan(&noticeUser); err != nil {
+		t.Fatal(err)
+	}
+	if noticeUser != e.userID("leaver@example.test") {
+		t.Fatalf("account-exists notice not linked to its recipient: %q", noticeUser)
+	}
+	if err := e.db.QueryRow(`SELECT COALESCE(user_id::text,'') FROM email_outbox WHERE template='new_member_alert' AND to_addr='boss@example.test'`).Scan(&alertUser); err != nil {
+		t.Fatal(err)
+	}
+	if alertUser != e.userID("boss@example.test") {
+		t.Fatalf("admin alert not linked to the admin: %q", alertUser)
+	}
+	if _, err := e.db.Exec(`INSERT INTO email_outbox(template,to_addr,subject) VALUES
+('account_exists','leaver@example.test','legacy'),('account_exists','someone-else@example.test','legacy')`); err != nil {
+		t.Fatal(err)
+	}
+	expect(t, e.do("DELETE", "/v1/me", map[string]any{"password": goodPass}, session(member)), 200, "delete")
+	var mine, others, adminMail int
+	_ = e.db.QueryRow(`SELECT count(*) FROM email_outbox WHERE to_addr='leaver@example.test'`).Scan(&mine)
+	_ = e.db.QueryRow(`SELECT count(*) FROM email_outbox WHERE to_addr='someone-else@example.test'`).Scan(&others)
+	_ = e.db.QueryRow(`SELECT count(*) FROM email_outbox WHERE to_addr='boss@example.test' AND template='new_member_alert'`).Scan(&adminMail)
+	if mine != 0 || others != 1 || adminMail != 1 {
+		t.Fatalf("after deletion: member rows=%d (want 0), unrelated=%d (want 1), admin alerts=%d (want 1)", mine, others, adminMail)
+	}
+}

@@ -54,7 +54,7 @@ const sections: { title: string; body: string[]; list?: string[] }[] = [
       "We do not sell your information and we do not share it with advertisers or data brokers. We use these providers to operate the service:",
     ],
     list: [
-      "Hetzner Online — servers that run our application, database and backups [data-centre location to be confirmed]",
+      "Hostinger — the virtual private server that runs our website, application, database and backups [data-centre location to be confirmed]",
       "Netlify — hosting for this website; your requests pass through Netlify to reach our servers",
       "Resend — delivery of the service emails listed above [once configured]",
       "Google Fonts — your browser downloads our typefaces from Google, which receives your IP address",
