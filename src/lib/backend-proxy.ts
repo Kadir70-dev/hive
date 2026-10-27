@@ -48,7 +48,9 @@ export async function forwardToApi(req: Request, apiPath: string): Promise<Respo
   } catch {
     return Response.json({ error: 'API unavailable' }, { status: 503 });
   }
-  const out = new Headers({ 'cache-control': 'no-store' });
+  // Public website images never change behind a URL, so browsers may keep them.
+  const cacheable = upstream.ok && req.method === 'GET' && apiPath.startsWith('/v1/cms/media/');
+  const out = new Headers({ 'cache-control': cacheable ? upstream.headers.get('cache-control') || 'no-store' : 'no-store' });
   for (const name of passThroughResponseHeaders) {
     const value = upstream.headers.get(name);
     if (value) out.set(name, value);

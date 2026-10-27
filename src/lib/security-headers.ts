@@ -20,13 +20,13 @@ const fonts = { style: 'https://fonts.googleapis.com', font: 'https://fonts.gsta
  * lets Next's nonce'd loader pull in its own chunks). Inline style attributes
  * are used across the existing UI, so styles keep 'unsafe-inline'.
  */
-export function pageCSP(nonce: string, dev: boolean): string {
+export function pageCSP(nonce: string, dev: boolean, opts: { httpsImages?: boolean } = {}): string {
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${dev ? " 'unsafe-eval'" : ''}`,
     `style-src 'self' 'unsafe-inline' ${fonts.style}`,
     `font-src 'self' ${fonts.font}`,
-    "img-src 'self' data: blob:",
+    `img-src 'self' data: blob:${opts.httpsImages ? ' https:' : ''}`,
     `connect-src 'self'${dev ? ' ws:' : ''}`,
     "frame-src 'self'",
     "frame-ancestors 'none'",
@@ -48,13 +48,13 @@ export function inlineScriptHashes(html: string): string[] {
 }
 
 /** CSP for the static homepage (public/hive.html), which is framed by "/". */
-export function staticHomepageCSP(html: string): string {
+export function staticHomepageCSP(html: string, opts: { httpsImages?: boolean } = {}): string {
   return [
     "default-src 'self'",
     `script-src 'self' ${inlineScriptHashes(html).join(' ')}`,
     `style-src 'self' 'unsafe-inline' ${fonts.style}`,
     `font-src 'self' ${fonts.font}`,
-    "img-src 'self' data:",
+    `img-src 'self' data:${opts.httpsImages ? ' https:' : ''}`,
     "connect-src 'self'",
     "frame-ancestors 'self'",
     "base-uri 'self'",
