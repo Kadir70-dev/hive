@@ -58,6 +58,11 @@ off=(-e BACKUP_RCLONE_REMOTE=offsite:/offsite/production -e RCLONE_CONFIG_OFFSIT
 run --entrypoint sh "$BACKUP_IMAGE" -c 'mkdir -p /backups/offsite/production/nested && touch -d "20 days ago" /backups/offsite/production/hive-old-20000101T000000Z.dump.age /backups/offsite/production/nested/hive-old-20000101T000000Z.dump.age'
 run "${off[@]}" -e BACKUP_REMOTE_PRUNE=0 -e PGDATABASE="$src" -e BACKUP_AGE_RECIPIENT="$recipient" "$BACKUP_IMAGE" backup >/dev/null
 run --entrypoint sh "$BACKUP_IMAGE" -c 'test -e /backups/offsite/production/hive-old-20000101T000000Z.dump.age' || { echo "FAIL: BACKUP_REMOTE_PRUNE=0 deleted an off-site backup"; exit 1; }
+# Backup filenames are second-granularity (hive-<db>-YYYYmmddTHHMMSSZ). These two
+# runs fire back-to-back, so without a gap they can land in the same second,
+# collide to one filename, and the "2 off-site copies" assertion below sees only
+# one. One second guarantees distinct timestamps (real backups are hours apart).
+sleep 1
 run "${off[@]}" -e PGDATABASE="$src" -e BACKUP_AGE_RECIPIENT="$recipient" "$BACKUP_IMAGE" backup >/dev/null
 run --entrypoint sh "$BACKUP_IMAGE" -c 'test ! -e /backups/offsite/production/hive-old-20000101T000000Z.dump.age' || { echo "FAIL: off-site retention did not prune"; exit 1; }
 run --entrypoint sh "$BACKUP_IMAGE" -c 'test -e /backups/offsite/production/nested/hive-old-20000101T000000Z.dump.age' || { echo "FAIL: prune reached a nested path"; exit 1; }
