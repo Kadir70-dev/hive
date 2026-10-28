@@ -142,7 +142,7 @@ jobs:
       - name: Validate Caddy configuration
         run: |
           docker run --rm -e API_DOMAIN=api.example.test -e ACME_EMAIL=ops@example.test -v "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
-          docker run --rm -e SITE_DOMAIN=staging.example.test -e ACME_EMAIL=ops@example.test -v "$PWD/Caddyfile.hostinger:/etc/caddy/Caddyfile:ro" caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+          docker run --rm -e SITE_DOMAIN=staging.example.test -e ACME_EMAIL=ops@example.test -v "$PWD/Caddyfile.hostinger:/etc/caddy/Caddyfile:ro" -v "$PWD/caddy/hive-site.caddy:/etc/caddy/hive-site.caddy:ro" caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
       - name: Build backend and backup images
         run: |
           docker build -t hive-api:ci backend
