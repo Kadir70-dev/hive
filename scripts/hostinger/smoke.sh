@@ -34,6 +34,19 @@ if [[ "${EXPECT_STAGING_NOINDEX:-1}" == 1 ]]; then
   curl --silent --show-error --max-time 15 "$base/robots.txt" | grep -q '^Disallow: /' || { echo "FAIL: staging robots.txt must disallow all"; exit 1; }
   canonical="${EXPECTED_CANONICAL_URL:-$base}"
   curl --silent --show-error --max-time 15 "$base/sitemap.xml" | grep -Fq "$canonical" || { echo "FAIL: sitemap lacks expected hostname"; exit 1; }
+else
+  # Production: the staging noindex header and disallow-all robots must be gone.
+  home_headers="$(curl --silent --show-error --max-time 15 -D - -o /dev/null "$base/")"
+  ! grep -qi '^x-robots-tag:.*noindex' <<< "$home_headers" || { echo "FAIL: production homepage sends noindex"; exit 1; }
+  robots="$(curl --silent --show-error --max-time 15 "$base/robots.txt")"
+  ! grep -qx 'Disallow: /' <<< "$robots" || { echo "FAIL: production robots.txt disallows everything"; exit 1; }
+  grep -Fq "Sitemap: $base/sitemap.xml" <<< "$robots" || { echo "FAIL: production robots.txt lacks sitemap"; exit 1; }
+  echo "ok: production is indexable (no noindex, robots allows, sitemap $base)"
+fi
+if [[ -n "${WWW_ORIGIN:-}" ]]; then
+  loc="$(curl --silent --show-error --max-time 15 -o /dev/null -w '%{http_code} %{redirect_url}' "${WWW_ORIGIN%/}/auth?x=1")"
+  [[ "$loc" == "301 $base/auth?x=1" ]] || { echo "FAIL: $WWW_ORIGIN redirect returned '$loc'"; exit 1; }
+  echo "ok: $WWW_ORIGIN redirects to $base"
 fi
 # Production-safe probes: send disposable data only; no member operations.
 if [[ "${TEST_BODY_LIMITS:-0}" == 1 ]]; then

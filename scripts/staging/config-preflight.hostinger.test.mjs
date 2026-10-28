@@ -38,3 +38,36 @@ test('Production cannot use log-only email provider', () => {
   const {errors} = validateEnv(config, null, 'production');
   assert.ok(errors.some(e => e.includes('cannot deliver production email')));
 });
+
+const production = () => ({...base(), SITE_DOMAIN: 'thehivesociety.ae', PUBLIC_APP_URL: 'https://thehivesociety.ae',
+  ALLOWED_ORIGINS: 'https://thehivesociety.ae', API_DOMAIN: 'api.thehivesociety.ae', HIVE_ENVIRONMENT: 'production',
+  SITE_REDIRECT_FROM: 'www.thehivesociety.ae', MAIL_PROVIDER: 'resend', RESEND_API_KEY: 're_' + 'k'.repeat(30),
+  MAIL_FROM: 'The Hive Society <hello@mailer.thehivesociety.ae>'});
+
+test('Hostinger production: apex site with www redirect passes', () => {
+  assert.deepEqual(validateEnv(production(), null, 'production').errors, []);
+});
+
+test('Hostinger production: staging noindex environment is rejected', () => {
+  for (const HIVE_ENVIRONMENT of ['staging', undefined]) {
+    const {errors} = validateEnv({...production(), HIVE_ENVIRONMENT}, null, 'production');
+    assert.ok(errors.some(e => e.includes('HIVE_ENVIRONMENT must be production')));
+  }
+});
+
+test('Hostinger production: www must redirect to the apex site', () => {
+  const {errors} = validateEnv({...production(), SITE_REDIRECT_FROM: ''}, null, 'production');
+  assert.ok(errors.some(e => e.includes('must include www.thehivesociety.ae')));
+});
+
+test('Hostinger redirect hosts must be hostnames other than the site', () => {
+  let {errors} = validateEnv({...production(), SITE_REDIRECT_FROM: 'https://www.thehivesociety.ae'}, null, 'production');
+  assert.ok(errors.some(e => e.includes('comma-separated hostnames')));
+  ({errors} = validateEnv({...production(), SITE_REDIRECT_FROM: 'www.thehivesociety.ae,thehivesociety.ae'}, null, 'production'));
+  assert.ok(errors.some(e => e.includes('must not include SITE_DOMAIN')));
+});
+
+test('Hostinger staging: production environment flag is rejected', () => {
+  const {errors} = validateEnv({...base(), HIVE_ENVIRONMENT: 'production'}, null, 'staging');
+  assert.ok(errors.some(e => e.includes('HIVE_ENVIRONMENT must be staging')));
+});

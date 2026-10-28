@@ -74,3 +74,11 @@
         }
     }
 }
+
+# Extra hostnames (e.g. www.<domain> in production) permanently redirect to the
+# canonical site. Unset in staging: compose passes an http:// placeholder that
+# never requests a certificate and matches no real traffic.
+{$SITE_REDIRECT_FROM:http://redirect-unused.invalid} {
+    header Strict-Transport-Security "max-age=31536000"
+    redir https://{$SITE_DOMAIN}{uri} permanent
+}

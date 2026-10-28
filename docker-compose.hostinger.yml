@@ -48,6 +48,8 @@ services:
   caddy:
     environment:
       SITE_DOMAIN: ${SITE_DOMAIN:?set SITE_DOMAIN}
+      # Unset/empty: an http:// placeholder that never gets a certificate.
+      SITE_REDIRECT_FROM: ${SITE_REDIRECT_FROM:-http://redirect-unused.invalid}
       HIVE_ENVIRONMENT: ${HIVE_ENVIRONMENT:-staging}
     # Compose merges volumes by container target; override the API-only Caddyfile.
     volumes:
