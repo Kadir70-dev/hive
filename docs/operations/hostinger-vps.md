@@ -166,43 +166,125 @@ Never use `docker compose down -v` on a live environment.
 The site currently on `thehivesociety.ae`/`www` is the old Lovable deployment
 (`A 185.158.133.1`). This repository has no Lovable or Supabase runtime
 dependency; existing members are brought over only via offline exports
-(`docs/operations/member-migration.md`). Production runs as **this same
-single-server stack promoted in place**: Caddy can only own ports 80/443
-once, so staging and production cannot run side by side here. After cutover,
-`staging.thehivesociety.ae` simply redirects to production; a future staging
-environment needs its own server.
+(`docs/operations/member-migration.md`). **Lovable and its DNS stay untouched
+until member migration and launch tests pass.**
+
+### Layout: staging and production on one VPS behind one Caddy
+
+```
+Internet :80/:443 -> hive-edge Caddy (deploy/edge)
+   ├─ hive-edge-staging (internal) -> hive  stack: web -> api -> db/redis (10.250.70.0/24)
+   └─ hive-edge-prod    (internal) -> hive-prod stack: web -> api -> db/redis (10.250.71.0/24)
+```
+
+- Each environment is its own Compose project with its own database, Redis,
+  backups, secrets and env file; only its Next.js container joins its own
+  internal edge network. Caddy is the only container on both edge networks,
+  so staging cannot reach production (verified: by name and by IP).
+- Security headers, body limits, client-IP overwrite and log redaction come
+  from one shared snippet (`caddy/hive-site.caddy`) for every layout.
+- Staging is always `noindex` at the edge; production is indexable.
+- Production's web image is `hive-web-production:<sha>` (its site URL is
+  baked in at build time), so it never overwrites the staging image.
+- Sizing: the VPS has ~8 GB RAM / 96 GB disk; one stack uses about 1 GB.
+
+Per-stack command (add `-f docker-compose.edge.yml`):
+
+```sh
+docker compose --env-file backend/.env.<env> -f docker-compose.yml \
+  -f docker-compose.hostinger.yml -f docker-compose.edge.yml up -d
+```
+
+| Setting | staging (`/opt/hive`, `backend/.env.hostinger`) | production (`/opt/hive-prod`, `backend/.env.production`) |
+|---|---|---|
+| `COMPOSE_PROJECT_NAME` | unset (`hive`, keeps existing volumes) | `hive-prod` |
+| `HIVE_EDGE_ALIAS` / `HIVE_EDGE_NETWORK` | `hive-staging-web` / `hive-edge-staging` | `hive-prod-web` / `hive-edge-prod` |
+| `HIVE_DOCKER_SUBNET` / `HIVE_CADDY_IP` | defaults | `10.250.71.0/24` / `10.250.71.10` |
+| `HIVE_WEB_IMAGE_SUFFIX` | unset | `-production` |
+| `HIVE_ENVIRONMENT` | `staging` | `production` |
+| `SITE_DOMAIN` / `PUBLIC_APP_URL` / `ALLOWED_ORIGINS` | `staging.thehivesociety.ae` | `thehivesociety.ae` |
+| `MAIL_PROVIDER` / `MAIL_FROM` | `resend`, `staging@mailer.thehivesociety.ae` | `resend`, `hello@mailer.thehivesociety.ae` |
+| `RESEND_API_KEY` | own key | own key |
+| `R2_BUCKET` | `hive-photos-staging` | `hive-photos-prod` |
+| `BACKUP_RCLONE_REMOTE` | `offsite:hive-backups/staging` | `offsite:hive-backups/production` |
+| `MFA_ENCRYPTION_KEY`, DB/Redis/proxy secrets | own values | **new** values, never copied |
+
+Edge env (`deploy/edge/.env`, untracked): `ACME_EMAIL`,
+`STAGING_DOMAIN=staging.thehivesociety.ae`, and only at cutover
+`PROD_DOMAIN=thehivesociety.ae`, `PROD_REDIRECT_FROM=www.thehivesociety.ae`.
+
+`node scripts/staging/config-preflight.mjs --mode <staging|production> --api-env <file>`
+enforces these per-environment values.
+
+### External services to provision (owner accounts)
+
+**Resend (email):** add the domain `mailer.thehivesociety.ae` in Resend and
+create the records it shows in OnlyDomains. They are all on the `mailer`
+subdomain (typically MX + SPF TXT on `send.mailer`, DKIM TXT
+`resend._domainkey.mailer`), so the root domain's Titan MX/SPF/DMARC stay
+untouched. Create one *sending-only* API key per environment, restricted to
+that domain. Check with
+`docker compose … run --rm --entrypoint admin api test-email --email <owner address>`.
+
+**Cloudflare R2 (photos + off-site backups):** in one Cloudflare account,
+create private buckets `hive-photos-staging`, `hive-photos-prod` and
+`hive-backups` (no public access, no custom domain). Add a bucket lock rule
+on `hive-backups` (e.g. 30 days) and a lifecycle rule deleting objects
+after 35 days. Create separate *Object Read & Write* tokens per bucket:
+photos-staging, photos-prod, backups. Backup env (per environment, own path):
+
+```sh
+BACKUP_RCLONE_REMOTE=offsite:hive-backups/production   # or /staging
+RCLONE_CONFIG_OFFSITE_TYPE=s3
+RCLONE_CONFIG_OFFSITE_PROVIDER=Cloudflare
+RCLONE_CONFIG_OFFSITE_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
+RCLONE_CONFIG_OFFSITE_ACCESS_KEY_ID=…   RCLONE_CONFIG_OFFSITE_SECRET_ACCESS_KEY=…
+RCLONE_CONFIG_OFFSITE_NO_CHECK_BUCKET=true   # bucket-scoped tokens cannot list buckets
+BACKUP_REMOTE_PRUNE=0                       # the bucket lock/lifecycle owns retention
+```
+
+Both environments write `hive-hive-<time>.dump.age`, so they **must** use
+different paths; off-site pruning only touches the top level of its own path.
+
+**Alerts:** one private HTTPS webhook (e.g. a private Slack/Discord channel
+or ntfy topic) per environment for `BACKUP_ALERT_WEBHOOK`.
+
+**Backup keys:** one age key pair per environment. Only the public key goes on
+the VPS; keep the private key offline in two places (e.g. a password manager
+plus an encrypted USB key) and prove a restore with it.
+
+### Move staging behind the edge (staging-only, a few seconds downtime)
+
+1. Add `HIVE_EDGE_ALIAS=hive-staging-web` and `HIVE_EDGE_NETWORK=hive-edge-staging`
+   to `backend/.env.hostinger`; run the staging preflight.
+2. `docker compose --env-file deploy/edge/.env -f deploy/edge/compose.yml create`
+   (creates the edge networks without binding ports).
+3. Recreate staging `web` with the edge overlay, then stop and remove the
+   per-stack `caddy` container only (never `down -v`), and
+   `up -d` the edge Caddy. It re-issues the staging certificate.
+4. Run `scripts/hostinger/smoke.sh` against staging.
+
+### Bring production up privately (before any DNS change)
+
+1. Clone the reviewed commit into `/opt/hive-prod`; create
+   `backend/.env.production` with new secrets; production preflight must pass.
+2. Build and start the production stack with the edge overlay. With
+   `PROD_DOMAIN` unset at the edge it is reachable only inside the VPS, so
+   admins, imports and checks can run through an SSH tunnel to its web container.
+3. Rehearse the member import there after staging (see member migration).
 
 ### Go/no-go gates (all required)
 
 - Staging acceptance above, plus a public-URL run: signup, verification,
   login, member privacy, admin TOTP and Studio.
-- Resend verified on a **subdomain** sender (e.g. `mailer.thehivesociety.ae`);
-  the root domain's Titan MX/SPF/DKIM/DMARC records are never edited.
-- R2 private bucket, off-site backup remote, backup alert webhook, a second
-  offline copy of the age identity, a verified restore.
+- Resend verified on the `mailer.thehivesociety.ae` **subdomain**; the root
+  domain's Titan MX/SPF/DMARC records are never edited.
+- R2 photo buckets, off-site backup bucket with lock, alert webhook, a second
+  offline copy of each age identity, a verified restore per environment.
 - Two real allowlisted admins with TOTP; legal approval of Terms/Privacy.
-- Legacy member export reconciled and rehearsed (`plan`, then `apply` on
-  staging) — existing members must not be lost.
+- Legacy member export reconciled and imported into production with counts
+  matching the Lovable source.
 - SSH key-only and fail2ban (recommended before going public).
-
-### Production environment (diff from staging)
-
-```sh
-SITE_DOMAIN=thehivesociety.ae
-SITE_REDIRECT_FROM=www.thehivesociety.ae,staging.thehivesociety.ae
-PUBLIC_APP_URL=https://thehivesociety.ae
-ALLOWED_ORIGINS=https://thehivesociety.ae
-HIVE_ENVIRONMENT=production      # removes noindex header + disallow-all robots
-MAIL_PROVIDER=resend             # with RESEND_API_KEY and MAIL_FROM
-R2_* / BACKUP_RCLONE_REMOTE / BACKUP_ALERT_WEBHOOK / HIVE_ADMIN_EMAILS set
-```
-
-`HIVE_ENVIRONMENT` and `PUBLIC_APP_URL` are **build-time** inputs of the web
-image, so production needs a fresh `hive-web` build. The checker must pass:
-
-```sh
-node scripts/staging/config-preflight.mjs --mode production --api-env backend/.env.hostinger
-```
 
 ### Cutover order
 
@@ -210,18 +292,24 @@ Caddy obtains certificates over HTTP-01, so `thehivesociety.ae` and `www`
 can only be issued **after** DNS points here. OnlyDomains has no TTL control
 (records publish at 86400s, in batches of roughly 15–20 minutes).
 
-1. Save a DNS zone export and the current `.env`; take an encrypted backup.
-2. Build/tag the production images with the production env (not yet started).
+1. Save a DNS zone export; take encrypted backups of both databases.
+2. Freeze sign-ups on the Lovable site if possible, then take the final
+   member export and import the delta (imports are idempotent).
 3. In OnlyDomains edit only `@ A` and `www A` → `201.18.200.202`. Leave MX,
    SPF, DMARC, Google verification and every other record untouched.
-4. Poll `dig @ns1.onlydomains.com`; as soon as both names answer, start the
-   production images and restart Caddy; confirm both certificates.
+4. Poll `dig @ns1.onlydomains.com`; as soon as both names answer, set
+   `PROD_DOMAIN`/`PROD_REDIRECT_FROM` in the edge env and restart the edge
+   Caddy; confirm both certificates.
 5. Verify: `BASE_URL=https://thehivesociety.ae EXPECT_STAGING_NOINDEX=0
    WWW_ORIGIN=https://www.thehivesociety.ae bash scripts/hostinger/smoke.sh`,
-   then signup/verification email/login/admin TOTP/Studio/member privacy.
+   then signup/verification email/login/admin TOTP/Studio/member privacy, and
+   send the member invitation batches.
 6. Keep the Lovable deployment up for ~48h while resolver caches expire, then
    delete the `_lovable`, `_lovable.www` and `_lovable-email` TXT records and
    retire the Lovable project.
 
-Rollback: restore `@`/`www` to `185.158.133.1` (only works while Lovable is
-still up), restore the saved `.env`, and use `rollback.sh` for images.
+Rollback: restore `@`/`www` to `185.158.133.1` (only while Lovable is still
+up), unset `PROD_DOMAIN` at the edge, and use `rollback.sh` for images.
+
+The single-stack layout (per-stack Caddy with `SITE_REDIRECT_FROM`) remains
+supported for a one-environment server.

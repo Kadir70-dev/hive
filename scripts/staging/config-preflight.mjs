@@ -69,7 +69,21 @@ export function validateEnv(api, site, mode = 'staging') {
       errors.push('SITE_REDIRECT_FROM must be comma-separated hostnames (not URLs)');
     if (aliases.includes(api.SITE_DOMAIN))
       errors.push('SITE_REDIRECT_FROM must not include SITE_DOMAIN');
-    if (mode === 'production' && api.SITE_DOMAIN && !api.SITE_DOMAIN.startsWith('www.') &&
+    // Shared-edge layout (docker-compose.edge.yml): www redirects live in the
+    // edge Caddy, and each environment needs its own network, alias and image.
+    const edge = !!api.HIVE_EDGE_ALIAS || !!api.HIVE_EDGE_NETWORK;
+    if (edge) {
+      const want = mode === 'production'
+        ? { HIVE_EDGE_ALIAS: 'hive-prod-web', HIVE_EDGE_NETWORK: 'hive-edge-prod' }
+        : { HIVE_EDGE_ALIAS: 'hive-staging-web', HIVE_EDGE_NETWORK: 'hive-edge-staging' };
+      for (const [k, v] of Object.entries(want)) if (api[k] !== v) errors.push(`Shared edge ${mode}: ${k} must be ${v}`);
+      if (mode === 'production' && !api.HIVE_WEB_IMAGE_SUFFIX)
+        errors.push('Shared edge production: set HIVE_WEB_IMAGE_SUFFIX (e.g. -production) so it never reuses the staging web image');
+      if (mode === 'production' && (api.COMPOSE_PROJECT_NAME || 'hive') === 'hive')
+        errors.push('Shared edge production: COMPOSE_PROJECT_NAME must differ from the staging project (hive)');
+      if (mode === 'production' && (api.HIVE_DOCKER_SUBNET || '10.250.70.0/24') === '10.250.70.0/24')
+        errors.push('Shared edge production: HIVE_DOCKER_SUBNET must differ from staging (10.250.70.0/24)');
+    } else if (mode === 'production' && api.SITE_DOMAIN && !api.SITE_DOMAIN.startsWith('www.') &&
       !aliases.includes('www.' + api.SITE_DOMAIN))
       errors.push('Production SITE_REDIRECT_FROM must include www.' + api.SITE_DOMAIN);
   }

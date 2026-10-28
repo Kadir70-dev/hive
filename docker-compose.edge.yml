@@ -1,0 +1,26 @@
+# Shared-edge overlay: run staging and production as separate Compose projects
+# on one VPS behind ONE Caddy (deploy/edge). Each app stack drops its own Caddy
+# and attaches only its Next.js container to its OWN internal edge network
+# (hive-edge-staging / hive-edge-prod) under a unique alias; only Caddy joins
+# both, so staging can never reach production containers. Postgres, Redis and the API stay on the stack's own
+# internal network. Usage (per stack, with its own env file):
+#   docker compose --env-file backend/.env.<env> -f docker-compose.yml \
+#     -f docker-compose.hostinger.yml -f docker-compose.edge.yml up -d
+# The env file sets COMPOSE_PROJECT_NAME (hive / hive-prod), HIVE_EDGE_ALIAS
+# (hive-staging-web / hive-prod-web), HIVE_EDGE_NETWORK (hive-edge-staging /
+# hive-edge-prod), a distinct HIVE_DOCKER_SUBNET and, for production,
+# HIVE_WEB_IMAGE_SUFFIX.
+services:
+  caddy:
+    # The shared edge owns ports 80/443; never start a per-stack Caddy here.
+    profiles: ["per-stack-caddy-disabled"]
+  web:
+    networks:
+      internal: {}
+      edge:
+        aliases: ["${HIVE_EDGE_ALIAS:?set HIVE_EDGE_ALIAS (hive-staging-web or hive-prod-web)}"]
+
+networks:
+  edge:
+    name: ${HIVE_EDGE_NETWORK:?set HIVE_EDGE_NETWORK (hive-edge-staging or hive-edge-prod)}
+    external: true

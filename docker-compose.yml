@@ -129,6 +129,10 @@ services:
       RCLONE_CONFIG_OFFSITE_ENDPOINT: ${RCLONE_CONFIG_OFFSITE_ENDPOINT:-}
       RCLONE_CONFIG_OFFSITE_ACCESS_KEY_ID: ${RCLONE_CONFIG_OFFSITE_ACCESS_KEY_ID:-}
       RCLONE_CONFIG_OFFSITE_SECRET_ACCESS_KEY: ${RCLONE_CONFIG_OFFSITE_SECRET_ACCESS_KEY:-}
+      # Bucket-scoped R2 tokens cannot list/create buckets: set true for R2.
+      RCLONE_CONFIG_OFFSITE_NO_CHECK_BUCKET: ${RCLONE_CONFIG_OFFSITE_NO_CHECK_BUCKET:-false}
+      # 0 when a bucket lock/lifecycle rule owns off-site retention.
+      BACKUP_REMOTE_PRUNE: ${BACKUP_REMOTE_PRUNE:-1}
     volumes:
       - backups:/backups
     tmpfs:

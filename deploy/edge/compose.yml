@@ -1,0 +1,41 @@
+# The single public entry point when staging and production share one VPS.
+#   docker compose --env-file deploy/edge/.env -f deploy/edge/compose.yml up -d
+# deploy/edge/.env (untracked): ACME_EMAIL, PROD_DOMAIN, PROD_REDIRECT_FROM,
+# STAGING_DOMAIN. Leave PROD_DOMAIN unset until the production cutover.
+name: hive-edge
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL}
+      STAGING_DOMAIN: ${STAGING_DOMAIN:?set STAGING_DOMAIN}
+      # Unset: http:// placeholders that never request a certificate.
+      PROD_DOMAIN: ${PROD_DOMAIN:-http://prod-unused.invalid}
+      PROD_REDIRECT_FROM: ${PROD_REDIRECT_FROM:-http://prod-redirect-unused.invalid}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../../caddy/hive-site.caddy:/etc/caddy/hive-site.caddy:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    # `public` gives Caddy its published ports and ACME egress. Each edge
+    # network is internal-only and per environment: Caddy is the only
+    # container on both, so staging cannot reach production.
+    networks: [public, edge_staging, edge_prod]
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "5"}
+
+networks:
+  public: {}
+  edge_staging:
+    name: hive-edge-staging
+    internal: true
+  edge_prod:
+    name: hive-edge-prod
+    internal: true
+
+volumes:
+  caddy_data: {}
+  caddy_config: {}
