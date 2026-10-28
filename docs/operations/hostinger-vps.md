@@ -290,14 +290,16 @@ plus an encrypted USB key) and prove a restore with it.
 
 Caddy obtains certificates over HTTP-01, so `thehivesociety.ae` and `www`
 can only be issued **after** DNS points here. OnlyDomains has no TTL control
-(records publish at 86400s, in batches of roughly 15–20 minutes).
+(records publish with TTL 86400s). Query its servers with `dig +norecurse`:
+with recursion requested they have returned stale answers (NXDOMAIN for a
+record that real resolvers already saw).
 
 1. Save a DNS zone export; take encrypted backups of both databases.
 2. Freeze sign-ups on the Lovable site if possible, then take the final
    member export and import the delta (imports are idempotent).
 3. In OnlyDomains edit only `@ A` and `www A` → `201.18.200.202`. Leave MX,
    SPF, DMARC, Google verification and every other record untouched.
-4. Poll `dig @ns1.onlydomains.com`; as soon as both names answer, set
+4. Poll `dig +norecurse @ns1.onlydomains.com` and a public resolver; as soon as both names answer, set
    `PROD_DOMAIN`/`PROD_REDIRECT_FROM` in the edge env and restart the edge
    Caddy; confirm both certificates.
 5. Verify: `BASE_URL=https://thehivesociety.ae EXPECT_STAGING_NOINDEX=0
