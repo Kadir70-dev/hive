@@ -160,3 +160,68 @@ rather than the real visitor's IP. Do not enable proxying until a
 trusted-proxy/header policy is reviewed and tested.
 
 Never use `docker compose down -v` on a live environment.
+
+## Production cutover (thehivesociety.ae → this VPS)
+
+The site currently on `thehivesociety.ae`/`www` is the old Lovable deployment
+(`A 185.158.133.1`). This repository has no Lovable or Supabase runtime
+dependency; existing members are brought over only via offline exports
+(`docs/operations/member-migration.md`). Production runs as **this same
+single-server stack promoted in place**: Caddy can only own ports 80/443
+once, so staging and production cannot run side by side here. After cutover,
+`staging.thehivesociety.ae` simply redirects to production; a future staging
+environment needs its own server.
+
+### Go/no-go gates (all required)
+
+- Staging acceptance above, plus a public-URL run: signup, verification,
+  login, member privacy, admin TOTP and Studio.
+- Resend verified on a **subdomain** sender (e.g. `mailer.thehivesociety.ae`);
+  the root domain's Titan MX/SPF/DKIM/DMARC records are never edited.
+- R2 private bucket, off-site backup remote, backup alert webhook, a second
+  offline copy of the age identity, a verified restore.
+- Two real allowlisted admins with TOTP; legal approval of Terms/Privacy.
+- Legacy member export reconciled and rehearsed (`plan`, then `apply` on
+  staging) — existing members must not be lost.
+- SSH key-only and fail2ban (recommended before going public).
+
+### Production environment (diff from staging)
+
+```sh
+SITE_DOMAIN=thehivesociety.ae
+SITE_REDIRECT_FROM=www.thehivesociety.ae,staging.thehivesociety.ae
+PUBLIC_APP_URL=https://thehivesociety.ae
+ALLOWED_ORIGINS=https://thehivesociety.ae
+HIVE_ENVIRONMENT=production      # removes noindex header + disallow-all robots
+MAIL_PROVIDER=resend             # with RESEND_API_KEY and MAIL_FROM
+R2_* / BACKUP_RCLONE_REMOTE / BACKUP_ALERT_WEBHOOK / HIVE_ADMIN_EMAILS set
+```
+
+`HIVE_ENVIRONMENT` and `PUBLIC_APP_URL` are **build-time** inputs of the web
+image, so production needs a fresh `hive-web` build. The checker must pass:
+
+```sh
+node scripts/staging/config-preflight.mjs --mode production --api-env backend/.env.hostinger
+```
+
+### Cutover order
+
+Caddy obtains certificates over HTTP-01, so `thehivesociety.ae` and `www`
+can only be issued **after** DNS points here. OnlyDomains has no TTL control
+(records publish at 86400s, in batches of roughly 15–20 minutes).
+
+1. Save a DNS zone export and the current `.env`; take an encrypted backup.
+2. Build/tag the production images with the production env (not yet started).
+3. In OnlyDomains edit only `@ A` and `www A` → `201.18.200.202`. Leave MX,
+   SPF, DMARC, Google verification and every other record untouched.
+4. Poll `dig @ns1.onlydomains.com`; as soon as both names answer, start the
+   production images and restart Caddy; confirm both certificates.
+5. Verify: `BASE_URL=https://thehivesociety.ae EXPECT_STAGING_NOINDEX=0
+   WWW_ORIGIN=https://www.thehivesociety.ae bash scripts/hostinger/smoke.sh`,
+   then signup/verification email/login/admin TOTP/Studio/member privacy.
+6. Keep the Lovable deployment up for ~48h while resolver caches expire, then
+   delete the `_lovable`, `_lovable.www` and `_lovable-email` TXT records and
+   retire the Lovable project.
+
+Rollback: restore `@`/`www` to `185.158.133.1` (only works while Lovable is
+still up), restore the saved `.env`, and use `rollback.sh` for images.

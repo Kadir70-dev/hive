@@ -61,6 +61,17 @@ export function validateEnv(api, site, mode = 'staging') {
       errors.push('Hostinger SITE_DOMAIN must match PUBLIC_APP_URL');
     if (api.SITE_DOMAIN && !(api.ALLOWED_ORIGINS || '').split(',').map(x => x.trim()).includes('https://' + api.SITE_DOMAIN))
       errors.push('Hostinger SITE_DOMAIN must be present in ALLOWED_ORIGINS');
+    // HIVE_ENVIRONMENT gates Caddy's noindex header and the build-time robots.txt.
+    const env = api.HIVE_ENVIRONMENT || 'staging';
+    if (env !== mode) errors.push('Hostinger HIVE_ENVIRONMENT must be ' + mode + ' (noindex/robots follow it)');
+    const aliases = (api.SITE_REDIRECT_FROM || '').split(',').map(x => x.trim()).filter(Boolean);
+    if (aliases.some(h => !/^[a-z0-9.-]+$/.test(h)))
+      errors.push('SITE_REDIRECT_FROM must be comma-separated hostnames (not URLs)');
+    if (aliases.includes(api.SITE_DOMAIN))
+      errors.push('SITE_REDIRECT_FROM must not include SITE_DOMAIN');
+    if (mode === 'production' && api.SITE_DOMAIN && !api.SITE_DOMAIN.startsWith('www.') &&
+      !aliases.includes('www.' + api.SITE_DOMAIN))
+      errors.push('Production SITE_REDIRECT_FROM must include www.' + api.SITE_DOMAIN);
   }
   for (const origin of (api.ALLOWED_ORIGINS || '').split(',')) {
     if (!httpsOrigin(origin.trim())) errors.push('ALLOWED_ORIGINS must contain exact HTTPS origins');
