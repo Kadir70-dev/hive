@@ -71,3 +71,26 @@ test('Hostinger staging: production environment flag is rejected', () => {
   const {errors} = validateEnv({...base(), HIVE_ENVIRONMENT: 'production'}, null, 'staging');
   assert.ok(errors.some(e => e.includes('HIVE_ENVIRONMENT must be staging')));
 });
+
+const edgeProd = () => ({...production(), SITE_REDIRECT_FROM: '', HIVE_EDGE_ALIAS: 'hive-prod-web',
+  HIVE_EDGE_NETWORK: 'hive-edge-prod', HIVE_WEB_IMAGE_SUFFIX: '-production', COMPOSE_PROJECT_NAME: 'hive-prod',
+  HIVE_DOCKER_SUBNET: '10.250.71.0/24'});
+
+test('Shared edge production: own network, alias, image, project and subnet pass', () => {
+  assert.deepEqual(validateEnv(edgeProd(), null, 'production').errors, []);
+});
+
+test('Shared edge production: staging network/alias/image/project/subnet are rejected', () => {
+  const {errors} = validateEnv({...edgeProd(), HIVE_EDGE_ALIAS: 'hive-staging-web', HIVE_EDGE_NETWORK: 'hive-edge-staging',
+    HIVE_WEB_IMAGE_SUFFIX: '', COMPOSE_PROJECT_NAME: 'hive', HIVE_DOCKER_SUBNET: undefined}, null, 'production');
+  for (const k of ['HIVE_EDGE_ALIAS must be hive-prod-web', 'HIVE_EDGE_NETWORK must be hive-edge-prod',
+    'HIVE_WEB_IMAGE_SUFFIX', 'COMPOSE_PROJECT_NAME', 'HIVE_DOCKER_SUBNET'])
+    assert.ok(errors.some(e => e.includes(k)), k);
+});
+
+test('Shared edge staging: must use the staging network and alias', () => {
+  const ok = {...base(), HIVE_EDGE_ALIAS: 'hive-staging-web', HIVE_EDGE_NETWORK: 'hive-edge-staging'};
+  assert.deepEqual(validateEnv(ok, null, 'staging').errors, []);
+  const {errors} = validateEnv({...ok, HIVE_EDGE_NETWORK: 'hive-edge-prod'}, null, 'staging');
+  assert.ok(errors.some(e => e.includes('HIVE_EDGE_NETWORK must be hive-edge-staging')));
+});

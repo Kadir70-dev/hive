@@ -13,7 +13,9 @@
 #      BACKUP_AGE_RECIPIENT (age1…), BACKUP_DIR (/backups),
 #      BACKUP_WORK_DIR (/work), BACKUP_RETENTION_DAYS (14),
 #      BACKUP_RCLONE_REMOTE (optional, e.g. "offsite:hive-backups"; configure
-#      the remote with RCLONE_CONFIG_<NAME>_* environment variables).
+#      the remote with RCLONE_CONFIG_<NAME>_* environment variables),
+#      BACKUP_REMOTE_PRUNE (1; set 0 when a bucket lock/lifecycle rule owns
+#      off-site retention, so the server never needs delete rights there).
 set -euo pipefail
 umask 077
 : "${BACKUP_AGE_RECIPIENT:?BACKUP_AGE_RECIPIENT is required}"
@@ -68,8 +70,13 @@ if [ -n "${BACKUP_RCLONE_REMOTE:-}" ]; then
   step="offsite"
   rclone copyto --immutable "$dir/$name" "$BACKUP_RCLONE_REMOTE/$name"
   rclone copyto --immutable "$dir/$name.sha256" "$BACKUP_RCLONE_REMOTE/$name.sha256"
-  rclone check --one-way "$dir" "$BACKUP_RCLONE_REMOTE" --include "$name" --include "$name.sha256"
-  rclone delete --min-age "${retention}d" --include 'hive-*.dump.age*' "$BACKUP_RCLONE_REMOTE"
+  # Anchored patterns: only top-level files, never nested environment paths.
+  rclone check --one-way "$dir" "$BACKUP_RCLONE_REMOTE" --include "/$name" --include "/$name.sha256"
+  if [ "${BACKUP_REMOTE_PRUNE:-1}" = 1 ]; then
+    rclone delete --min-age "${retention}d" --include '/hive-*.dump.age*' "$BACKUP_RCLONE_REMOTE"
+  else
+    log "off-site retention left to the bucket's lock/lifecycle rules"
+  fi
   log "copied off-site to $BACKUP_RCLONE_REMOTE"
 else
   log "WARNING: BACKUP_RCLONE_REMOTE not set; backups are only on this server"

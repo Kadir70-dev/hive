@@ -1,0 +1,24 @@
+{
+    email {$ACME_EMAIL}
+    admin off
+}
+
+# One Caddy for both environments. Each upstream is a separate Compose
+# project's Next.js container on the internal `hive-edge` network.
+import /etc/caddy/hive-site.caddy
+
+# Production: indexable. Unset until cutover (placeholder never gets a cert).
+{$PROD_DOMAIN} {
+    import hive_site hive-prod-web:3000
+}
+
+{$PROD_REDIRECT_FROM} {
+    header Strict-Transport-Security "max-age=31536000"
+    redir https://{$PROD_DOMAIN}{uri} permanent
+}
+
+# Staging: always noindex, whatever its env file says.
+{$STAGING_DOMAIN} {
+    header X-Robots-Tag "noindex, nofollow"
+    import hive_site hive-staging-web:3000
+}

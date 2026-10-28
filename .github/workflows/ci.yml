@@ -142,7 +142,7 @@ jobs:
       - name: Validate Caddy configuration
         run: |
           docker run --rm -e API_DOMAIN=api.example.test -e ACME_EMAIL=ops@example.test -v "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
-          docker run --rm -e SITE_DOMAIN=staging.example.test -e ACME_EMAIL=ops@example.test -v "$PWD/Caddyfile.hostinger:/etc/caddy/Caddyfile:ro" caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+          docker run --rm -e SITE_DOMAIN=staging.example.test -e ACME_EMAIL=ops@example.test -v "$PWD/Caddyfile.hostinger:/etc/caddy/Caddyfile:ro" -v "$PWD/caddy/hive-site.caddy:/etc/caddy/hive-site.caddy:ro" caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
       - name: Build backend and backup images
         run: |
           docker build -t hive-api:ci backend
@@ -250,6 +250,20 @@ jobs:
       BACKUP_AGE_RECIPIENT: age1ci-dummy-not-a-key
     steps:
       - uses: actions/checkout@v4
+      - name: Validate shared-edge layout (staging + production behind one Caddy)
+        run: |
+          for env in "staging hive-staging-web hive-edge-staging" "production hive-prod-web hive-edge-prod"; do
+            set -- $env
+            HIVE_ENVIRONMENT=$1 HIVE_EDGE_ALIAS=$2 HIVE_EDGE_NETWORK=$3 SITE_DOMAIN=edge.example.test \
+              docker compose -f docker-compose.yml -f docker-compose.hostinger.yml -f docker-compose.edge.yml config -q
+          done
+          STAGING_DOMAIN=staging.example.test ACME_EMAIL=ci@example.test \
+            docker compose -f deploy/edge/compose.yml config -q
+          docker run --rm -e ACME_EMAIL=ci@example.test -e STAGING_DOMAIN=staging.example.test \
+            -e PROD_DOMAIN=prod.example.test -e PROD_REDIRECT_FROM=www.prod.example.test \
+            -v "$PWD/deploy/edge/Caddyfile:/etc/caddy/Caddyfile:ro" \
+            -v "$PWD/caddy/hive-site.caddy:/etc/caddy/hive-site.caddy:ro" \
+            caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile
       - name: Start isolated Compose stack (no backup; restore tested separately)
         run: |
           docker compose -f docker-compose.yml -f docker-compose.hostinger.yml \

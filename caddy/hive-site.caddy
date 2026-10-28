@@ -1,0 +1,69 @@
+# Shared site definition for every Hive environment Caddy serves.
+# Usage inside a site block: import hive_site <next.js upstream host:port>
+# Defined once so security headers, body limits, client-IP handling and log
+# redaction cannot drift between the single-stack and shared-edge layouts.
+(hive_site) {
+    encode zstd gzip
+
+    @internal path /internal /internal/*
+    respond @internal 404
+
+    header {
+        Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    log {
+        output stdout
+        format filter {
+            wrap json
+            fields {
+                request>uri query {
+                    delete *
+                }
+                request>headers>Cookie delete
+                request>headers>Authorization delete
+                request>headers>X-Hive-Client-IP delete
+                request>headers>X-Hive-Verified-Client-IP delete
+                request>headers>X-Hive-Proxy-Secret delete
+                resp_headers>Set-Cookie delete
+            }
+        }
+    }
+
+    # Only this authenticated profile-photo route receives a 6 MB limit.
+    # The normal 1 MB cap applies to all other paths, even unauthenticated.
+    @photoUpload {
+        method POST
+        path /api/backend/me/photo
+    }
+    handle @photoUpload {
+        request_body {
+            max_size 6MB
+        }
+        reverse_proxy {args[0]} {
+            # Overwrite any client-supplied value. Next.js trusts this header ONLY
+            # with HIVE_SITE_EDGE=caddy; the web container has no host port.
+            header_up X-Hive-Verified-Client-IP {remote_host}
+            header_up -X-Hive-Client-IP
+            header_up -X-Hive-Proxy-Secret
+            header_up -X-Nf-Client-Connection-Ip
+        }
+    }
+
+    handle {
+        request_body {
+            max_size 1MB
+        }
+        reverse_proxy {args[0]} {
+            # Overwrite any client-supplied value. Next.js trusts this header ONLY
+            # with HIVE_SITE_EDGE=caddy; the web container has no host port.
+            header_up X-Hive-Verified-Client-IP {remote_host}
+            header_up -X-Hive-Client-IP
+            header_up -X-Hive-Proxy-Secret
+            header_up -X-Nf-Client-Connection-Ip
+        }
+    }
+}

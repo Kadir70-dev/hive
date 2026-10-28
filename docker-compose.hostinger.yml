@@ -5,7 +5,9 @@
 #   -f docker-compose.yml -f docker-compose.hostinger.yml config -q
 services:
   web:
-    image: hive-web:${HIVE_IMAGE_TAG:-dev}
+    # Production sets HIVE_WEB_IMAGE_SUFFIX=-production: its build-time site URL
+    # differs, so it must never share an image name with staging.
+    image: hive-web${HIVE_WEB_IMAGE_SUFFIX:-}:${HIVE_IMAGE_TAG:-dev}
     logging:
       driver: json-file
       options:
@@ -54,5 +56,6 @@ services:
     # Compose merges volumes by container target; override the API-only Caddyfile.
     volumes:
       - ./Caddyfile.hostinger:/etc/caddy/Caddyfile:ro
+      - ./caddy/hive-site.caddy:/etc/caddy/hive-site.caddy:ro
     depends_on:
       web: {condition: service_healthy}

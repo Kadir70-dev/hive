@@ -51,6 +51,25 @@ echo "$header" | tail -1 | grep -qx 600 || { echo "FAIL: backup file must be mod
 if run --entrypoint sh "$BACKUP_IMAGE" -c "ls /work 2>/dev/null | grep -q dump"; then echo "FAIL: plaintext left behind"; exit 1; fi
 echo "encrypted: $file"
 
+echo "== off-site copy (local rclone remote): copy, verify, prune on/off"
+# The remote lives outside /backups, like a real off-site bucket; a nested
+# environment folder proves prune never reaches below the remote path.
+off=(-e BACKUP_RCLONE_REMOTE=offsite:/offsite/production -e RCLONE_CONFIG_OFFSITE_TYPE=local -v "$tmp/offsite:/offsite")
+run --entrypoint sh "$BACKUP_IMAGE" -c 'mkdir -p /backups/offsite/production/nested && touch -d "20 days ago" /backups/offsite/production/hive-old-20000101T000000Z.dump.age /backups/offsite/production/nested/hive-old-20000101T000000Z.dump.age'
+run "${off[@]}" -e BACKUP_REMOTE_PRUNE=0 -e PGDATABASE="$src" -e BACKUP_AGE_RECIPIENT="$recipient" "$BACKUP_IMAGE" backup >/dev/null
+run --entrypoint sh "$BACKUP_IMAGE" -c 'test -e /backups/offsite/production/hive-old-20000101T000000Z.dump.age' || { echo "FAIL: BACKUP_REMOTE_PRUNE=0 deleted an off-site backup"; exit 1; }
+# Backup filenames are second-granularity (hive-<db>-YYYYmmddTHHMMSSZ). These two
+# runs fire back-to-back, so without a gap they can land in the same second,
+# collide to one filename, and the "2 off-site copies" assertion below sees only
+# one. One second guarantees distinct timestamps (real backups are hours apart).
+sleep 1
+run "${off[@]}" -e PGDATABASE="$src" -e BACKUP_AGE_RECIPIENT="$recipient" "$BACKUP_IMAGE" backup >/dev/null
+run --entrypoint sh "$BACKUP_IMAGE" -c 'test ! -e /backups/offsite/production/hive-old-20000101T000000Z.dump.age' || { echo "FAIL: off-site retention did not prune"; exit 1; }
+run --entrypoint sh "$BACKUP_IMAGE" -c 'test -e /backups/offsite/production/nested/hive-old-20000101T000000Z.dump.age' || { echo "FAIL: prune reached a nested path"; exit 1; }
+n="$(run --entrypoint sh "$BACKUP_IMAGE" -c 'ls /backups/offsite/production | grep -cE "^hive-.*Z\.dump\.age\.sha256$"')"
+[ "$n" -ge 2 ] || { echo "FAIL: off-site copies missing ($n)"; exit 1; }
+echo "off-site copies: $n; prune honours BACKUP_REMOTE_PRUNE"
+
 echo "== restore into an empty database and compare"
 run -e AGE_IDENTITY_FILE=/backups/test-identity.txt "$BACKUP_IMAGE" restore "/backups/$file" "$dst"
 fingerprint() { psql -d "$1" -tAc "SELECT (SELECT count(*) FROM users)||'/'||(SELECT count(*) FROM reservations)||'/'||(SELECT md5(string_agg(email,',' ORDER BY email)) FROM users)||'/'||(SELECT max(version_id) FROM goose_db_version)"; }
