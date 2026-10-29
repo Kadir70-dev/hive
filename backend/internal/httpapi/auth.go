@@ -133,8 +133,8 @@ func (s *Server) signup(w http.ResponseWriter, r *http.Request) {
 	v.Area = strings.TrimSpace(v.Area)
 	var phoneOK bool
 	v.Phone, phoneOK = normalizeUAEMobile(v.Phone)
-	if !phoneOK {
-		s.fail(w, r, 400, "invalid_phone", "enter a valid UAE mobile number or leave the phone blank")
+	if !phoneOK || v.Phone == "" {
+		s.fail(w, r, 400, "invalid_phone", "UAE mobile number is required (e.g. +971 50 123 4567)")
 		return
 	}
 	if !validAbuDhabiArea(v.Area) {
