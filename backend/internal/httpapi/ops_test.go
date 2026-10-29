@@ -72,7 +72,7 @@ func TestLogsAndAuditAreRedacted(t *testing.T) {
 	e.login("secret.member@example.test", "wrong-password-xyz")
 	e.do("POST", "/v1/password/forgot", map[string]any{"email": "secret.member@example.test"})
 	resetToken := e.lastToken("secret.member@example.test", "reset_password")
-	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "Zainab", "phone": "+971 55 765 4321", "emailUpdates": true}, session(m)), 200, "profile")
+	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "Zainab", "area": "Al Reem Island", "phone": "+971 55 765 4321", "emailUpdates": true}, session(m)), 200, "profile")
 	e.do("POST", "/v1/reports", map[string]any{"reason": "very private incident description", "subjectDescription": "tall woman in blue"}, session(m))
 	expect(t, e.upload(m, "photo", photoJPEG(t, 80, 80)), 200, "photo")
 	expect(t, e.do("POST", "/v1/password/reset", map[string]any{"token": resetToken, "password": "another-secret-pass"}), 200, "reset")
