@@ -14,7 +14,7 @@ const COPY = {
     joinTitle: 'Join The Hive Society', welcomeTitle: 'Welcome back',
     lead: 'An Abu Dhabi community for men and women of all nationalities. Discover free, curated gatherings — with dedicated women-only experiences.',
     signIn: 'Log in', signUp: 'Sign up', firstName: 'First name', displayName: 'Display name (optional)',
-    phone: 'UAE mobile (optional)', phoneHint: 'UAE numbers only, e.g. +971 50 123 4567.', phoneError: 'Enter a valid UAE mobile number or leave this blank.', area: 'Area in Abu Dhabi', areaHint: 'Choose your Abu Dhabi neighbourhood', areaError: 'Choose an Abu Dhabi area to continue.', email: 'Email', password: 'Password', passwordHint: 'At least 12 characters for a new account.',
+    phone: 'UAE mobile number', phoneHint: 'UAE numbers only, e.g. +971 50 123 4567.', phoneError: 'UAE mobile number is required. Enter a valid number, e.g. +971 50 123 4567.', area: 'Area in Abu Dhabi', areaHint: 'Choose your Abu Dhabi neighbourhood', areaError: 'Choose an Abu Dhabi area to continue.', email: 'Email', password: 'Password', passwordHint: 'At least 12 characters for a new account.',
     agree: 'I agree to the', terms: 'Terms of Membership', and: 'and', privacy: 'Privacy Policy',
     create: 'Create account', wait: 'Please wait…', forgot: 'Forgot your password?',
     checkTitle: 'Check your email', checkIntro: 'We sent a confirmation link to',
@@ -30,7 +30,7 @@ const COPY = {
     joinTitle: 'انضم إلى The Hive Society', welcomeTitle: 'أهلاً بعودتك',
     lead: 'مجتمع في أبوظبي للنساء والرجال من جميع الجنسيات. اكتشف لقاءات مجانية منسّقة، مع تجارب مخصّصة للنساء.',
     signIn: 'تسجيل الدخول', signUp: 'إنشاء حساب', firstName: 'الاسم الأول', displayName: 'اسم العرض (اختياري)',
-    phone: 'رقم هاتف إماراتي (اختياري)', phoneHint: 'رقم إماراتي فقط، مثال: ‎+971 50 123 4567', phoneError: 'أدخل رقم هاتف إماراتي صحيحاً أو اترك الحقل فارغاً.', area: 'المنطقة في أبوظبي', areaHint: 'اختر منطقتك في أبوظبي', areaError: 'اختر منطقة في أبوظبي للمتابعة.', email: 'البريد الإلكتروني', password: 'كلمة المرور', passwordHint: '١٢ حرفاً على الأقل للحساب الجديد.',
+    phone: 'رقم الهاتف الإماراتي', phoneHint: 'رقم إماراتي فقط، مثال: ‎+971 50 123 4567', phoneError: 'رقم الهاتف الإماراتي مطلوب، مثال: ‎+971 50 123 4567', area: 'المنطقة في أبوظبي', areaHint: 'اختر منطقتك في أبوظبي', areaError: 'اختر منطقة في أبوظبي للمتابعة.', email: 'البريد الإلكتروني', password: 'كلمة المرور', passwordHint: '١٢ حرفاً على الأقل للحساب الجديد.',
     agree: 'أوافق على', terms: 'شروط العضوية', and: 'و', privacy: 'سياسة الخصوصية',
     create: 'إنشاء حساب', wait: 'يرجى الانتظار…', forgot: 'هل نسيت كلمة المرور؟',
     checkTitle: 'تحقّق من بريدك', checkIntro: 'أرسلنا رابط تأكيد إلى',
@@ -62,7 +62,7 @@ function AuthBody() {
       if (signup) {
         const phone = normalizeUAEPhone(String(f.get('phone') || ''));
         const area = String(f.get('area') || '');
-        if (phone === null) { setError(t.phoneError); return; }
+        if (!phone) { setError(t.phoneError); return; }
         if (!isAbuDhabiArea(area)) { setError(t.areaError); return; }
         let attribution = null;
         try { attribution = captureCampaign(window.location.search, window.sessionStorage) || savedCampaign(window.sessionStorage); } catch { /* storage unavailable */ }
@@ -113,9 +113,9 @@ function AuthBody() {
           {signup && <>
             <label>{t.firstName} *<input name="first_name" required maxLength={60} autoComplete="given-name" /></label>
             <label>{t.displayName}<input name="display_name" maxLength={60} autoComplete="nickname" /></label>
-            <label>{t.phone}
+            <label>{t.phone} *
               <span className="hv-field-hint">{t.phoneHint}</span>
-              <input name="phone" type="tel" inputMode="tel" maxLength={24} autoComplete="tel" placeholder="+971 50 123 4567" dir="ltr" />
+              <input name="phone" type="tel" inputMode="tel" required maxLength={24} autoComplete="tel" placeholder="+971 50 123 4567" dir="ltr" />
             </label>
             <label>{t.area} *
               <select name="area" required defaultValue="">
