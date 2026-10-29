@@ -163,7 +163,7 @@ func (e *env) do(method, path string, body any, opts ...opt) resp {
 // rawSignup submits the signup form and expects the uniform 202 response.
 func (e *env) rawSignup(email string, opts ...opt) resp {
 	e.t.Helper()
-	r := e.do("POST", "/v1/signup", map[string]any{"email": email, "password": goodPass, "firstName": "Noor"}, opts...)
+	r := e.do("POST", "/v1/signup", map[string]any{"email": email, "password": goodPass, "firstName": "Noor", "area": "Al Reem Island"}, opts...)
 	if r.code != 202 || r.cookie != "" {
 		e.t.Fatalf("signup %s: %d %s (cookie=%q)", email, r.code, r.raw, r.cookie)
 	}
