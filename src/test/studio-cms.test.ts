@@ -12,6 +12,7 @@ const copyOf = (html: string) => extractCopy(html);
 describe('homepage copy block', () => {
   it('holds the English and Arabic website copy the page paints from', () => {
     expect(base.en.heroTitle).toBe('The art of <em>getting together</em>');
+    expect(base.en.heroIntro).toBe('An Abu Dhabi community. Discover free, curated gatherings — with dedicated women-only experiences.');
     expect(String(base.ar.heroIntro)).toContain('أبوظبي');
     expect(Array.isArray(base.en.faq)).toBe(true);
     expect(template).toContain('const L=JSON.parse(document.getElementById("hive-copy").textContent);');
