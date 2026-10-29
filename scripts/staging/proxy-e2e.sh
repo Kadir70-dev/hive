@@ -48,7 +48,7 @@ api() { # method path [json] [extra curl args...]
 
 echo "== signup, verify and login through the proxy"
 email="e2e-$RANDOM@example.test"
-[ "$(api POST /signup "{\"email\":\"$email\",\"password\":\"a-long-password-123\",\"firstName\":\"E2E\"}" -H "Origin: $SITE")" = 202 ] || fail "signup"
+[ "$(api POST /signup "{\"email\":\"$email\",\"password\":\"a-long-password-123\",\"firstName\":\"E2E\",\"area\":\"Al Reem Island\"}" -H "Origin: $SITE")" = 202 ] || fail "signup"
 token="$(psql "$DATABASE_URL" -tAc "SELECT substring(text_body from '#token=([A-Za-z0-9_-]+)') FROM email_outbox WHERE to_addr='$email' AND template='verify_email' ORDER BY id DESC LIMIT 1")"
 [ -n "$token" ] || fail "no verification email queued"
 [ "$(api POST /verify-email "{\"token\":\"$token\"}" -H "Origin: $SITE")" = 200 ] || fail "verify"
@@ -60,7 +60,7 @@ grep -qi "^content-security-policy: default-src 'none'" "$work/headers" || fail 
 echo "ok: cookie round-trip and API security headers"
 
 echo "== CSRF: cookie-authenticated request from a foreign origin"
-[ "$(api PATCH /me '{"firstName":"X"}' -H 'Origin: https://evil.example')" = 403 ] || fail "foreign origin accepted"
+[ "$(api PATCH /me '{"firstName":"X","area":"Al Reem Island"}' -H 'Origin: https://evil.example')" = 403 ] || fail "foreign origin accepted"
 [ "$(api PATCH /me '{"firstName":"X"}' -H "Origin: $SITE")" = 200 ] || fail "same-origin update refused"
 echo "ok: CSRF origin check"
 
