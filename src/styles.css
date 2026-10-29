@@ -353,3 +353,54 @@
 .hv-eligibility-check:focus-within{outline:3px solid var(--hv-honey);outline-offset:2px}
 .hv-reservation-action .hv-btn:disabled{cursor:not-allowed;opacity:.5}
 @media(max-width:640px){.hv-reservation-action{width:100%}.hv-reservation-action .hv-btn{width:100%}}
+
+
+/* Member profile: compact overview, clear edit flow, useful sidebar. */
+.hv-wrap:has(> .hv-profile){max-width:1080px}
+.hv-profile .hv-card + .hv-card{margin-top:0}
+.hv-profile-intro{padding:clamp(28px,5vw,54px) 0 22px}
+.hv-profile-intro h1{font-size:clamp(2.4rem,5vw,3.5rem);margin:6px 0 8px}
+.hv-profile-intro p{margin:0;color:var(--hv-muted);font-size:.95rem;max-width:60ch}
+.hv-profile-summary{display:flex;align-items:center;justify-content:space-between;gap:22px}
+.hv-profile-summary-main{display:flex;align-items:center;gap:18px;min-width:0}
+.hv-profile-summary .hv-avatar{width:68px;height:68px;font-size:2rem}
+.hv-profile-identity{min-width:0}
+.hv-profile-identity h2{color:var(--hv-ink);margin:3px 0 6px;overflow-wrap:anywhere}
+.hv-profile-kicker{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.hv-profile-email{font-size:.86rem;overflow-wrap:anywhere}
+.hv-profile-status{flex:0 0 auto;text-align:end;max-width:220px}
+.hv-profile-status .hv-pill{font-size:.77rem;padding:7px 13px}
+.hv-profile-status p{font-size:.78rem;margin:8px 0 0}
+.hv-profile-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(260px,1fr);gap:18px;margin-top:18px;align-items:start}
+.hv-profile-main,.hv-profile-aside{min-width:0;display:flex;flex-direction:column;gap:18px}
+.hv-profile-section-head{margin-bottom:22px}
+.hv-profile-section-head h2{margin-bottom:8px}
+.hv-profile-section-head p{margin:0}
+.hv-profile-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.hv-profile-fields label{display:flex;flex-direction:column;gap:6px;font-size:.85rem;font-weight:600;color:var(--hv-ink)}
+.hv-profile-field-full{grid-column:1/-1}
+.hv-profile-fields input{font-weight:400}
+.hv-profile-update-hint{display:block;margin-top:5px;font-weight:400}
+.hv-profile-details .hv-check{margin:2px 0 0}
+.hv-profile-save{display:flex;justify-content:flex-start}
+.hv-profile-account{border-top:1px solid var(--hv-line);margin-top:28px;padding-top:22px}
+.hv-profile-account h3{font-family:var(--hv-sans);font-size:.95rem;font-weight:700;line-height:1.4;margin:0 0 14px}
+.hv-profile-account .hv-stack label{display:flex;flex-direction:column;gap:6px}
+.hv-profile-empty{text-align:start}
+.hv-profile-empty .hv-empty{text-align:start;margin:0 0 14px;padding:8px 0}
+.hv-profile-empty .hv-field-hint{margin:0}
+.hv-profile-gatherings .hv-item h3{font-size:1.1rem}
+@media(max-width:800px){
+  .hv-profile-grid{grid-template-columns:1fr}
+  .hv-profile-aside{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hv-profile-aside .hv-card:only-child{grid-column:1/-1}
+}
+@media(max-width:600px){
+  .hv-profile-intro{padding-top:30px}
+  .hv-profile-summary{align-items:flex-start;flex-direction:column;gap:16px}
+  .hv-profile-summary .hv-avatar{width:54px;height:54px;font-size:1.6rem}
+  .hv-profile-status{text-align:start;max-width:none}
+  .hv-profile-fields{grid-template-columns:1fr}
+  .hv-profile-aside{grid-template-columns:1fr}
+  .hv-profile-save .hv-btn{width:100%}
+}
