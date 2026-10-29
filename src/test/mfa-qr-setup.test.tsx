@@ -34,7 +34,9 @@ describe('Admin 2FA QR setup', () => {
     const qr = await screen.findByTestId('authenticator-qr');
     expect(qr).toHaveAttribute('data-encoded', firstUri);
     expect(screen.getByRole('img', { name: 'Authenticator setup QR code' })).toBeInTheDocument();
-    expect(screen.getByText(/Enter the setup key manually/)).toBeInTheDocument();
+    const manual = screen.getByText(/Enter the setup key manually/);
+    expect(manual).toBeInTheDocument();
+    fireEvent.click(manual);
     expect(screen.getByRole('link', { name: 'open it in the app' })).toHaveAttribute('href', firstUri);
     expect(screen.getByRole('button', { name: 'Generate a new QR code' })).toBeInTheDocument();
     expect(screen.queryByText('Admin unlocked')).not.toBeInTheDocument();
