@@ -1,6 +1,7 @@
 'use client';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { QRCodeSVG } from 'qrcode.react';
 import { send } from '@/lib/hive-api';
 import type { Me } from '@/components/hive/HiveShell';
 
@@ -28,8 +29,17 @@ function Enrol({ onDone }: { onDone: () => void }) {
       <p>Admin tools need a code from an authenticator app (Google Authenticator, 1Password, Authy…).</p>
       {!setup ? <button className="hv-btn" disabled={busy} onClick={() => void start()}>Begin setup</button> : (
         <form className="hv-stack" onSubmit={enable}>
-          <p>Add this key to your authenticator app, or <a href={setup.otpauth_uri}>open it in the app</a> on this device:</p>
-          <code aria-label="Setup key" style={{ wordBreak: 'break-all' }}>{setup.secret.match(/.{1,4}/g)?.join(' ')}</code>
+          <p>Open Google Authenticator (or another authenticator app) and scan this QR code:</p>
+          <div className="hv-mfa-qr" role="img" aria-label="Authenticator setup QR code">
+            <QRCodeSVG value={setup.otpauth_uri} size={196} level="M" marginSize={2} />
+          </div>
+          <details className="hv-mfa-manual">
+            <summary>Cannot scan? Enter the setup key manually</summary>
+            <p>Add this key to your authenticator app, or <a href={setup.otpauth_uri}>open it in the app</a> on this device:</p>
+            <code aria-label="Setup key" style={{ wordBreak: 'break-all' }}>{setup.secret.match(/.{1,4}/g)?.join(' ')}</code>
+          </details>
+          <p className="hv-field-hint">Keep the QR code and setup key private. If either was shared, generate a new QR code before enabling.</p>
+          <button type="button" className="hv-btn ghost" disabled={busy} onClick={() => void start()}>Generate a new QR code</button>
           <label>6-digit code from the app<input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" required /></label>
           <button className="hv-btn" disabled={busy}>Turn on two-factor</button>
         </form>)}
