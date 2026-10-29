@@ -23,7 +23,8 @@ describe('public homepage', () => {
   });
 
   it('welcomes all nationalities and genders and distinguishes gathering access', () => {
-    expect(html).toContain('An Abu Dhabi community for men and women of all nationalities.');
+    expect(html).toContain('An Abu Dhabi community. Discover free, curated gatherings — with dedicated women-only experiences.');
+    expect(html).not.toContain('An Abu Dhabi community for men and women of all nationalities.');
     expect(html).toContain('Mixed-gender gatherings');
     expect(html).toContain('Women-only gatherings');
     expect(html).not.toContain('For the women of Abu Dhabi');
