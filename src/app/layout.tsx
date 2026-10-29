@@ -11,8 +11,12 @@ export const metadata: Metadata = {
   openGraph: { title: 'The Hive Society — The art of getting together', type: 'website', description: 'Thoughtfully curated gatherings for everyone in Abu Dhabi, with dedicated experiences for women.' },
   twitter: { card: 'summary_large_image' },
   applicationName: 'The Hive Society',
-  manifest: '/manifest.webmanifest',
-  icons: { icon: '/favicon.ico', apple: '/apple-touch-icon.png' },
+  manifest: '/manifest.webmanifest?v=2',
+  // ?v= changes the URL so browsers drop the old cached (Lovable) tab icon; bump it with the icon files.
+  icons: {
+    icon: [{ url: '/favicon.ico?v=2', sizes: '16x16 32x32 48x48 64x64 256x256' }, { url: '/icon-mark.svg?v=2', type: 'image/svg+xml' }],
+    apple: '/apple-touch-icon.png?v=2',
+  },
 };
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#3F6E5E' };
 // Pages render per request so each response carries a fresh CSP nonce (see src/proxy.ts).

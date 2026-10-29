@@ -20,8 +20,8 @@ describe('Meera frontend requirements', () => {
     const manifest = JSON.parse(readFileSync('public/manifest.webmanifest', 'utf8')) as {description: string; name: string; icons: {src:string}[]};
     expect(manifest.name).toBe('The Hive Society');
     expect(manifest.description).toContain('men and women');
-    expect(manifest.icons.map((i) => i.src)).toContain('/icon-192.png');
-    expect(manifest.icons.map((i) => i.src)).toContain('/icon-maskable-512.png');
+    expect(manifest.icons.map((i) => i.src)).toContain('/icon-192.png?v=2');
+    expect(manifest.icons.map((i) => i.src)).toContain('/icon-maskable-512.png?v=2');
   });
 
   it('renders 18+ inclusive legal text and an Arabic policy draft', () => {
