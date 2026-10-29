@@ -42,8 +42,8 @@ func TestAnnouncementsLifecycleAndEmailPreferences(t *testing.T) {
 	adminC, _ := e.admin("owner@example.test")
 	in := approvedMember(t, e, adminC, "optin@example.test")
 	out := approvedMember(t, e, adminC, "optout@example.test")
-	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "In", "emailUpdates": true}, session(in)), 200, "opt in")
-	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "Out", "emailUpdates": false}, session(out)), 200, "opt out")
+	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "In", "area": "Al Reem Island", "emailUpdates": true}, session(in)), 200, "opt in")
+	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "Out", "area": "Al Reem Island", "emailUpdates": false}, session(out)), 200, "opt out")
 	e.rawSignup("pending@example.test") // unverified + pending: never emailed even if opted in
 	_, _ = e.db.Exec(`UPDATE users SET email_updates=true WHERE email='pending@example.test'`)
 
@@ -302,7 +302,7 @@ func TestProfileValidation(t *testing.T) {
 			t.Errorf("accepted invalid profile %v: %d", b, r.code)
 		}
 	}
-	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "  Noor ", "phone": "+971 50 123 4567", "interests": []string{"wellness", "Wellness", " majlis "}, "emailUpdates": true}, session(m)), 200, "valid profile")
+	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "  Noor ", "area": "Al Reem Island", "phone": "+971 50 123 4567", "interests": []string{"wellness", "Wellness", " majlis "}, "emailUpdates": true}, session(m)), 200, "valid profile")
 	me := e.do("GET", "/v1/me", nil, session(m))
 	if me.body["first_name"] != "Noor" || len(me.body["interests"].([]any)) != 2 || me.body["email_updates"] != true {
 		t.Fatalf("normalised profile: %s", me.raw)
