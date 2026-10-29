@@ -26,7 +26,7 @@ function stub(routes: Record<string, (method: string, body: unknown) => [number,
   }));
 }
 const wrap = (ui: ReactNode) => render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>{ui}</QueryClientProvider>);
-const member = { id: 'u1', first_name: 'Noor', email: 'n@x.test', phone: null, area: 'Al Reem Island', interests: [], avatar_path: null, status: 'approved', isAdmin: false, email_updates: false };
+const member = { id: 'u1', first_name: 'Noor', email: 'n@x.test', phone: '+971501234567', area: 'Al Reem Island', interests: [], avatar_path: null, status: 'approved', isAdmin: false, email_updates: false };
 const gathering = (over: object) => ({ id: 'g1', title: 'Majlis', type: 'majlis', description: '', starts_on: '2031-01-01', starts_at: '19:00:00', place: 'Bateen', places_left: 3, my_status: '', waitlist_position: 0, started: false, ...over });
 
 beforeEach(() => { calls = []; try { localStorage.removeItem('hive.site.lang'); } catch { /* ignore */ } });
