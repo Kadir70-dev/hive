@@ -6,7 +6,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { HiveShell, useMe, useT, type Me } from '@/components/hive/HiveShell';
 import { api, send } from '@/lib/hive-api';
-import { fill } from '@/lib/hive-i18n';
+import { AREAS, fill } from '@/lib/hive-i18n';
+import { isAbuDhabiArea, normalizeUAEPhone } from '@/lib/uae-member-details';
 import { Empty, ErrorNote, Loading, Notice } from '@/components/hive/ui';
 import { ProfilePhoto } from '@/components/screens/ProfilePhoto';
 
@@ -54,9 +55,18 @@ function ProfileForm({ me }: { me: Me }) {
 
   async function save(e: FormEvent) {
     e.preventDefault();
+    const normalizedPhone = normalizeUAEPhone(phone);
+    if (normalizedPhone === null) {
+      setNotice({ message: lang === 'ar' ? 'أدخل رقم هاتف إماراتي صحيحاً أو اتركه فارغاً.' : 'Enter a UAE mobile number (e.g. +971 50 123 4567) or leave it blank.', tone: 'err' });
+      return;
+    }
+    if (!isAbuDhabiArea(area)) {
+      setNotice({ message: lang === 'ar' ? 'اختر منطقة في أبوظبي.' : 'Choose an Abu Dhabi area.', tone: 'err' });
+      return;
+    }
     setBusy(true);
     try {
-      await send('/me', { firstName: name, displayName: display, phone, area, interests: interests.split(',').map((s) => s.trim()).filter(Boolean), emailUpdates: updates }, 'PATCH');
+      await send('/me', { firstName: name, displayName: display, phone: normalizedPhone, area, interests: interests.split(',').map((s) => s.trim()).filter(Boolean), emailUpdates: updates }, 'PATCH');
       await qc.invalidateQueries({ queryKey: ['me'] });
       setNotice({ message: t.saved, tone: 'ok' });
     } catch (err) { setNotice({ message: err instanceof Error ? err.message : t.loadError, tone: 'err' }); } finally { setBusy(false); }
@@ -82,8 +92,17 @@ function ProfileForm({ me }: { me: Me }) {
         <div className="hv-profile-fields">
           <label>{t.firstName}<input required maxLength={60} value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" /></label>
           <label>{lang === 'ar' ? 'اسم العرض' : 'Display name'}<input maxLength={60} value={display} onChange={(e) => setDisplay(e.target.value)} /></label>
-          <label>{t.phone}<input type="tel" inputMode="tel" maxLength={20} pattern="\+?[0-9 ()\-]{7,20}" title="7 to 20 digits, e.g. +971 50 123 4567" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" /></label>
-          <label>{t.area}<input maxLength={80} value={area} onChange={(e) => setArea(e.target.value)} /></label>
+          <label>{lang === 'ar' ? 'رقم هاتف إماراتي (اختياري)' : 'UAE mobile (optional)'}
+            <input type="tel" inputMode="tel" maxLength={24} value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" placeholder="+971 50 123 4567" dir="ltr" />
+            <span className="hv-field-hint">{lang === 'ar' ? 'رقم إماراتي فقط، مثال: ‎+971 50 123 4567' : 'UAE mobile numbers only, e.g. +971 50 123 4567.'}</span>
+          </label>
+          <label>{lang === 'ar' ? 'المنطقة في أبوظبي' : 'Area in Abu Dhabi'} *
+            <select required value={area} onChange={(e) => setArea(e.target.value)}>
+              <option value="" disabled>{lang === 'ar' ? 'اختر منطقتك' : 'Choose your area'}</option>
+              {area && !isAbuDhabiArea(area) && <option value={area} disabled>{area} — {lang === 'ar' ? 'اختر منطقة في أبوظبي' : 'Please select an Abu Dhabi area'}</option>}
+              {AREAS.map((item) => <option key={item} value={item}>{item === 'Other' ? (lang === 'ar' ? 'منطقة أخرى في أبوظبي' : 'Other area in Abu Dhabi') : item}</option>)}
+            </select>
+          </label>
           <label className="hv-profile-field-full">{lang === 'ar' ? 'الاهتمامات (مفصولة بفواصل، حتى ١٠)' : 'Interests (comma separated, up to 10)'}<input value={interests} onChange={(e) => setInterests(e.target.value)} /></label>
         </div>
         <label className="hv-check">

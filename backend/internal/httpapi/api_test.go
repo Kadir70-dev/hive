@@ -163,7 +163,7 @@ func (e *env) do(method, path string, body any, opts ...opt) resp {
 // rawSignup submits the signup form and expects the uniform 202 response.
 func (e *env) rawSignup(email string, opts ...opt) resp {
 	e.t.Helper()
-	r := e.do("POST", "/v1/signup", map[string]any{"email": email, "password": goodPass, "firstName": "Noor"}, opts...)
+	r := e.do("POST", "/v1/signup", map[string]any{"email": email, "password": goodPass, "firstName": "Noor", "area": "Al Reem Island"}, opts...)
 	if r.code != 202 || r.cookie != "" {
 		e.t.Fatalf("signup %s: %d %s (cookie=%q)", email, r.code, r.raw, r.cookie)
 	}
@@ -317,7 +317,7 @@ func TestEssentialRoutes(t *testing.T) {
 	expect(t, e.do("GET", "/v1/partners", nil, session(a)), 200, "list partners")
 	expect(t, e.do("POST", "/v1/reports", map[string]any{"id": e.userID("admin@example.test"), "reason": "a test report reason"}, session(a)), 201, "report")
 	expect(t, e.do("POST", "/v1/blocks", map[string]any{"id": e.userID("a@example.test")}, session(a)), 404, "members cannot create blocks directly (admin-mediated)")
-	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "Noor", "displayName": "N", "interests": []string{"wellness"}}, session(a)), 200, "update profile")
+	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "Noor", "displayName": "N", "area": "Al Reem Island", "interests": []string{"wellness"}}, session(a)), 200, "update profile")
 	expect(t, e.do("DELETE", "/v1/admin/gatherings/"+gid, nil, session(adminC)), 200, "delete gathering")
 	expect(t, e.do("DELETE", "/v1/admin/gatherings/"+gid, nil, session(adminC)), 404, "delete gathering twice")
 
@@ -340,7 +340,7 @@ func TestLoginErrorsAreGeneric(t *testing.T) {
 	if ok.cookie == "" {
 		t.Fatal("no session cookie")
 	}
-	dup := e.do("POST", "/v1/signup", map[string]any{"email": "known@example.test", "password": goodPass, "firstName": "X"})
+	dup := e.do("POST", "/v1/signup", map[string]any{"email": "known@example.test", "password": goodPass, "firstName": "X", "area": "Al Reem Island"})
 	expect(t, dup, 202, "duplicate signup looks like a new one")
 	expect(t, e.do("POST", "/v1/signup", map[string]any{"email": "short@example.test", "password": "short", "firstName": "X"}), 400, "short password")
 }

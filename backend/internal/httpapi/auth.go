@@ -130,6 +130,17 @@ func (s *Server) signup(w http.ResponseWriter, r *http.Request) {
 	}
 	v.Email = normalizeEmail(v.Email)
 	v.FirstName = strings.TrimSpace(v.FirstName)
+	v.Area = strings.TrimSpace(v.Area)
+	var phoneOK bool
+	v.Phone, phoneOK = normalizeUAEMobile(v.Phone)
+	if !phoneOK {
+		s.fail(w, r, 400, "invalid_phone", "enter a valid UAE mobile number or leave the phone blank")
+		return
+	}
+	if !validAbuDhabiArea(v.Area) {
+		s.fail(w, r, 400, "invalid_area", "choose an area in Abu Dhabi")
+		return
+	}
 	if !validEmail(v.Email) || len(v.Password) < 12 || len(v.Password) > 128 ||
 		v.FirstName == "" || len(v.FirstName) > 60 || len(v.DisplayName) > 60 || len(v.Phone) > 30 ||
 		len(v.Area) > 80 || len(v.Interests) > 30 {

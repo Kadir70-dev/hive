@@ -51,6 +51,7 @@ describe('Meera frontend requirements', () => {
     }));
     render(<QueryClientProvider client={qc}><AuthScreen /></QueryClientProvider>);
     fireEvent.change(screen.getByLabelText(/First name/), {target: {value: 'Noor'}});
+    fireEvent.change(screen.getByLabelText(/Area in Abu Dhabi/), {target: {value: 'Al Reem Island'}});
     fireEvent.change(screen.getByLabelText(/Email/), {target: {value: 'noor@example.test'}});
     fireEvent.change(screen.getByLabelText(/Password/), {target: {value: 'a-secure-password-123'}});
     fireEvent.click(screen.getByLabelText('Culture & heritage'));

@@ -160,7 +160,7 @@ func TestAccessControlAndEscalationAttempts(t *testing.T) {
 	approve(t, e, adminC, "m@example.test", "other@example.test")
 
 	// Mass assignment: extra JSON fields cannot change role or status.
-	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "M", "isAdmin": true, "is_admin": true, "status": "approved", "IsAdmin": true, "email": "x@evil.test"}, session(m)), 200, "profile update")
+	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "M", "area": "Al Reem Island", "isAdmin": true, "is_admin": true, "status": "approved", "IsAdmin": true, "email": "x@evil.test"}, session(m)), 200, "profile update")
 	var isAdmin bool
 	var email string
 	_ = e.db.QueryRow(`SELECT is_admin, email FROM users WHERE id=$1`, e.userID("m@example.test")).Scan(&isAdmin, &email)
@@ -168,7 +168,7 @@ func TestAccessControlAndEscalationAttempts(t *testing.T) {
 		t.Fatalf("mass assignment: admin=%v email=%s", isAdmin, email)
 	}
 	// Signup cannot request admin either.
-	r := e.do("POST", "/v1/signup", map[string]any{"email": "sneaky@example.test", "password": goodPass, "firstName": "S", "isAdmin": true, "status": "approved"})
+	r := e.do("POST", "/v1/signup", map[string]any{"email": "sneaky@example.test", "password": goodPass, "firstName": "S", "area": "Al Reem Island", "isAdmin": true, "status": "approved"})
 	expect(t, r, 202, "signup with extra fields")
 	var sneakyAdmin bool
 	var sneakyStatus string
@@ -218,7 +218,7 @@ func TestCSRFOriginEnforcement(t *testing.T) {
 		t.Fatalf("cookie request without Origin: %d %s", r.code, r.raw)
 	}
 	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "X"}, session(c), header("Origin", "https://evil.example")), 403, "foreign origin")
-	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "X"}, session(c)), 200, "same origin")
+	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "X", "area": "Al Reem Island"}, session(c)), 200, "same origin")
 	expect(t, e.do("GET", "/v1/me", nil, session(c), noOrigin), 200, "safe methods need no Origin")
 	expect(t, e.do("POST", "/v1/password/forgot", map[string]any{"email": "a@b.test"}, noOrigin), 202, "cookie-less calls without Origin")
 }
