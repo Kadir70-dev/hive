@@ -4,7 +4,7 @@ import "testing"
 
 func TestMemberSignupRequiresAbuDhabiAndUAEPhone(t *testing.T) {
 	e := newEnv(t, nil, 2)
-	base := map[string]any{"email": "area-check@example.test", "password": goodPass, "firstName": "Noor"}
+	base := map[string]any{"email": "area-check@example.test", "password": goodPass, "firstName": "Noor", "phone": "+971501234567"}
 	r := e.do("POST", "/v1/signup", base)
 	expect(t, r, 400, "missing Abu Dhabi area")
 	if r.body["code"] != "invalid_area" {
@@ -19,6 +19,7 @@ func TestMemberSignupRequiresAbuDhabiAndUAEPhone(t *testing.T) {
 	}
 
 	base["area"] = "Al Reem Island"
+	delete(base, "phone")
 	// Missing phone is invalid even for otherwise valid Abu Dhabi signup.
 	r = e.do("POST", "/v1/signup", base)
 	expect(t, r, 400, "missing compulsory UAE mobile")
