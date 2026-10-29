@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
-	"regexp"
 	"strings"
 
 	"thehivesociety/api/internal/password"
@@ -18,9 +17,6 @@ func (s *Server) me(w http.ResponseWriter, r *http.Request) {
 	u.PhotosEnabled = s.store != nil
 	reply(w, 200, u)
 }
-
-// phoneRe allows international formats: digits, spaces, +, -, (, ).
-var phoneRe = regexp.MustCompile(`^\+?[0-9 ()\-]{7,20}$`)
 
 func (s *Server) updateMe(w http.ResponseWriter, r *http.Request) {
 	var v struct {
@@ -37,8 +33,14 @@ func (s *Server) updateMe(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, 400, "invalid_profile", "first name is required; names up to 60 characters, area up to 80")
 		return
 	}
-	if v.Phone != "" && !phoneRe.MatchString(v.Phone) {
-		s.fail(w, r, 400, "invalid_phone", "enter a phone number with 7 to 20 digits, e.g. +971 50 123 4567")
+	var phoneOK bool
+	v.Phone, phoneOK = normalizeUAEMobile(v.Phone)
+	if !phoneOK {
+		s.fail(w, r, 400, "invalid_phone", "enter a valid UAE mobile number or leave the phone blank")
+		return
+	}
+	if !validAbuDhabiArea(v.Area) {
+		s.fail(w, r, 400, "invalid_area", "choose an area in Abu Dhabi")
 		return
 	}
 	interests := []string{}
