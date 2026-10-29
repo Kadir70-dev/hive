@@ -12,7 +12,7 @@ import { captureCampaign, savedCampaign } from '@/lib/campaign-attribution';
 const COPY = {
   en: {
     joinTitle: 'Join The Hive Society', welcomeTitle: 'Welcome back',
-    lead: 'An Abu Dhabi community for men and women of all nationalities. Discover free, curated gatherings — with dedicated women-only experiences.',
+    lead: 'An Abu Dhabi community. Discover free, curated gatherings — with dedicated women-only experiences.',
     signIn: 'Log in', signUp: 'Sign up', firstName: 'First name', displayName: 'Display name (optional)',
     phone: 'UAE mobile number', phoneHint: 'UAE numbers only, e.g. +971 50 123 4567.', phoneError: 'UAE mobile number is required. Enter a valid number, e.g. +971 50 123 4567.', area: 'Area in Abu Dhabi', areaHint: 'Choose your Abu Dhabi neighbourhood', areaError: 'Choose an Abu Dhabi area to continue.', email: 'Email', password: 'Password', passwordHint: 'At least 12 characters for a new account.',
     agree: 'I agree to the', terms: 'Terms of Membership', and: 'and', privacy: 'Privacy Policy',

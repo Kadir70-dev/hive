@@ -20,12 +20,14 @@ describe('AuthScreen', () => {
   it('opens the sign-up form for /auth?mode=signup', () => {
     renderAuth('mode=signup');
     expect(screen.getByRole('heading', { name: 'Join The Hive Society' })).toBeInTheDocument();
+    expect(screen.getByText('An Abu Dhabi community. Discover free, curated gatherings — with dedicated women-only experiences.')).toBeInTheDocument();
     expect(screen.getByLabelText(/First name/)).toBeInTheDocument();
   });
 
   it('opens the log-in form by default', () => {
     renderAuth('');
     expect(screen.getByRole('heading', { name: 'Welcome back' })).toBeInTheDocument();
+    expect(screen.getByText('An Abu Dhabi community. Discover free, curated gatherings — with dedicated women-only experiences.')).toBeInTheDocument();
     expect(screen.queryByLabelText(/First name/)).not.toBeInTheDocument();
   });
 });
