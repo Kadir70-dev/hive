@@ -5,7 +5,7 @@ import "testing"
 func TestNormalizeUAEMobile(t *testing.T) {
 	cases := []struct {
 		input string
-		want string
+		want  string
 		valid bool
 	}{
 		{"", "", true},
@@ -32,9 +32,13 @@ func TestNormalizeUAEMobile(t *testing.T) {
 
 func TestAbuDhabiAreaAllowlist(t *testing.T) {
 	for _, v := range []string{"Al Reem Island", "Saadiyat Island", "Khalifa City", "Other"} {
-		if !validAbuDhabiArea(v) { t.Errorf("should allow %q", v) }
+		if !validAbuDhabiArea(v) {
+			t.Errorf("should allow %q", v)
+		}
 	}
 	for _, v := range []string{"", "Dubai", "Sharjah", "Other Emirate", "Jumeirah", "Al Reem Island, Dubai"} {
-		if validAbuDhabiArea(v) { t.Errorf("should reject %q", v) }
+		if validAbuDhabiArea(v) {
+			t.Errorf("should reject %q", v)
+		}
 	}
 }
