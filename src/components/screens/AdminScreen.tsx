@@ -1,5 +1,6 @@
 'use client';
 import { useRef, useState, type KeyboardEvent } from 'react';
+import Link from 'next/link';
 import { HiveShell, useMe, useT } from '@/components/hive/HiveShell';
 import { MfaGate } from '@/components/screens/MfaGate';
 import { Loading } from '@/components/hive/ui';
@@ -44,8 +45,12 @@ export function AdminTools() {
   const Panel = TABS.find(([id]) => id === tab)![2];
   const arLabels: Record<(typeof TABS)[number][0], string> = { members: 'الأعضاء', gatherings: 'اللقاءات', announcements: 'الإعلانات', partners: 'الشركاء', campaigns: 'مصادر التسجيل', reports: 'البلاغات', 'safety-conflicts': 'تعارضات السلامة' };
   return (
-    <div className="hv-card">
-      <div className="hv-tabs" role="tablist" aria-label={lang === "ar" ? "أقسام الإدارة" : "Admin sections"}>
+    <div className="hv-card hv-admin-console">
+      <div className="hv-admin-console-topline">
+        <span>{lang === 'ar' ? 'مساحة عمل خاصة' : 'PRIVATE WORKSPACE'}</span>
+        <Link href="/studio" className="hv-admin-studio-link">{lang === 'ar' ? 'استوديو الموقع' : 'Website Studio'} <span aria-hidden="true">↗</span></Link>
+      </div>
+      <div className="hv-tabs hv-admin-tabs" role="tablist" aria-label={lang === "ar" ? "أقسام الإدارة" : "Admin sections"}>
         {TABS.map(([id, label], index) => (
           <button key={id} type="button" role="tab" id={`tab-${id}`}
             ref={(element) => { tabRefs.current[index] = element; }}
@@ -65,10 +70,14 @@ function AdminBody() {
   const { data: me, isLoading } = useMe();
   const { lang } = useT();
   return (
-    <>
-      <div className="hv-hero"><h1>{lang === "ar" ? "الإدارة" : "Administration"}</h1><p>{lang === "ar" ? "إدارة العضويات واللقاءات وتسجيل الحضور والمحتوى المجتمعي بخصوصية." : "Private member approvals, gatherings, check-ins and community content."}</p></div>
-      {isLoading ? <Loading /> : !me?.isAdmin ? <div className="hv-card">{lang === "ar" ? "يتطلب هذا القسم صلاحية المشرف." : "Admin access required."}</div> : <MfaGate me={me}><AdminTools /></MfaGate>}
-    </>
+    <div className="hv-admin-page">
+      <header className="hv-admin-hero">
+        <span className="hv-admin-eyebrow">{lang === 'ar' ? 'ذا هايف سوسايتي / الإدارة' : 'THE HIVE SOCIETY / MANAGEMENT'}</span>
+        <h1>{lang === 'ar' ? 'الإدارة' : 'Administration'}</h1>
+        <p>{lang === 'ar' ? 'مكان واحد لإدارة الأعضاء واللقاءات والمحتوى المجتمعي بخصوصية.' : 'A quieter place to manage members, gatherings and community content.'}</p>
+      </header>
+      {isLoading ? <Loading /> : !me?.isAdmin ? <div className="hv-card">{lang === 'ar' ? 'يتطلب هذا القسم صلاحية المشرف.' : 'Admin access required.'}</div> : <MfaGate me={me}><AdminTools /></MfaGate>}
+    </div>
   );
 }
 export default function AdminScreen() { return <HiveShell member><AdminBody /></HiveShell>; }
