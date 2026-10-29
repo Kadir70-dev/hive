@@ -4,7 +4,7 @@ import "testing"
 
 func TestMemberSignupRequiresAbuDhabiAndUAEPhone(t *testing.T) {
 	e := newEnv(t, nil, 2)
-	base := map[string]any{"email": "area-check@example.test", "password": goodPass, "firstName": "Noor"}
+	base := map[string]any{"email": "area-check@example.test", "password": goodPass, "firstName": "Noor", "phone": "+971501234567"}
 	r := e.do("POST", "/v1/signup", base)
 	expect(t, r, 400, "missing Abu Dhabi area")
 	if r.body["code"] != "invalid_area" {
@@ -19,6 +19,10 @@ func TestMemberSignupRequiresAbuDhabiAndUAEPhone(t *testing.T) {
 	}
 
 	base["area"] = "Al Reem Island"
+	delete(base, "phone")
+	// Missing phone is invalid even for otherwise valid Abu Dhabi signup.
+	r = e.do("POST", "/v1/signup", base)
+	expect(t, r, 400, "missing compulsory UAE mobile")
 	base["phone"] = "+91 98765 43210"
 	r = e.do("POST", "/v1/signup", base)
 	expect(t, r, 400, "international phone")
@@ -27,13 +31,15 @@ func TestMemberSignupRequiresAbuDhabiAndUAEPhone(t *testing.T) {
 	}
 
 	base["phone"] = ""
-	expect(t, e.do("POST", "/v1/signup", base), 202, "phone optional")
+	expect(t, e.do("POST", "/v1/signup", base), 400, "blank compulsory phone")
+	base["phone"] = "050 123 4567"
+	expect(t, e.do("POST", "/v1/signup", base), 202, "valid UAE mobile")
 	var savedArea string
 	var savedPhone *string
 	if err := e.db.QueryRow("SELECT area,phone FROM users WHERE email=$1", base["email"]).Scan(&savedArea, &savedPhone); err != nil {
 		t.Fatal(err)
 	}
-	if savedArea != "Al Reem Island" || savedPhone != nil {
+	if savedArea != "Al Reem Island" || savedPhone == nil || *savedPhone != "+971501234567" {
 		t.Fatalf("stored area=%q phone=%v", savedArea, savedPhone)
 	}
 }
@@ -54,5 +60,7 @@ func TestMemberProfileAcceptsOnlyUAEPhoneAndAbuDhabiArea(t *testing.T) {
 	payload["area"] = "Dubai"
 	expect(t, e.do("PATCH", "/v1/me", payload, session(sess)), 400, "outside Abu Dhabi")
 	payload["area"] = "Khalifa City"
-	expect(t, e.do("PATCH", "/v1/me", payload, session(sess)), 200, "optional mobile removed")
+	expect(t, e.do("PATCH", "/v1/me", payload, session(sess)), 400, "empty compulsory mobile")
+	payload["phone"] = "+971 58 123 4567"
+	expect(t, e.do("PATCH", "/v1/me", payload, session(sess)), 200, "valid mobile and location")
 }

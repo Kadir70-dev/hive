@@ -12,7 +12,7 @@ func TestCampaignAttributionEndToEnd(t *testing.T) {
 	adminC, _ := e.admin("campaign-admin@example.test")
 
 	input := map[string]any{
-		"email": "campaign-new@example.test", "password": goodPass, "firstName": "Noor", "area": "Al Reem Island",
+		"email": "campaign-new@example.test", "password": goodPass, "firstName": "Noor", "area": "Al Reem Island", "phone": "+971501234567",
 		"utmSource": "instagram", "utmMedium": "paid_social",
 		"utmCampaign": "abu_dhabi_gatherings",
 		"utmContent":  "creative_b", "utmTerm": "culture",
@@ -75,7 +75,7 @@ func TestCampaignAttributionEndToEnd(t *testing.T) {
 func TestCampaignAttributionInputBoundedAndOptional(t *testing.T) {
 	e := newEnv(t, nil, 2)
 	invalid := e.do("POST", "/v1/signup", map[string]any{
-		"email": "bad-campaign@example.test", "password": goodPass, "firstName": "Noor", "area": "Al Reem Island",
+		"email": "bad-campaign@example.test", "password": goodPass, "firstName": "Noor", "area": "Al Reem Island", "phone": "+971501234567",
 		"utmCampaign": strings.Repeat("a", 81),
 	})
 	if invalid.code != 400 || invalid.body["code"] != "invalid_campaign" {

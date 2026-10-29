@@ -4,9 +4,9 @@ import { normalizeUAEPhone, isAbuDhabiArea } from '@/lib/uae-member-details';
 import { readFileSync } from 'node:fs';
 
 describe('UAE-only member contact details', () => {
-  it('allows an omitted phone and normalizes local/international UAE mobiles', () => {
-    expect(normalizeUAEPhone('')).toBe('');
-    expect(normalizeUAEPhone('  ')).toBe('');
+  it('requires phone and normalizes local/international UAE mobiles', () => {
+    expect(normalizeUAEPhone('')).toBeNull();
+    expect(normalizeUAEPhone('  ')).toBeNull();
     expect(normalizeUAEPhone('050 123 4567')).toBe('+971501234567');
     expect(normalizeUAEPhone('+971 50 123 4567')).toBe('+971501234567');
     expect(normalizeUAEPhone('00971 50 123 4567')).toBe('+971501234567');
@@ -27,8 +27,10 @@ describe('UAE-only member contact details', () => {
     expect(signup).toContain('<select name="area" required');
     expect(signup).toContain('isAbuDhabiArea(area)');
     expect(signup).toContain('normalizeUAEPhone(');
+    expect(signup).toContain('name="phone" type="tel" inputMode="tel" required');
     expect(profile).toContain('<select required value={area}');
     expect(profile).toContain('normalizeUAEPhone(phone)');
+    expect(profile).toContain('type="tel" inputMode="tel" required');
     expect(profile).toContain('isAbuDhabiArea(area)');
   });
 });

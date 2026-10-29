@@ -15,8 +15,8 @@ var abuDhabiAreas = map[string]bool{
 	"Al Shamkha": true, "Other": true,
 }
 
-// normalizeUAEMobile accepts optional UAE mobile numbers in local or E.164
-// formats, then stores only the +971 international representation.
+// normalizeUAEMobile normalizes UAE mobile numbers in local or E.164
+// formats. Calling endpoints enforce that a non-empty value is supplied.
 // It never records a phone number from another country.
 func normalizeUAEMobile(value string) (string, bool) {
 	value = strings.TrimSpace(value)

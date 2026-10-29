@@ -1,9 +1,9 @@
 import { AREAS } from '@/lib/hive-i18n';
 
-/** Blank is allowed; entered phone numbers must be UAE mobiles. Stores +971 E.164. */
+/** Parses a UAE mobile to +971 E.164; blank returns null because phone is required. */
 export function normalizeUAEPhone(value: string): string | null {
   const raw = value.trim();
-  if (!raw) return '';
+  if (!raw) return null;
   if (!/^[+0-9\s()\-]+$/.test(raw)) return null;
   const compact = raw.replace(/[\s()\-]/g, '');
   const international = compact.startsWith('00971') ? '+' + compact.slice(2) : compact;

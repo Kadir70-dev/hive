@@ -42,8 +42,8 @@ func TestAnnouncementsLifecycleAndEmailPreferences(t *testing.T) {
 	adminC, _ := e.admin("owner@example.test")
 	in := approvedMember(t, e, adminC, "optin@example.test")
 	out := approvedMember(t, e, adminC, "optout@example.test")
-	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "In", "area": "Al Reem Island", "emailUpdates": true}, session(in)), 200, "opt in")
-	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "Out", "area": "Al Reem Island", "emailUpdates": false}, session(out)), 200, "opt out")
+	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "In", "area": "Al Reem Island", "phone": "+971501234567", "emailUpdates": true}, session(in)), 200, "opt in")
+	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "Out", "area": "Al Reem Island", "phone": "+971501234567", "emailUpdates": false}, session(out)), 200, "opt out")
 	e.rawSignup("pending@example.test") // unverified + pending: never emailed even if opted in
 	_, _ = e.db.Exec(`UPDATE users SET email_updates=true WHERE email='pending@example.test'`)
 
