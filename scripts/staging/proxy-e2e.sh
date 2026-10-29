@@ -61,7 +61,7 @@ echo "ok: cookie round-trip and API security headers"
 
 echo "== CSRF: cookie-authenticated request from a foreign origin"
 [ "$(api PATCH /me '{"firstName":"X","area":"Al Reem Island"}' -H 'Origin: https://evil.example')" = 403 ] || fail "foreign origin accepted"
-[ "$(api PATCH /me '{"firstName":"X"}' -H "Origin: $SITE")" = 200 ] || fail "same-origin update refused"
+[ "$(api PATCH /me '{"firstName":"X","area":"Al Reem Island"}' -H "Origin: $SITE")" = 200 ] || fail "same-origin update refused"
 echo "ok: CSRF origin check"
 
 echo "== client-IP trust: per-IP login limit (30/10 min) keyed on the Netlify client IP"
