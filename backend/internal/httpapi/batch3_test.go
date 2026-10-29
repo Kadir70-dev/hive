@@ -218,7 +218,7 @@ func TestCSRFOriginEnforcement(t *testing.T) {
 		t.Fatalf("cookie request without Origin: %d %s", r.code, r.raw)
 	}
 	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "X"}, session(c), header("Origin", "https://evil.example")), 403, "foreign origin")
-	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "X"}, session(c)), 200, "same origin")
+	expect(t, e.do("PATCH", "/v1/me", map[string]any{"firstName": "X", "area": "Al Reem Island"}, session(c)), 200, "same origin")
 	expect(t, e.do("GET", "/v1/me", nil, session(c), noOrigin), 200, "safe methods need no Origin")
 	expect(t, e.do("POST", "/v1/password/forgot", map[string]any{"email": "a@b.test"}, noOrigin), 202, "cookie-less calls without Origin")
 }
