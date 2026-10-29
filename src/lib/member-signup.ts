@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { AREAS, INTERESTS } from "./hive-i18n";
+import { normalizeUAEPhone } from "./uae-member-details";
 
 export const memberSignupSchema = z
   .object({
@@ -11,7 +12,8 @@ export const memberSignupSchema = z
       .max(254)
       .transform((email) => email.toLowerCase()),
     password: z.string().min(8).max(128),
-    phone: z.string().trim().min(1, 'UAE mobile number is required').max(30),
+    phone: z.string().trim().min(1, 'UAE mobile number is required').max(30)
+      .refine((phone) => normalizeUAEPhone(phone) !== null, 'Enter a valid UAE mobile number'),
     area: z.enum(AREAS),
     interests: z.array(z.enum(INTERESTS)).min(1).max(5),
     agreed: z.literal(true),
