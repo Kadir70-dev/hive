@@ -37,6 +37,7 @@ describe('AuthScreen account flows', () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('{"ok":true,"status":"verification_sent"}', { status: 202 })));
     fireEvent.change(s.getByLabelText(/First name/), { target: { value: 'Noor' } });
     fireEvent.change(s.getByLabelText(/Area in Abu Dhabi/), { target: { value: 'Al Reem Island' } });
+    fireEvent.change(s.getByLabelText(/UAE mobile number/), { target: { value: '+971 50 123 4567' } });
     fireEvent.change(s.getByLabelText(/Email/), { target: { value: 'noor@example.test' } });
     fireEvent.change(s.getByLabelText(/Password/), { target: { value: 'a-long-password-123' } });
     fireEvent.click(s.getByRole('checkbox', { name: /I agree to the/ }));
