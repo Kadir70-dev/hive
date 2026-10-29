@@ -72,7 +72,7 @@ const en = {
   // status
   pendingTitle: "Your request is <em>with us</em>",
   pendingText:
-    "Thank you for joining. Your membership is pending — Meera reads every request personally and you'll see your welcome here once you're approved.",
+    "Thank you for joining. The Hive Society team reviews every membership request personally. You'll see your welcome here once you're approved.",
   declinedTitle: "Thank you for your <em>interest</em>",
   declinedText:
     "We aren't able to welcome you as a member this season. If you have questions, write to hello@thehivesociety.ae.",
@@ -98,6 +98,11 @@ const en = {
   onWaitlist: "You're on the waitlist",
   waitlistNote: "If a place opens, the first person on the waitlist gets it automatically.",
   // profile
+  profileIntro: "Manage your membership, details and gatherings in one place.",
+  profileOverview: "Membership overview",
+  profileDetails: "Personal details",
+  profileEmailPrivate: "Private email",
+  profileAccount: "Account settings",
   pEyebrow: "My profile",
   pTitle: "Your <em>Hive</em>",
   photo: "Photo (optional)",
@@ -275,6 +280,11 @@ const ar: Dict = {
   youreIn: "حجزك مؤكّد",
   onWaitlist: "أنت في قائمة الانتظار",
   waitlistNote: "إذا توفّر مكان، تحصل عليه أول من في قائمة الانتظار تلقائياً.",
+  profileIntro: "أدر عضويتك وبياناتك ولقاءاتك في مكان واحد.",
+  profileOverview: "نظرة عامة على العضوية",
+  profileDetails: "البيانات الشخصية",
+  profileEmailPrivate: "البريد الإلكتروني الخاص",
+  profileAccount: "إعدادات الحساب",
   pEyebrow: "ملفي",
   pTitle: "<em>ملفك</em>",
   photo: "الصورة (اختياري)",
