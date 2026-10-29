@@ -56,8 +56,8 @@ function ProfileForm({ me }: { me: Me }) {
   async function save(e: FormEvent) {
     e.preventDefault();
     const normalizedPhone = normalizeUAEPhone(phone);
-    if (normalizedPhone === null) {
-      setNotice({ message: lang === 'ar' ? 'أدخل رقم هاتف إماراتي صحيحاً أو اتركه فارغاً.' : 'Enter a UAE mobile number (e.g. +971 50 123 4567) or leave it blank.', tone: 'err' });
+    if (!normalizedPhone) {
+      setNotice({ message: lang === 'ar' ? 'رقم الهاتف الإماراتي مطلوب، مثال: ‎+971 50 123 4567' : 'UAE mobile is required (e.g. +971 50 123 4567).', tone: 'err' });
       return;
     }
     if (!isAbuDhabiArea(area)) {
@@ -92,8 +92,8 @@ function ProfileForm({ me }: { me: Me }) {
         <div className="hv-profile-fields">
           <label>{t.firstName}<input required maxLength={60} value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" /></label>
           <label>{lang === 'ar' ? 'اسم العرض' : 'Display name'}<input maxLength={60} value={display} onChange={(e) => setDisplay(e.target.value)} /></label>
-          <label>{lang === 'ar' ? 'رقم هاتف إماراتي (اختياري)' : 'UAE mobile (optional)'}
-            <input type="tel" inputMode="tel" maxLength={24} value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" placeholder="+971 50 123 4567" dir="ltr" />
+          <label>{lang === 'ar' ? 'رقم الهاتف الإماراتي' : 'UAE mobile number'} *
+            <input type="tel" inputMode="tel" required maxLength={24} value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" placeholder="+971 50 123 4567" dir="ltr" />
             <span className="hv-field-hint">{lang === 'ar' ? 'رقم إماراتي فقط، مثال: ‎+971 50 123 4567' : 'UAE mobile numbers only, e.g. +971 50 123 4567.'}</span>
           </label>
           <label>{lang === 'ar' ? 'المنطقة في أبوظبي' : 'Area in Abu Dhabi'} *
